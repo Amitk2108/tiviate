@@ -1,5 +1,6 @@
 package app.tiviate.ui
 
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.Alignment
@@ -51,8 +52,19 @@ fun AppRoot() {
         graph.longBack.collect { if (nav.current != Screen.Player && nav.current !is Screen.Welcome && nav.current !is Screen.AddPlaylist) nav.replaceAll(Screen.Player) }
     }
 
-    CompositionLocalProvider(LocalNavigator provides nav) {
+    val videoLayout = remember { app.tiviate.ui.player.VideoLayout() }
+    // Each screen fades in quickly; the video under it never moves layers, so this stays cheap.
+    val fade = remember { androidx.compose.animation.core.Animatable(1f) }
+    LaunchedEffect(nav.current) {
+        if (app.tiviate.ui.theme.ThemeState.animations) {
+            fade.snapTo(0.6f)
+            fade.animateTo(1f, androidx.compose.animation.core.tween(160, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+        }
+    }
+    CompositionLocalProvider(LocalNavigator provides nav, app.tiviate.ui.player.LocalVideoLayout provides videoLayout) {
         Box(Modifier.fillMaxSize().background(Tokens.Background)) {
+            app.tiviate.ui.player.VideoHost(graph.player.engine)
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = fade.value }) {
             when (val screen = nav.current) {
                 Screen.Loading -> Unit
                 Screen.Welcome -> WelcomeScreen()
@@ -65,6 +77,7 @@ fun AppRoot() {
                 is Screen.ManageGroups -> app.tiviate.ui.organise.ManageGroupsScreen(screen.playlistId)
                 Screen.OptionCards -> app.tiviate.ui.organise.OptionCardsScreen()
                 Screen.Settings -> SettingsScreen()
+            }
             }
         }
     }

@@ -81,8 +81,9 @@ object Tokens {
     val Danger = Color(0xFFFF5A6E)
 
     /** Panel backgrounds over video; "UI transparency" makes them more see-through. */
-    val Scrim: Color get() = Background.copy(alpha = 0.90f * (1f - ThemeState.transparency / 100f))
-    val ScrimSoft: Color get() = Background.copy(alpha = 0.60f * (1f - ThemeState.transparency / 100f))
+    // Neutral black (not the navy background) so panels over the video never tint the picture blue.
+    val Scrim: Color get() = Color.Black.copy(alpha = 0.86f * (1f - ThemeState.transparency / 100f))
+    val ScrimSoft: Color get() = Color.Black.copy(alpha = 0.58f * (1f - ThemeState.transparency / 100f))
 
     val BrandGradient: Brush get() = Brush.horizontalGradient(listOf(Blue, Cyan))
 
