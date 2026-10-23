@@ -119,6 +119,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
             val playlist = graph.playlists.get(pid) ?: return@launch
             _playlist.value = playlist
             if (_category.value == Category.All) _category.value = Category.restore(settings.lastGroup)
+            savedGroup = settings.lastGroup
             if (controller.current.value != null && controller.engine.state.value.channelKey != null) return@launch
             val channel = settings.lastChannelKey?.let { repo.byKey(pid, it) }
                 ?: repo.first(pid, Category.All)
@@ -180,13 +181,24 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
         }
     }
 
-    fun selectCategory(category: Category) {
+    /** [save] = false while the viewer is only moving through the groups; [rememberGroup] saves it later. */
+    fun selectCategory(category: Category, save: Boolean = true) {
         _category.value = category
-        viewModelScope.launch { graph.settings.update { it.copy(lastGroup = Category.remember(category)) } }
+        if (save) rememberGroup()
+    }
+
+    private var savedGroup: String? = null
+
+    fun rememberGroup() {
+        val g = Category.remember(_category.value)
+        if (g == savedGroup) return
+        savedGroup = g
+        viewModelScope.launch { graph.settings.update { it.copy(lastGroup = g) } }
     }
 
     fun switchPlaylist(id: Long) {
         viewModelScope.launch {
+            savedGroup = null
             graph.settings.update { it.copy(activePlaylistId = id, lastChannelKey = null, lastGroup = null) }
             _category.value = if (graph.settings.settings.first().openPlaylistOn == app.tiviate.data.OpenOn.FAVORITES) Category.Favorites else Category.All
             controller.stop()
@@ -286,6 +298,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
         if (peeking) { peeking = false; _pending.value = null }
         canPeek = false
         _overlay.value = Overlay.None
+        rememberGroup() // a group browsed to in the channel list is kept
     }
 
     fun togglePause() = controller.engine.togglePause()

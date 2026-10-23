@@ -95,6 +95,13 @@ interface ChannelDao {
     @RawQuery(observedEntities = [ChannelEntity::class, FavoriteEntity::class, HistoryEntity::class, GroupPrefEntity::class, CustomGroupMemberEntity::class])
     fun pageRaw(query: SupportSQLiteQuery): PagingSource<Int, ChannelEntity>
 
+    /**
+     * For lists that only read the channel and group tables (All channels and the provider's groups in any
+     * order but "most watched"): saving watch history or a favourite doesn't reload them.
+     */
+    @RawQuery(observedEntities = [ChannelEntity::class, GroupPrefEntity::class])
+    fun pageChannelsRaw(query: SupportSQLiteQuery): PagingSource<Int, ChannelEntity>
+
     @RawQuery suspend fun idsRaw(query: SupportSQLiteQuery): List<Long>
 
     @RawQuery suspend fun listRaw(query: SupportSQLiteQuery): List<ChannelEntity>

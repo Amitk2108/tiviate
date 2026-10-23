@@ -6,6 +6,7 @@ import app.tiviate.data.db.ChannelEntity
 import app.tiviate.ui.components.KeyAction
 import app.tiviate.ui.components.LongPressDetector
 import app.tiviate.ui.components.logoCandidates
+import app.tiviate.ui.components.logosToFetch
 import app.tiviate.ui.components.monogramInitials
 import app.tiviate.ui.player.optionOrder
 import org.junit.Assert.assertEquals
@@ -59,6 +60,17 @@ class UiLogicTest {
         assertEquals(listOf("https://a.png", "http://a.png"), logoCandidates(channel("http://a.png", "http://a.png")))
         assertEquals(listOf("https://x/logo.svg"), logoCandidates(channel("https://x/logo.svg", null)))
         assertEquals(emptyList<String>(), logoCandidates(channel(null, null)))
+    }
+
+    @Test
+    fun onlyLogosNotSavedYetAreFetched() {
+        val channels = listOf(
+            channel("https://a.png", null), channel("https://b.png", null),
+            channel("https://a.png", null), // same logo twice: fetched once
+            channel(null, null), // no logo
+        )
+        assertEquals(listOf("https://b.png"), logosToFetch(channels) { it == "https://a.png" })
+        assertEquals(emptyList<String>(), logosToFetch(channels) { true }) // everything saved: nothing to do
     }
 
     @Test

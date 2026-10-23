@@ -66,8 +66,10 @@ object SyncScheduler {
         wm.enqueueUniquePeriodicWork(PERIODIC, policy, request)
     }
 
-    fun syncNow(context: Context, atStart: Boolean = false) {
+    /** [delaySec]: the start-up refresh waits a little, so downloading the guide doesn't slow the first zaps. */
+    fun syncNow(context: Context, atStart: Boolean = false, delaySec: Long = 0) {
         val request = OneTimeWorkRequestBuilder<SyncWorker>().setConstraints(network)
+            .setInitialDelay(delaySec, TimeUnit.SECONDS)
             .setInputData(workDataOf(SyncWorker.KEY_AT_START to atStart)).build()
         WorkManager.getInstance(context).enqueueUniqueWork(NOW, ExistingWorkPolicy.KEEP, request)
     }

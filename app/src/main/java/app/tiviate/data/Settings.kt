@@ -1,6 +1,7 @@
 package app.tiviate.data
 
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChanged
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
@@ -190,6 +191,14 @@ data class AppSettings(
 class SettingsStore private constructor(private val store: DataStore<Preferences>) {
 
     val settings: Flow<AppSettings> = store.data.map(::read)
+
+    /**
+     * What screens draw from. The "where the viewer was" fields (saved on every tune and group change)
+     * are left out, so saving them doesn't redraw every screen.
+     */
+    val screenSettings: Flow<AppSettings> = settings
+        .map { it.copy(lastChannelKey = null, lastGroup = null, lastUpdateCheck = 0L) }
+        .distinctUntilChanged()
 
     /** Every stored setting, by key name (for backups). */
     suspend fun exportRaw(): Map<String, Any> = store.data.first().asMap().mapKeys { it.key.name }

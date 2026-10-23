@@ -74,6 +74,7 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
             val pid = settings.activePlaylistId ?: return@launch
             val p = graph.playlists.get(pid) ?: return@launch
             _category.value = Category.restore(settings.lastGroup)
+            savedGroup = settings.lastGroup
             _playlist.value = p
             // Nothing starts by itself: the guide opens on the playing channel, or the last watched one; OK plays it.
             val focusOn = graph.player.current.value ?: settings.lastChannelKey?.let { repo.byKey(pid, it) }
@@ -109,10 +110,20 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
         }
     }
 
-    fun selectCategory(c: Category) {
+    /** [save] = false while the viewer is only moving through the groups; [rememberGroup] saves it later. */
+    fun selectCategory(c: Category, save: Boolean = true) {
         _category.value = c
         initialRow = 0
-        viewModelScope.launch { graph.settings.update { it.copy(lastGroup = Category.remember(c)) } }
+        if (save) rememberGroup()
+    }
+
+    private var savedGroup: String? = null
+
+    fun rememberGroup() {
+        val g = Category.remember(_category.value)
+        if (g == savedGroup) return
+        savedGroup = g
+        viewModelScope.launch { graph.settings.update { it.copy(lastGroup = g) } }
     }
 
     private val prefetched = mutableSetOf<Long>()
@@ -133,6 +144,7 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
     fun switchPlaylist(id: Long) {
         viewModelScope.launch {
             graph.player.stop()
+            savedGroup = null
             graph.settings.update { it.copy(activePlaylistId = id, lastChannelKey = null, lastGroup = null) }
             open()
             if (graph.settings.settings.first().openPlaylistOn == app.tiviate.data.OpenOn.FAVORITES) selectCategory(Category.Favorites)

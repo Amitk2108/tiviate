@@ -1,5 +1,38 @@
-# Baseline profile for Tiviate's own code (Compose, Media3 and the other libraries ship their own).
-# Sideloaded installs get it through ProfileInstaller: the screens below are compiled ahead of time,
-# so a cold start and the first scroll of the guide and lists don't wait for the JIT on slow TV sticks.
+# Baseline profile: code Android compiles ahead of time for Tiviate (sideloaded installs get it through
+# ProfileInstaller, compiled when the TV next does its background compile).
+#
+# Tiviate's own code, plus the libraries every screen runs through on each key press: Compose and
+# Compose for TV (UI), Paging and Room (channel lists), Lifecycle, Media3 (player), Coil (logos),
+# OkHttp/Okio (network) and Kotlin coroutines. Measured on a Fire TV (32-bit ARM): with only the app's
+# own code listed, moving through the guide spent ~60% of the CPU in the JIT compiler and frames took
+# ~46 ms; with these libraries compiled, ~10 ms.
 HSPLapp/tiviate/**;->**(**)**
 Lapp/tiviate/**;
+HSPLandroidx/compose/**;->**(**)**
+Landroidx/compose/**;
+HSPLandroidx/tv/**;->**(**)**
+Landroidx/tv/**;
+HSPLandroidx/paging/**;->**(**)**
+Landroidx/paging/**;
+HSPLandroidx/room/**;->**(**)**
+Landroidx/room/**;
+HSPLandroidx/sqlite/**;->**(**)**
+Landroidx/sqlite/**;
+HSPLandroidx/lifecycle/**;->**(**)**
+Landroidx/lifecycle/**;
+HSPLandroidx/activity/**;->**(**)**
+Landroidx/activity/**;
+HSPLandroidx/media3/**;->**(**)**
+Landroidx/media3/**;
+HSPLandroidx/datastore/**;->**(**)**
+Landroidx/datastore/**;
+HSPLcoil3/**;->**(**)**
+Lcoil3/**;
+HSPLokhttp3/**;->**(**)**
+Lokhttp3/**;
+HSPLokio/**;->**(**)**
+Lokio/**;
+HSPLkotlinx/coroutines/**;->**(**)**
+Lkotlinx/coroutines/**;
+HSPLkotlin/**;->**(**)**
+Lkotlin/**;
