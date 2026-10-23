@@ -96,6 +96,9 @@ class PlayerExtrasTest {
     @Test
     fun longOkOnAListRowOpensTheChannelMenuAndHideWorks() {
         launch()
+        Remote.ok() // control panel; "Channels" has focus
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        rule.waitForIdle()
         Remote.ok()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
         rule.waitForIdle()
