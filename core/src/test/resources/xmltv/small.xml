@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tv SYSTEM "xmltv.dtd">
+<tv generator-info-name="fixture">
+  <channel id="news.one">
+    <display-name lang="en">News One HD</display-name>
+    <display-name>News 1</display-name>
+    <icon src="http://img/news1.png" />
+  </channel>
+  <channel id="sport.two">
+    <display-name>Sport Two</display-name>
+  </channel>
+  <channel id="ignored.three">
+    <display-name>Ignored</display-name>
+  </channel>
+  <programme start="20261023100000 +0000" stop="20261023110000 +0000" channel="news.one" catchup-id="x1">
+    <title lang="en">Morning &amp; News</title>
+    <sub-title>Part 1</sub-title>
+    <desc>Headlines.</desc>
+    <category>News</category>
+    <episode-num system="onscreen">S1E2</episode-num>
+    <icon src="https://img/prog1.jpg?w=740&amp;fmt=jpg" />
+  </programme>
+  <programme start="20261023110000 +0000" channel="news.one">
+    <title>Midday</title>
+  </programme>
+  <programme start="20261023120000 +0000" stop="20261023130000 +0000" channel="news.one">
+    <title>Afternoon</title>
+  </programme>
+  <programme start="20261023100000 +0000" channel="sport.two">
+    <title>Last Without Stop</title>
+  </programme>
+  <programme start="20261020100000 +0000" stop="20261020110000 +0000" channel="sport.two">
+    <title>Too Old</title>
+  </programme>
+  <programme start="20261023100000 +0000" stop="20261023110000 +0000" channel="ignored.three">
+    <title>Unwanted</title>
+  </programme>
+</tv>
