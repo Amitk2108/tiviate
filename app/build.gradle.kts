@@ -16,6 +16,8 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Each instrumented test runs in a fresh process with cleared app data.
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
     buildTypes {
@@ -38,6 +40,8 @@ android {
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+        animationsDisabled = true
     }
 
     packaging {
@@ -99,4 +103,10 @@ dependencies {
     androidTestImplementation(libs.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.uiautomator)
+    androidTestImplementation(libs.okhttp.mockwebserver)
+    androidTestImplementation(libs.coroutines.test)
+    androidTestUtil(libs.androidx.test.orchestrator)
+    androidTestUtil(libs.androidx.test.services)
 }
