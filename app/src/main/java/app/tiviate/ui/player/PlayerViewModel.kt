@@ -31,6 +31,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 /** Which overlay sits on top of the video. Only one at a time keeps focus handling simple. */
 sealed interface Overlay {
@@ -134,7 +136,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
 
     /** Previous channel ("last channel"): swaps back and forth between the last two. */
     fun previousChannel() {
-        controller.previous.value?.let { tune(it) } ?: showToast("No previous channel yet")
+        controller.previous.value?.let { tune(it) } ?: showToast(t("No previous channel yet"))
         showBanner()
     }
 
@@ -224,7 +226,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     fun toggleFavorite(channel: ChannelEntity) {
         viewModelScope.launch {
             val added = repo.toggleFavorite(channel.playlistId, channel.stableKey)
-            showToast(if (added) "Added to Favorites" else "Removed from Favorites")
+            showToast(if (added) t("Added to Favorites") else t("Removed from Favorites"))
         }
     }
 
@@ -242,7 +244,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
                 tune(channel)
                 showBanner()
             } else if (number != null) {
-                showToast("No channel $number")
+                showToast(tf("No channel %d", number))
             }
         }
     }
@@ -289,7 +291,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
         graph.appScope.launch {
             runCatching { graph.playlists.refreshGuide(pid) } // cached info reloads on the guide version change
         }
-        showToast("Updating the TV guide…")
+        showToast(t("Updating the TV guide…"))
     }
 
     companion object {

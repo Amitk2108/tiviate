@@ -30,6 +30,8 @@ import app.tiviate.ui.components.formatTime
 import app.tiviate.ui.components.progressOf
 import app.tiviate.ui.components.rememberNow
 import app.tiviate.ui.theme.Tokens
+import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 /** Bottom info bar shown while zapping: channel, now/next, progress and stream badges. */
 @Composable
@@ -76,10 +78,10 @@ fun ChannelInfo(channel: ChannelEntity, info: NowNext?, playback: PlaybackState,
                 }
                 ProgressLine(progressOf(current.startMs, current.stopMs, now), Modifier.width(520.dp))
                 info.next?.let { next ->
-                    Text("Next: ${formatTime(next.startMs)}  ${next.title}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(tf("Next: %s  %s", formatTime(next.startMs), next.title), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             } else {
-                Text("No programme information", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
+                Text(t("No programme information"), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
             }
         }
         Clock(TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Medium))

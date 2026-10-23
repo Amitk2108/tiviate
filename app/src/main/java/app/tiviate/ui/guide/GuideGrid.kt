@@ -32,6 +32,7 @@ import app.tiviate.data.db.ProgrammeEntity
 import app.tiviate.ui.components.ChannelLogo
 import app.tiviate.ui.components.formatTime
 import app.tiviate.ui.theme.Tokens
+import app.tiviate.ui.t
 
 val GUIDE_ROW_HEIGHT = 58.dp
 val GUIDE_CHANNEL_WIDTH = 250.dp
@@ -79,7 +80,7 @@ fun GuideRow(
                 ProgrammeBlock(p.title, p.startMs, p.stopMs, viewStartMs, windowMs, stripWidth, nowMs, isFocused, highlight = highlight)
             }
             if (focused != null && focused.programme == null && focused.stopMs > viewStartMs && focused.startMs < viewEnd) {
-                ProgrammeBlock("No information", focused.startMs, focused.stopMs, viewStartMs, windowMs, stripWidth, nowMs, focused = true, empty = true)
+                ProgrammeBlock(t("No information"), focused.startMs, focused.stopMs, viewStartMs, windowMs, stripWidth, nowMs, focused = true, empty = true)
             }
         }
     }

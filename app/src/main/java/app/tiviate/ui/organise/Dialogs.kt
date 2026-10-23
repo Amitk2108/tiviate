@@ -41,6 +41,8 @@ import app.tiviate.ui.player.focusSoon
 import app.tiviate.ui.theme.Tokens
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 @Composable
 fun DialogFrame(title: String, tag: String, width: Int = 620, content: @Composable () -> Unit) {
@@ -61,8 +63,8 @@ fun TextInputDialog(title: String, label: String, initial: String, onSave: (Stri
     DialogFrame(title, tag) {
         TvTextField(label, value, { value = it }, Modifier.focusRequester(first), tag = "${tag}_field")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ActionButton("Save", { onSave(value) }, primary = true, tag = "${tag}_save")
-            ActionButton("Cancel", onCancel)
+            ActionButton(t("Save"), { onSave(value) }, primary = true, tag = "${tag}_save")
+            ActionButton(t("Cancel"), onCancel)
         }
     }
 }
@@ -80,11 +82,11 @@ fun AssignGuideDialog(channel: ChannelEntity, onDone: () -> Unit) {
         choices = graph.channels.guideChannels(channel.playlistId, query)
     }
     LaunchedEffect(Unit) { focusSoon(first) }
-    DialogFrame("Guide for ${channel.name}", "assign_guide_dialog", width = 760) {
-        TvTextField("Search the guide", query, { query = it }, Modifier.focusRequester(first), tag = "assign_guide_search")
+    DialogFrame(tf("Guide for %s", channel.name), "assign_guide_dialog", width = 760) {
+        TvTextField(t("Search the guide"), query, { query = it }, Modifier.focusRequester(first), tag = "assign_guide_search")
         LazyColumn(Modifier.heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             item(key = "auto") {
-                Row("Automatic (match by name)", channel.epgOverride == null) {
+                Row(t("Automatic (match by name)"), channel.epgOverride == null) {
                     scope.launch { graph.channels.assignGuide(channel, null); onDone() }
                 }
             }
@@ -94,7 +96,7 @@ fun AssignGuideDialog(channel: ChannelEntity, onDone: () -> Unit) {
                 }
             }
         }
-        if (choices.isEmpty()) Text("Nothing in the guide matches.", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
+        if (choices.isEmpty()) Text(t("Nothing in the guide matches."), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
     }
 }
 
@@ -108,7 +110,7 @@ fun AddToGroupDialog(playlistId: Long, keys: List<String>, onDone: (String?) -> 
     val first = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusSoon(first) }
     if (creating) {
-        TextInputDialog("New group", "Group name", "", onSave = { name ->
+        TextInputDialog(t("New group"), t("Group name"), "", onSave = { name ->
             scope.launch {
                 val id = graph.channels.createCustomGroup(playlistId, name)
                 if (id != null) graph.channels.addToCustomGroup(id, keys)
@@ -117,9 +119,9 @@ fun AddToGroupDialog(playlistId: Long, keys: List<String>, onDone: (String?) -> 
         }, onCancel = { creating = false }, tag = "new_group_dialog")
         return
     }
-    DialogFrame("Add to group", "add_to_group_dialog") {
+    DialogFrame(t("Add to group"), "add_to_group_dialog") {
         LazyColumn(Modifier.heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            item(key = "new") { Row("New group…", false, Modifier.focusRequester(first)) { creating = true } }
+            item(key = "new") { Row(t("New group…"), false, Modifier.focusRequester(first)) { creating = true } }
             items(groups, key = { it.id }) { g ->
                 Row(g.name, false) { scope.launch { graph.channels.addToCustomGroup(g.id, keys); onDone(g.name) } }
             }

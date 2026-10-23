@@ -49,6 +49,8 @@ import app.tiviate.ui.player.categoryLabel
 import app.tiviate.ui.player.focusSoon
 import app.tiviate.ui.theme.Tokens
 import kotlinx.coroutines.launch
+import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 @Composable
 private fun ManagerFrame(title: String, hint: String, tag: String, actions: @Composable () -> Unit = {}, content: @Composable () -> Unit) {
@@ -76,14 +78,14 @@ private fun ChannelVisibility(playlistId: Long, category: Category) {
     val first = remember { FocusRequester() }
     LaunchedEffect(items.itemCount > 0) { if (items.itemCount > 0) focusSoon(first) }
     ManagerFrame(
-        "Manage visibility · ${categoryLabel(category)}",
-        "OK shows or hides a channel. Hidden channels disappear from the lists, the guide and zapping.",
+        tf("Manage visibility · %s", categoryLabel(category)),
+        t("OK shows or hides a channel. Hidden channels disappear from the lists, the guide and zapping."),
         "manage_visibility",
         actions = {
-            ActionButton("Show all", {
+            ActionButton(t("Show all"), {
                 scope.launch { graph.channels.setHidden(playlistId, graph.channels.list(playlistId, category, includeHidden = true).map { it.stableKey }, false) }
             }, tag = "visibility_show_all")
-            ActionButton("Hide all", {
+            ActionButton(t("Hide all"), {
                 scope.launch { graph.channels.setHidden(playlistId, graph.channels.list(playlistId, category, includeHidden = true).map { it.stableKey }, true) }
             }, tag = "visibility_hide_all")
         },
@@ -100,7 +102,7 @@ private fun ChannelVisibility(playlistId: Long, category: Category) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("${ch?.number ?: ""}", modifier = Modifier.padding(end = 16.dp), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
                         Text(ch?.name.orEmpty(), modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = if (ch?.hidden == true) Tokens.TextSecondary else Tokens.Text, fontSize = Tokens.BodySize))
-                        Text(if (ch?.hidden == true) "Hidden" else "Shown", style = TextStyle(color = if (ch?.hidden == true) Tokens.TextSecondary else Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+                        Text(if (ch?.hidden == true) t("Hidden") else t("Shown"), style = TextStyle(color = if (ch?.hidden == true) Tokens.TextSecondary else Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
                     }
                 }
             }
@@ -118,8 +120,8 @@ private fun ReorderChannels(playlistId: Long, category: Category) {
         list.addAll(graph.channels.list(playlistId, category).map { it.stableKey to "${it.number}  ${it.name}" })
     }
     ManagerFrame(
-        if (category == Category.Favorites) "Manage Favorites" else "Reorder channels · ${categoryLabel(category)}",
-        "OK picks a channel; Up/Down move it; Left/Right send it to the top or bottom; OK again puts it down.",
+        if (category == Category.Favorites) t("Manage Favorites") else tf("Reorder channels · %s", categoryLabel(category)),
+        t("OK picks a channel; Up/Down move it; Left/Right send it to the top or bottom; OK again puts it down."),
         "reorder_channels",
     ) {
         ReorderList(list, onDrop = { ordered ->
@@ -143,11 +145,11 @@ fun ManageGroupsScreen(playlistId: Long) {
     val first = remember { FocusRequester() }
     LaunchedEffect(groups.isNotEmpty(), reorder) { if (groups.isNotEmpty() && !reorder) focusSoon(first) }
     ManagerFrame(
-        "Manage groups",
-        if (reorder) "OK picks a group; Up/Down move it; Left/Right send it to the top or bottom; OK again puts it down." else "OK shows or hides a group.",
+        t("Manage groups"),
+        if (reorder) t("OK picks a group; Up/Down move it; Left/Right send it to the top or bottom; OK again puts it down.") else t("OK shows or hides a group."),
         "manage_groups",
         actions = {
-            ActionButton(if (reorder) "Show or hide groups" else "Reorder groups", { reorder = !reorder }, tag = "groups_mode")
+            ActionButton(if (reorder) t("Show or hide groups") else t("Reorder groups"), { reorder = !reorder }, tag = "groups_mode")
         },
     ) {
         if (reorder) {
@@ -163,7 +165,7 @@ fun ManageGroupsScreen(playlistId: Long) {
                     ) {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text((g.label ?: g.name) + "  ·  ${g.count}", modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = if (g.hidden) Tokens.TextSecondary else Tokens.Text, fontSize = Tokens.BodySize))
-                            Text(if (g.hidden) "Hidden" else "Shown", style = TextStyle(color = if (g.hidden) Tokens.TextSecondary else Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+                            Text(if (g.hidden) t("Hidden") else t("Shown"), style = TextStyle(color = if (g.hidden) Tokens.TextSecondary else Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
                         }
                     }
                 }
@@ -215,7 +217,7 @@ fun ReorderList(items: SnapshotStateList<Pair<String, String>>, onDrop: (List<Pa
             ) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(label, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
-                    if (isPicked) Text("Moving ↕", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+                    if (isPicked) Text(t("Moving ↕"), style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
                 }
             }
         }
@@ -239,14 +241,14 @@ fun OptionCardsScreen() {
     val settings by graph.settings.settings.collectAsState(initial = app.tiviate.data.AppSettings())
     var reorder by remember { mutableStateOf(false) }
     val list = remember { mutableStateListOf<Pair<String, String>>() }
-    LaunchedEffect(reorder) { if (reorder) { list.clear(); list.addAll(settings.optionCards.map { it to (OPTION_CARD_TITLES[it] ?: it) }) } }
+    LaunchedEffect(reorder) { if (reorder) { list.clear(); list.addAll(settings.optionCards.map { it to t(OPTION_CARD_TITLES[it] ?: it) }) } }
     val first = remember { FocusRequester() }
     LaunchedEffect(reorder) { if (!reorder) focusSoon(first) }
     ManagerFrame(
-        "Option cards",
-        if (reorder) "OK picks a card; Up/Down move it; Left/Right send it to the start or end; OK again puts it down." else "OK shows or hides a card in the fullscreen options (Down / Menu).",
+        t("Option cards"),
+        if (reorder) t("OK picks a card; Up/Down move it; Left/Right send it to the start or end; OK again puts it down.") else t("OK shows or hides a card in the fullscreen options (Down / Menu)."),
         "option_cards",
-        actions = { ActionButton(if (reorder) "Show or hide cards" else "Change the order", { reorder = !reorder }, tag = "cards_mode") },
+        actions = { ActionButton(if (reorder) t("Show or hide cards") else t("Change the order"), { reorder = !reorder }, tag = "cards_mode") },
     ) {
         if (reorder) {
             ReorderList(list, onDrop = { ordered -> scope.launch { graph.settings.update { it.copy(optionCards = ordered.map { p -> p.first }) } } })
@@ -261,8 +263,8 @@ fun OptionCardsScreen() {
                         scale = 1.01f,
                     ) {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(OPTION_CARD_TITLES[tag] ?: tag, modifier = Modifier.weight(1f), style = TextStyle(color = if (hidden) Tokens.TextSecondary else Tokens.Text, fontSize = Tokens.BodySize))
-                            Text(if (hidden) "Hidden" else "Shown", style = TextStyle(color = if (hidden) Tokens.TextSecondary else Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+                            Text(t(OPTION_CARD_TITLES[tag] ?: tag), modifier = Modifier.weight(1f), style = TextStyle(color = if (hidden) Tokens.TextSecondary else Tokens.Text, fontSize = Tokens.BodySize))
+                            Text(if (hidden) t("Hidden") else t("Shown"), style = TextStyle(color = if (hidden) Tokens.TextSecondary else Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
                         }
                     }
                 }

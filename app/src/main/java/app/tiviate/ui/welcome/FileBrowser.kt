@@ -30,6 +30,7 @@ import app.tiviate.ui.components.ActionButton
 import app.tiviate.ui.components.FocusSurface
 import app.tiviate.ui.theme.Tokens
 import java.io.File
+import app.tiviate.ui.t
 
 /**
  * Minimal file browser for devices without a system document picker (most Fire TV models).
@@ -56,9 +57,9 @@ fun FileBrowser(onPicked: (String) -> Unit, onCancel: () -> Unit) {
     }
 
     Column(Modifier.fillMaxSize().padding(Tokens.SafeMargin), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Choose a playlist file", style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+        Text(t("Choose a playlist file"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
         Text(dir.absolutePath, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
-        if (!granted) Text("Allow storage access to browse files.", style = TextStyle(color = Tokens.Danger, fontSize = Tokens.BodySize))
+        if (!granted) Text(t("Allow storage access to browse files."), style = TextStyle(color = Tokens.Danger, fontSize = Tokens.BodySize))
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (dir != root && dir.parentFile != null) {
                 item(key = "..") { Entry("⬆  Up one folder") { dir = dir.parentFile!! } }
@@ -69,7 +70,7 @@ fun FileBrowser(onPicked: (String) -> Unit, onCancel: () -> Unit) {
                 }
             }
         }
-        ActionButton("Cancel", onClick = onCancel)
+        ActionButton(t("Cancel"), onClick = onCancel)
     }
 }
 

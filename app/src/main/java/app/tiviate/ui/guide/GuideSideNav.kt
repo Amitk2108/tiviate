@@ -36,6 +36,8 @@ import app.tiviate.data.db.PlaylistEntity
 import app.tiviate.ui.components.FocusSurface
 import app.tiviate.ui.player.focusSoon
 import app.tiviate.ui.theme.Tokens
+import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 /** Where focus is on the guide screen: the grid, the groups column (Left), or the side menu (Left again). */
 enum class SideNav { GRID, GROUPS, RAIL }
@@ -56,9 +58,9 @@ fun groupEntries(
     showFavorites: Boolean = true,
     showRecent: Boolean = true,
 ): List<GroupEntry> = buildList {
-    if (showFavorites) add(GroupEntry.Pick(Category.Favorites, "Favorites", null))
-    if (showAll) add(GroupEntry.Pick(Category.All, "All channels", groups.sumOf { it.count }.takeIf { it > 0 }))
-    if (showRecent) add(GroupEntry.Pick(Category.Recent, "Recent", null))
+    if (showFavorites) add(GroupEntry.Pick(Category.Favorites, t("Favorites"), null))
+    if (showAll) add(GroupEntry.Pick(Category.All, t("All channels"), groups.sumOf { it.count }.takeIf { it > 0 }))
+    if (showRecent) add(GroupEntry.Pick(Category.Recent, t("Recent"), null))
     custom.forEach { add(GroupEntry.Pick(Category.Custom(it.id, it.name), it.name, null)) }
     groups.forEach { g -> g.name?.let { add(GroupEntry.Pick(Category.Group(it), g.shownName ?: it, g.count)) } }
     playlists.filter { it.id != activeId }.forEach { add(GroupEntry.SwitchPlaylist(it)) }
@@ -105,7 +107,7 @@ fun GroupsColumn(
                 val e = entries[i]
                 val (label, isSelected) = when (e) {
                     is GroupEntry.Pick -> (e.label + (e.count?.let { "  $it" } ?: "")) to (e.category == selected)
-                    is GroupEntry.SwitchPlaylist -> "Playlist: ${e.playlist.name}" to false
+                    is GroupEntry.SwitchPlaylist -> tf("Playlist: %s", e.playlist.name) to false
                 }
                 FocusSurface(
                     onClick = { when (e) { is GroupEntry.Pick -> onPick(e.category); is GroupEntry.SwitchPlaylist -> onSwitch(e.playlist) } },
@@ -149,12 +151,12 @@ fun NavRail(onSearch: () -> Unit, onTv: () -> Unit, onSettings: () -> Unit) {
             .testTag("guide_rail"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("Tiviate", modifier = Modifier.padding(start = 12.dp, bottom = 24.dp), style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+        Text(t("Tiviate"), modifier = Modifier.padding(start = 12.dp, bottom = 24.dp), style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
         // Up/Down stay inside the menu (the groups column beside it would otherwise be "closer").
-        RailRow("Search", "rail_search", onSearch, Modifier.focusRequester(search).focusProperties { up = FocusRequester.Cancel; down = tv })
+        RailRow(t("Search"), "rail_search", onSearch, Modifier.focusRequester(search).focusProperties { up = FocusRequester.Cancel; down = tv })
         RailRow("TV", "rail_tv", onTv, Modifier.focusRequester(tv).focusProperties { up = search; down = settings }, selected = true)
         Spacer(Modifier.weight(1f))
-        RailRow("Settings", "rail_settings", onSettings, Modifier.focusRequester(settings).focusProperties { up = tv; down = FocusRequester.Cancel })
+        RailRow(t("Settings"), "rail_settings", onSettings, Modifier.focusRequester(settings).focusProperties { up = tv; down = FocusRequester.Cancel })
     }
 }
 

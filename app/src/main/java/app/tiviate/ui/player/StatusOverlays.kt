@@ -39,6 +39,8 @@ import androidx.tv.material3.Text
 import app.tiviate.ui.components.ActionButton
 import app.tiviate.ui.components.Spinner
 import app.tiviate.ui.theme.Tokens
+import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 @Composable
 fun BufferingIndicator(retrying: Int, notice: String? = null) {
@@ -46,9 +48,9 @@ fun BufferingIndicator(retrying: Int, notice: String? = null) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Spinner()
             if (notice != null) {
-                Text(notice, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, textAlign = TextAlign.Center), modifier = Modifier.width(520.dp).background(Tokens.Scrim, Tokens.Shape).padding(12.dp))
+                Text(t(notice), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, textAlign = TextAlign.Center), modifier = Modifier.width(520.dp).background(Tokens.Scrim, Tokens.Shape).padding(12.dp))
             } else if (retrying > 0) {
-                Text("Reconnecting… ($retrying)", style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize), modifier = Modifier.background(Tokens.Scrim, Tokens.Shape).padding(horizontal = 12.dp, vertical = 6.dp))
+                Text(tf("Reconnecting… (%d)", retrying), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize), modifier = Modifier.background(Tokens.Scrim, Tokens.Shape).padding(horizontal = 12.dp, vertical = 6.dp))
             }
         }
     }
@@ -101,20 +103,20 @@ fun ErrorCard(
             channel?.let {
                 Text("${it.number}  ·  ${it.name}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Medium))
             }
-            Text(issue.title, style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center))
-            Text(issue.body, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize, textAlign = TextAlign.Center))
+            Text(t(issue.title), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center))
+            Text(t(issue.body), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize, textAlign = TextAlign.Center))
             detail?.let {
                 Text(
-                    "Details: $it",
+                    tf("Details: %s", it),
                     style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize),
                     modifier = Modifier.background(Tokens.Raised, Tokens.SmallShape).padding(horizontal = 10.dp, vertical = 4.dp).testTag("error_detail"),
                 )
             }
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ActionButton("Try again", onRetry, Modifier.focusRequester(first), primary = true, tag = "error_retry")
-                ActionButton("Next channel", onNext, tag = "error_next")
-                ActionButton("Other player", onExternal, tag = "error_external")
+                ActionButton(t("Try again"), onRetry, Modifier.focusRequester(first), primary = true, tag = "error_retry")
+                ActionButton(t("Next channel"), onNext, tag = "error_next")
+                ActionButton(t("Other player"), onExternal, tag = "error_external")
             }
         }
     }

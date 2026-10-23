@@ -41,6 +41,7 @@ import app.tiviate.ui.components.ToggleRow
 import app.tiviate.ui.components.TvTextField
 import app.tiviate.ui.theme.Tokens
 import kotlinx.coroutines.launch
+import app.tiviate.ui.t
 
 @Composable
 fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
@@ -106,7 +107,7 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
             }
             val id = when (type) {
                 PlaylistType.M3U_URL -> repo.addM3uUrl(name.ifBlank { defaultName(url) }, url, epgUrl, userAgent)
-                PlaylistType.M3U_FILE -> repo.addM3uFile(name.ifBlank { "Local playlist" }, fileUri!!, epgUrl)
+                PlaylistType.M3U_FILE -> repo.addM3uFile(name.ifBlank { t("Local playlist") }, fileUri!!, epgUrl)
                 PlaylistType.XTREAM -> repo.addXtream(name.ifBlank { defaultName(server) }, XtreamCredentials(server, username, password), preferHls, userAgent)
             }
             nav.push(Screen.Syncing(id))
@@ -115,28 +116,28 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
 
     Row(Modifier.fillMaxSize().padding(Tokens.SafeMargin).testTag("add_playlist_screen"), horizontalArrangement = Arrangement.spacedBy(40.dp)) {
         Column(Modifier.width(260.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(if (editId != null) "Edit playlist" else title(type), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+            Text(if (editId != null) t("Edit playlist") else title(type), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
             Text(help(type), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             when (type) {
                 PlaylistType.M3U_URL -> {
-                    TvTextField("Playlist address", url, { url = it }, Modifier.focusRequester(firstField), tag = "field_url", hint = "http://…/playlist.m3u")
-                    TvTextField("Name (optional)", name, { name = it }, tag = "field_name", keyboardType = KeyboardType.Text)
-                    TvTextField("TV guide address (optional)", epgUrl, { epgUrl = it }, tag = "field_epg", hint = "Detected from the playlist when empty")
-                    TvTextField("User-Agent (optional)", userAgent, { userAgent = it }, toSave, tag = "field_ua", keyboardType = KeyboardType.Text)
+                    TvTextField(t("Playlist address"), url, { url = it }, Modifier.focusRequester(firstField), tag = "field_url", hint = "http://…/playlist.m3u")
+                    TvTextField(t("Name (optional)"), name, { name = it }, tag = "field_name", keyboardType = KeyboardType.Text)
+                    TvTextField(t("TV guide address (optional)"), epgUrl, { epgUrl = it }, tag = "field_epg", hint = t("Detected from the playlist when empty"))
+                    TvTextField(t("User-Agent (optional)"), userAgent, { userAgent = it }, toSave, tag = "field_ua", keyboardType = KeyboardType.Text)
                 }
                 PlaylistType.XTREAM -> {
-                    TvTextField("Server", server, { server = it }, Modifier.focusRequester(firstField), tag = "field_server", hint = "http://provider.example:8080")
-                    TvTextField("Username", username, { username = it }, tag = "field_username", keyboardType = KeyboardType.Text)
-                    TvTextField("Password", password, { password = it }, tag = "field_password", password = true)
-                    TvTextField("Name (optional)", name, { name = it }, tag = "field_name", keyboardType = KeyboardType.Text)
-                    TvTextField("User-Agent (optional)", userAgent, { userAgent = it }, tag = "field_ua", keyboardType = KeyboardType.Text)
-                    ToggleRow("Prefer HLS (.m3u8) streams", preferHls, { preferHls = !preferHls }, toSave, tag = "field_hls")
+                    TvTextField(t("Server"), server, { server = it }, Modifier.focusRequester(firstField), tag = "field_server", hint = "http://provider.example:8080")
+                    TvTextField(t("Username"), username, { username = it }, tag = "field_username", keyboardType = KeyboardType.Text)
+                    TvTextField(t("Password"), password, { password = it }, tag = "field_password", password = true)
+                    TvTextField(t("Name (optional)"), name, { name = it }, tag = "field_name", keyboardType = KeyboardType.Text)
+                    TvTextField(t("User-Agent (optional)"), userAgent, { userAgent = it }, tag = "field_ua", keyboardType = KeyboardType.Text)
+                    ToggleRow(t("Prefer HLS (.m3u8) streams"), preferHls, { preferHls = !preferHls }, toSave, tag = "field_hls")
                 }
                 PlaylistType.M3U_FILE -> {
                     ActionButton(
-                        text = fileUri?.let { "File: " + Uri.decode(it).substringAfterLast('/') } ?: "Choose a playlist file",
+                        text = fileUri?.let { t("File: ") + Uri.decode(it).substringAfterLast('/') } ?: t("Choose a playlist file"),
                         onClick = {
                             try {
                                 picker.launch(arrayOf("*/*"))
@@ -147,14 +148,14 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
                         modifier = Modifier.focusRequester(firstField),
                         tag = "choose_file",
                     )
-                    TvTextField("Name (optional)", name, { name = it }, tag = "field_name", keyboardType = KeyboardType.Text)
-                    TvTextField("TV guide address (optional)", epgUrl, { epgUrl = it }, toSave, tag = "field_epg")
+                    TvTextField(t("Name (optional)"), name, { name = it }, tag = "field_name", keyboardType = KeyboardType.Text)
+                    TvTextField(t("TV guide address (optional)"), epgUrl, { epgUrl = it }, toSave, tag = "field_epg")
                 }
             }
             error?.let { Text(it, style = TextStyle(color = Tokens.Danger, fontSize = Tokens.BodySize)) }
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                ActionButton(if (editId != null) "Save changes" else "Add playlist", onClick = ::save, modifier = Modifier.focusRequester(saveButton), primary = true, tag = "save_playlist")
-                ActionButton("Cancel", onClick = { nav.back() })
+                ActionButton(if (editId != null) t("Save changes") else t("Add playlist"), onClick = ::save, modifier = Modifier.focusRequester(saveButton), primary = true, tag = "save_playlist")
+                ActionButton(t("Cancel"), onClick = { nav.back() })
             }
         }
     }
@@ -162,22 +163,22 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
 }
 
 private fun title(type: PlaylistType) = when (type) {
-    PlaylistType.M3U_URL -> "M3U link"
-    PlaylistType.XTREAM -> "Xtream Codes"
-    PlaylistType.M3U_FILE -> "Local file"
+    PlaylistType.M3U_URL -> t("M3U link")
+    PlaylistType.XTREAM -> t("Xtream Codes")
+    PlaylistType.M3U_FILE -> t("Local file")
 }
 
 private fun help(type: PlaylistType) = when (type) {
-    PlaylistType.M3U_URL -> "Enter the playlist address your provider gave you. The TV guide is picked up automatically when the playlist includes one."
-    PlaylistType.XTREAM -> "Enter the login details from your provider. Channels, groups and the TV guide are loaded automatically."
-    PlaylistType.M3U_FILE -> "Pick an .m3u or .m3u8 file stored on this device or on a USB drive."
+    PlaylistType.M3U_URL -> t("Enter the playlist address your provider gave you. The TV guide is picked up automatically when the playlist includes one.")
+    PlaylistType.XTREAM -> t("Enter the login details from your provider. Channels, groups and the TV guide are loaded automatically.")
+    PlaylistType.M3U_FILE -> t("Pick an .m3u or .m3u8 file stored on this device or on a USB drive.")
 }
 
 private fun validate(type: PlaylistType, url: String, server: String, user: String, pass: String, file: String?): String? = when (type) {
     PlaylistType.M3U_URL -> if (!url.trim().startsWith("http://") && !url.trim().startsWith("https://")) "Enter an address starting with http:// or https://" else null
-    PlaylistType.XTREAM -> if (server.isBlank() || user.isBlank() || pass.isBlank()) "Server, username and password are all required" else null
-    PlaylistType.M3U_FILE -> if (file == null) "Choose a playlist file first" else null
+    PlaylistType.XTREAM -> if (server.isBlank() || user.isBlank() || pass.isBlank()) t("Server, username and password are all required") else null
+    PlaylistType.M3U_FILE -> if (file == null) t("Choose a playlist file first") else null
 }
 
 private fun defaultName(address: String): String =
-    address.substringAfter("://").substringBefore('/').substringBefore(':').ifBlank { "My playlist" }
+    address.substringAfter("://").substringBefore('/').substringBefore(':').ifBlank { t("My playlist") }

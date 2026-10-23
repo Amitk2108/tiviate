@@ -39,6 +39,8 @@ import app.tiviate.ui.player.focusSoon
 import app.tiviate.ui.theme.Tokens
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 /** Channels by name and what's on now/next by title. Results update as the viewer types. */
 @Composable
@@ -64,14 +66,14 @@ fun SearchScreen() {
     }
 
     Column(Modifier.fillMaxSize().padding(Tokens.SafeMargin).testTag("search_screen"), verticalArrangement = Arrangement.spacedBy(24.dp)) {
-        Text("Search", style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
-        TvTextField("Channel or programme", text, { text = it }, Modifier.focusRequester(field), tag = "search_field", hint = "Type a name…", keyboardType = KeyboardType.Text)
+        Text(t("Search"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+        TvTextField(t("Channel or programme"), text, { text = it }, Modifier.focusRequester(field), tag = "search_field", hint = t("Type a name…"), keyboardType = KeyboardType.Text)
 
         if (text.isNotBlank() && result.channels.isEmpty() && result.programmes.isEmpty()) {
-            Text("Nothing found for “$text”", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
+            Text(tf("Nothing found for “%s”", text), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
         }
         if (result.channels.isNotEmpty()) {
-            Section("Channels") {
+            Section(t("Channels")) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     itemsIndexed(result.channels, key = { _, c -> c.id }) { i, c ->
                         FocusSurface(onClick = { play(c) }, modifier = Modifier.width(220.dp).testTag("search_channel_$i")) {
@@ -85,7 +87,7 @@ fun SearchScreen() {
             }
         }
         if (result.programmes.isNotEmpty()) {
-            Section("On now & next") {
+            Section(t("On now & next")) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     itemsIndexed(result.programmes, key = { _, h -> h.programme.id }) { i, hit ->
                         FocusSurface(onClick = { play(hit.channel) }, modifier = Modifier.width(300.dp).testTag("search_programme_$i")) {
