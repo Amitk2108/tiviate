@@ -122,3 +122,54 @@ class StreamTypeTest {
         assertFalse(StreamType.looksLikeHls(byteArrayOf(0x47, 0x40, 0x11, 0x10)))
     }
 }
+
+class ReconnectorTest {
+
+    private val scheduled = mutableListOf<Long>()
+    private var gaveUp: PlaybackIssue? = null
+    private val r = Reconnector(
+        watchdog = StallWatchdog(bufferingLimitMs = 20_000),
+        schedule = { delay, _ -> scheduled += delay },
+        giveUp = { issue, _ -> gaveUp = issue },
+    )
+
+    /** Feeds one buffering sample per second, firing each scheduled reconnect as the engine would. */
+    private fun bufferFor(seconds: Int, startMs: Long = 0) {
+        var pendingUntil: Long? = null
+        for (s in 0..seconds) {
+            val now = startMs + s * 1_000L
+            if (pendingUntil != null && now >= pendingUntil) {
+                pendingUntil = null
+                r.onStarted()
+            }
+            val before = scheduled.size
+            r.onSample(now, isPlaying = false, isBuffering = true, positionMs = 0)
+            if (scheduled.size > before) pendingUntil = now + scheduled.last()
+        }
+    }
+
+    @Test
+    fun aStreamThatNeverSendsDataEndsInTheErrorCard() {
+        bufferFor(seconds = 300)
+        assertEquals(listOf(1_000L, 2_000L, 4_000L, 8_000L, 16_000L), scheduled)
+        assertEquals(PlaybackIssue.NO_CONNECTION, gaveUp)
+    }
+
+    @Test
+    fun errorsAndStallsShareOneBudget() {
+        repeat(4) { r.onIssue(PlaybackIssue.NO_CONNECTION, null); r.onStarted() }
+        bufferFor(seconds = 25) // one stall: the fifth and last reconnect
+        assertNull(gaveUp)
+        r.onIssue(PlaybackIssue.NO_CONNECTION, null)
+        assertEquals(PlaybackIssue.NO_CONNECTION, gaveUp)
+    }
+
+    @Test
+    fun playingAgainRestoresTheFullBudget() {
+        repeat(5) { r.onIssue(PlaybackIssue.NO_CONNECTION, null); r.onStarted() }
+        r.onPlaying()
+        r.onIssue(PlaybackIssue.NO_CONNECTION, null)
+        assertNull(gaveUp)
+        assertEquals(1_000L, scheduled.last())
+    }
+}

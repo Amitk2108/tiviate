@@ -65,16 +65,28 @@ class Media3Engine(
     /** How many times a stream connection was (re)opened; lets tests prove the guide never re-tunes. */
     var startCount: Int = 0
         private set
-    private var attempt = 0
     private var pausedAtMs: Long? = null
     private var boundView: PlayerView? = null
 
     private val retryRunnable = Runnable { startCurrent() }
+    private val reconnector: Reconnector = Reconnector(
+        watchdog,
+        schedule = { delay, issue ->
+            _state.update { it.copy(isBuffering = true, retrying = reconnector.attempt, notice = if (issue.longRetry) BUSY_NOTICE else null) }
+            main.postDelayed(retryRunnable, delay)
+        },
+        giveUp = { issue, detail ->
+            player.stop() // a stalled stream still holds the account's connection
+            _state.update {
+                it.copy(isBuffering = false, isPlaying = false, issue = issue, issueDetail = detail, error = issue.title, notice = null, retrying = 0)
+            }
+        },
+    )
     private val tick = object : Runnable {
         override fun run() {
             val p = player
-            if (request != null && watchdog.onSample(SystemClock.elapsedRealtime(), p.isPlaying, p.playbackState == Player.STATE_BUFFERING, p.currentPosition)) {
-                startCurrent()
+            if (request != null && pausedAtMs == null) {
+                reconnector.onSample(SystemClock.elapsedRealtime(), p.isPlaying, p.playbackState == Player.STATE_BUFFERING, p.currentPosition)
             }
             main.postDelayed(this, 1_000)
         }
@@ -86,7 +98,7 @@ class Media3Engine(
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            if (isPlaying) attempt = 0
+            if (isPlaying) reconnector.onPlaying()
             _state.update {
                 it.copy(
                     isPlaying = isPlaying,
@@ -168,7 +180,7 @@ class Media3Engine(
     override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String) {
         main.removeCallbacks(retryRunnable)
         request = Request(url, headers, userAgent, channelKey)
-        attempt = 0
+        reconnector.reset()
         pausedAtMs = null
         _state.value = PlaybackState(channelKey = channelKey, isBuffering = true)
         startCurrent()
@@ -178,7 +190,7 @@ class Media3Engine(
         val r = request ?: return
         startCount++
         main.removeCallbacks(retryRunnable)
-        watchdog.reset()
+        reconnector.onStarted()
         val dataSource = OkHttpDataSource.Factory(http)
             .setUserAgent(r.userAgent)
             .setDefaultRequestProperties(r.headers)
@@ -210,17 +222,7 @@ class Media3Engine(
         }
         val status = httpStatus(error)
         val issue = PlaybackIssue.classify(status, error.errorCode)
-        val delay = issue.retry.nextDelay(attempt)
-        if (delay == null) {
-            val detail = listOfNotNull(status?.let { "HTTP $it" } ?: error.errorCodeName).joinToString(" · ")
-            _state.update {
-                it.copy(isBuffering = false, isPlaying = false, issue = issue, issueDetail = detail, error = issue.title, notice = null, retrying = 0)
-            }
-            return
-        }
-        attempt++
-        _state.update { it.copy(isBuffering = true, retrying = attempt, notice = if (issue.longRetry) BUSY_NOTICE else null) }
-        main.postDelayed(retryRunnable, delay)
+        reconnector.onIssue(issue, status?.let { "HTTP $it" } ?: error.errorCodeName)
     }
 
     override fun togglePause() {
@@ -239,7 +241,7 @@ class Media3Engine(
     }
 
     override fun retryNow() {
-        attempt = 0
+        reconnector.reset()
         _state.update { it.copy(error = null, issue = null, issueDetail = null, isBuffering = true) }
         startCurrent()
     }
