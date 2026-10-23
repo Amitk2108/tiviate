@@ -87,4 +87,4 @@ Requirements: JDK 17 and the Android SDK (compileSdk 36).
 
 ## Licence
 
-Apache License 2.0 — see `LICENSE`. Third-party components are listed in `NOTICE`.
+GNU General Public License v3.0 — see `LICENSE`. Third-party components are listed in `NOTICE`. (Tiviate is GPL-3.0 because it ships an FFmpeg audio decoder for AC3/E-AC3/DTS channels.)
