@@ -60,4 +60,17 @@ class AddPlaylistFlowTest {
         rule.waitForIdle()
         rule.onNodeWithTag("field_password").assertIsFocused()
     }
+
+    @Test
+    fun downFromTheLastFieldLandsOnAddPlaylist() {
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("welcome_screen") }
+        rule.waitForIdle()
+        Remote.right()
+        Remote.ok() // "Xtream Codes"
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("field_server") }
+        rule.waitForIdle()
+        Remote.down(4) // server → username → password → name → (buttons)
+        rule.waitForIdle()
+        rule.onNodeWithTag("save_playlist").assertIsFocused()
+    }
 }
