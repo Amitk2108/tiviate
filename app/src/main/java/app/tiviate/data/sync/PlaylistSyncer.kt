@@ -105,9 +105,13 @@ class PlaylistSyncer(
         if (!account.authorized) throw SyncException("Xtream login failed — check the server, username and password")
         val ext = XtreamUrls.preferredExtension(account.allowedFormats, p.preferHls)
 
-        val categories = http.getOrThrow(XtreamUrls.api(creds, "get_live_categories"), p.userAgent, "Categories")
+        val categoryList = http.getOrThrow(XtreamUrls.api(creds, "get_live_categories"), p.userAgent, "Categories")
             .use { XtreamJson.categories(it.body.source()) }
-            .associate { it.id to it.name }
+        val categories = categoryList.associate { it.id to it.name }
+        // Groups show in the provider's category order (not where their first channel happens to be):
+        // each category gets a band of sort positions, and channels keep the provider's order inside it.
+        val rank = HashMap<String, Int>().apply { categoryList.forEach { putIfAbsent(it.id, size) } }
+        val band = Int.MAX_VALUE.toLong() / (categoryList.size + 2)
 
         val keys = StableKeyAssigner()
         val count = http.getOrThrow(XtreamUrls.api(creds, "get_live_streams"), p.userAgent, "Channels").use { response ->
@@ -130,7 +134,8 @@ class PlaylistSyncer(
                         epgRef = null,
                         logoFallback = null,
                         catchupDays = if (s.tvArchive) s.tvArchiveDays else null,
-                        sortIndex = position,
+                        sortIndex = ((s.categoryId?.let(rank::get) ?: categoryList.size) * band + position)
+                            .coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
                         syncStamp = writer.stamp,
                     ),
                 )

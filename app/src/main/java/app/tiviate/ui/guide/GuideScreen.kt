@@ -1,5 +1,7 @@
 package app.tiviate.ui.guide
 
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.rounded.PlayCircle
 import app.tiviate.ui.player.backgroundWithHole
@@ -143,7 +145,7 @@ fun GuideScreen() {
         listState.scrollToItem((row - 2).coerceAtLeast(0))
         initialised = true
         tick++
-        focusSoon(gridFocus)
+        if (side == SideNav.GRID) focusSoon(gridFocus) // while browsing groups the focus stays there
     }
 
     // Load programmes for the rows on screen and the window being shown. Keyed on the rows' guide
@@ -264,11 +266,58 @@ fun GuideScreen() {
         VideoSlot(settings.displayModeFor(current?.let { "${it.playlistId}:${it.stableKey}" }), settings.zoomPercent, Modifier.fillMaxSize())
     }
     var previewRect by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
+    // The preview's bounds are on-screen; the guide column starts further right while the groups are open.
+    var guideOrigin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    // Moving through the groups shows that group's channels after a short pause (no OK needed).
+    var browsing by remember { mutableStateOf<Category?>(null) }
+    LaunchedEffect(browsing) {
+        val c = browsing ?: return@LaunchedEffect
+        kotlinx.coroutines.delay(300)
+        if (c != category) {
+            vm.selectCategory(c)
+            state.focusRow(0, emptyList())
+            listState.scrollToItem(0)
+            tick++
+        }
+    }
+    // The side menu and groups sit beside the guide and push it right, so the channels stay in view.
+    Row(Modifier.fillMaxSize()) {
+    if (side != SideNav.GRID) {
+        Row(Modifier.fillMaxHeight().background(Tokens.Background)) {
+            if (side == SideNav.RAIL) {
+                NavRail(
+                    onSearch = { side = SideNav.GRID; nav.push(Screen.Search) },
+                    onTv = { side = SideNav.GROUPS },
+                    onSettings = { side = SideNav.GRID; nav.push(Screen.Settings) },
+                )
+            }
+            GroupsColumn(
+                playlistName = playlist?.name,
+                entries = groupEntries(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup),
+                selected = category,
+                onPick = { picked ->
+                    browsing = null
+                    side = SideNav.GRID
+                    if (picked != category) {
+                        vm.selectCategory(picked)
+                        state.focusRow(0, emptyList())
+                        scope.launch { listState.scrollToItem(0) }
+                        tick++
+                    }
+                },
+                onSwitch = { p -> side = SideNav.GRID; vm.switchPlaylist(p.id) },
+                onLeft = { side = SideNav.RAIL },
+                onRight = { browsing = null; side = SideNav.GRID },
+                onBrowse = { browsing = it },
+            )
+        }
+    }
     Column(
-        Modifier.fillMaxSize()
+        Modifier.weight(1f).fillMaxHeight()
+            .onGloballyPositioned { guideOrigin = it.positionInRoot() }
             .then(
                 if (settings.guideOverlay) Modifier.background(Tokens.Background.copy(alpha = 0.82f))
-                else Modifier.backgroundWithHole(Tokens.Background, { previewRect }, cornerRadius = 10.dp),
+                else Modifier.backgroundWithHole(Tokens.Background, { previewRect?.translate(-guideOrigin) }, cornerRadius = 10.dp),
             )
             .testTag("guide_screen"),
     ) {
@@ -333,34 +382,6 @@ fun GuideScreen() {
             }
         }
     }
-
-    if (side != SideNav.GRID) {
-        Row(Modifier.fillMaxSize().background(Tokens.ScrimSoft)) {
-            if (side == SideNav.RAIL) {
-                NavRail(
-                    onSearch = { side = SideNav.GRID; nav.push(Screen.Search) },
-                    onTv = { side = SideNav.GROUPS },
-                    onSettings = { side = SideNav.GRID; nav.push(Screen.Settings) },
-                )
-            }
-            GroupsColumn(
-                playlistName = playlist?.name,
-                entries = groupEntries(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup),
-                selected = category,
-                onPick = { picked ->
-                    side = SideNav.GRID
-                    if (picked != category) {
-                        vm.selectCategory(picked)
-                        state.focusRow(0, emptyList())
-                        scope.launch { listState.scrollToItem(0) }
-                        tick++
-                    }
-                },
-                onSwitch = { p -> side = SideNav.GRID; vm.switchPlaylist(p.id) },
-                onLeft = { side = SideNav.RAIL },
-                onRight = { side = SideNav.GRID },
-            )
-        }
     }
     details?.let { ProgrammeDetailsDialog(it) { details = null } }
     sheet?.let { t ->

@@ -89,6 +89,13 @@ fun PlayerScreen() {
     val rootFocus = remember { FocusRequester() }
     val okPress = remember { LongPressDetector() }
     var panelIndex by remember { mutableIntStateOf(0) }
+    // In the channel list, moving through the groups shows that group's channels after a short pause.
+    var browsing by remember { mutableStateOf<Category?>(null) }
+    LaunchedEffect(browsing) {
+        val c = browsing ?: return@LaunchedEffect
+        delay(300)
+        if (c != category) { vm.selectCategory(c); panelIndex = 0 }
+    }
 
     KeepScreenOn()
     MatchRefreshRate(enabled = settings.matchRefreshRate, frameRate = playback.frameRate)
@@ -284,6 +291,7 @@ fun PlayerScreen() {
                             RailEntry.Settings -> { vm.close(); nav.push(Screen.Settings) }
                             is RailEntry.SwitchPlaylist -> { vm.close(); vm.switchPlaylist(entry.playlist.id) }
                             is RailEntry.Pick -> {
+                                browsing = null
                                 vm.selectCategory(entry.category)
                                 panelIndex = 0
                                 vm.open(Overlay.Panel(categoriesFocused = false))
@@ -291,7 +299,8 @@ fun PlayerScreen() {
                         }
                     },
                     onOpenRail = { vm.open(Overlay.Panel(categoriesFocused = true)) },
-                    onCloseRail = { vm.open(Overlay.Panel(categoriesFocused = false)) },
+                    onCloseRail = { browsing = null; vm.open(Overlay.Panel(categoriesFocused = false)) },
+                    onBrowse = { browsing = it },
                 )
             }
             Overlay.Options -> {

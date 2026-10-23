@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -103,9 +104,13 @@ fun GroupsColumn(
     onSwitch: (PlaylistEntity) -> Unit,
     onLeft: () -> Unit,
     onRight: () -> Unit,
+    onBrowse: (Category) -> Unit = {},
 ) {
     val first = remember { FocusRequester() }
-    val selectedIndex = entries.indexOfFirst { it is GroupEntry.Pick && it.category == selected }.coerceAtLeast(0)
+    // Focus starts on the group the column opened on; moving through the groups then shows each one's
+    // channels (onBrowse) without pulling the focus back here.
+    val openedOn = remember { selected }
+    val selectedIndex = entries.indexOfFirst { it is GroupEntry.Pick && it.category == openedOn }.coerceAtLeast(0)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = (selectedIndex - 4).coerceAtLeast(0))
     // Keyed on the index: the groups often arrive after the column opens, which moves the current group.
     LaunchedEffect(selectedIndex) { focusSoon(first) }
@@ -151,6 +156,7 @@ fun GroupsColumn(
                     onClick = { when (e) { is GroupEntry.Pick -> onPick(e.category); is GroupEntry.SwitchPlaylist -> onSwitch(e.playlist) } },
                     modifier = (if (i == selectedIndex) Modifier.focusRequester(first) else Modifier)
                         .fillMaxWidth()
+                        .onFocusChanged { if (it.isFocused && e is GroupEntry.Pick) onBrowse(e.category) }
                         .testTag("group_" + (if (e is GroupEntry.Pick) e.label else "playlist_${(e as GroupEntry.SwitchPlaylist).playlist.id}")),
                     container = if (isSelected) Tokens.Selected else Color.Transparent,
                     shape = Tokens.SmallShape,
