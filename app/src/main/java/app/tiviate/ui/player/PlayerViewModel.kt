@@ -118,7 +118,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
             val pid = settings.activePlaylistId ?: return@launch
             val playlist = graph.playlists.get(pid) ?: return@launch
             _playlist.value = playlist
-            settings.lastGroup?.let { if (_category.value == Category.All) _category.value = Category.Group(it) }
+            if (_category.value == Category.All) _category.value = Category.restore(settings.lastGroup)
             if (controller.current.value != null && controller.engine.state.value.channelKey != null) return@launch
             val channel = settings.lastChannelKey?.let { repo.byKey(pid, it) }
                 ?: repo.first(pid, Category.All)
@@ -182,7 +182,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
 
     fun selectCategory(category: Category) {
         _category.value = category
-        viewModelScope.launch { graph.settings.update { it.copy(lastGroup = (category as? Category.Group)?.name) } }
+        viewModelScope.launch { graph.settings.update { it.copy(lastGroup = Category.remember(category)) } }
     }
 
     fun switchPlaylist(id: Long) {

@@ -22,6 +22,15 @@ class UiLogicTest {
     )
 
     @Test
+    fun focusedItemsKeepRoomAroundThem() {
+        val f: (Float, Float, Float) -> Float = { o, s, c -> app.tiviate.ui.theme.comfortScroll(o, s, c) }
+        assertEquals("inside the comfortable zone: no scroll", 0f, f(400f, 60f, 1000f), 0.01f)
+        assertEquals("near the bottom: scroll down until a fifth is clear", 60f, f(800f, 60f, 1000f), 0.01f)
+        assertEquals("near the top: scroll back up (the heading reappears)", -150f, f(50f, 60f, 1000f), 0.01f)
+        assertEquals("taller than the zone: centred", 0f, f(100f, 800f, 1000f), 0.01f)
+    }
+
+    @Test
     fun minutesLeftRoundsUp() {
         val now = 1_000_000_000L
         assertEquals(34, app.tiviate.ui.components.minutesLeft(now + 33 * 60_000 + 1, now))

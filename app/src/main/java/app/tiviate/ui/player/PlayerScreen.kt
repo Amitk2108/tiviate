@@ -51,6 +51,7 @@ import app.tiviate.ui.organise.SheetTarget
 import app.tiviate.player.ExternalPlayer
 import app.tiviate.ui.LocalGraph
 import app.tiviate.ui.LocalNavigator
+import app.tiviate.ui.LocalScreenActive
 import app.tiviate.ui.Screen
 import app.tiviate.ui.components.ActionButton
 import app.tiviate.ui.components.KeyAction
@@ -192,7 +193,7 @@ fun PlayerScreen() {
     }
 
     // Back: close the top overlay, otherwise show the TV guide (the channel keeps playing in its preview).
-    BackHandler {
+    BackHandler(enabled = LocalScreenActive.current) {
         when {
             sheet != null -> sheet = null
             overlay is Overlay.Picker -> vm.open(Overlay.Options)

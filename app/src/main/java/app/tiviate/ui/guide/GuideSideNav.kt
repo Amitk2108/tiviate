@@ -1,5 +1,15 @@
 package app.tiviate.ui.guide
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.tv.material3.Icon
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -88,13 +98,14 @@ fun GroupsColumn(
     val first = remember { FocusRequester() }
     val selectedIndex = entries.indexOfFirst { it is GroupEntry.Pick && it.category == selected }.coerceAtLeast(0)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = (selectedIndex - 4).coerceAtLeast(0))
-    LaunchedEffect(Unit) { focusSoon(first) }
+    // Keyed on the index: the groups often arrive after the column opens, which moves the current group.
+    LaunchedEffect(selectedIndex) { focusSoon(first) }
     Column(
         Modifier
-            .width(340.dp)
+            .width(250.dp)
             .fillMaxHeight()
             .background(Tokens.Surface)
-            .padding(top = 28.dp, start = 16.dp, end = 12.dp)
+            .padding(top = 20.dp, start = 10.dp, end = 10.dp)
             .leftRight(onLeft, onRight)
             .testTag("guide_groups"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -114,12 +125,13 @@ fun GroupsColumn(
                     modifier = (if (i == selectedIndex) Modifier.focusRequester(first) else Modifier)
                         .fillMaxWidth()
                         .testTag("group_" + (if (e is GroupEntry.Pick) e.label else "playlist_${(e as GroupEntry.SwitchPlaylist).playlist.id}")),
-                    container = Color.Transparent,
+                    container = if (isSelected) Tokens.Selected else Color.Transparent,
+                    shape = Tokens.SmallShape,
                     scale = 1.02f,
                 ) {
                     Text(
                         label,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = TextStyle(
@@ -143,26 +155,29 @@ fun NavRail(onSearch: () -> Unit, onTv: () -> Unit, onSettings: () -> Unit) {
     LaunchedEffect(Unit) { focusSoon(tv) }
     Column(
         Modifier
-            .width(260.dp)
+            .width(200.dp)
             .fillMaxHeight()
             .background(Tokens.Background)
-            .padding(vertical = 28.dp, horizontal = 16.dp)
+            .padding(vertical = 20.dp, horizontal = 10.dp)
             .leftRight(onLeft = {}, onRight = onTv)
             .testTag("guide_rail"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(t("Tiviate"), modifier = Modifier.padding(start = 12.dp, bottom = 24.dp), style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+        Text(t("Tiviate"), modifier = Modifier.padding(start = 14.dp, bottom = 20.dp), style = TextStyle(brush = Tokens.BrandGradient, fontSize = Tokens.TitleSize, fontWeight = FontWeight.Bold))
         // Up/Down stay inside the menu (the groups column beside it would otherwise be "closer").
-        RailRow(t("Search"), "rail_search", onSearch, Modifier.focusRequester(search).focusProperties { up = FocusRequester.Cancel; down = tv })
-        RailRow("TV", "rail_tv", onTv, Modifier.focusRequester(tv).focusProperties { up = search; down = settings }, selected = true)
+        RailRow(Icons.Rounded.Search, t("Search"), "rail_search", onSearch, Modifier.focusRequester(search).focusProperties { up = FocusRequester.Cancel; down = tv })
+        RailRow(Icons.Rounded.LiveTv, "TV", "rail_tv", onTv, Modifier.focusRequester(tv).focusProperties { up = search; down = settings }, selected = true)
         Spacer(Modifier.weight(1f))
-        RailRow(t("Settings"), "rail_settings", onSettings, Modifier.focusRequester(settings).focusProperties { up = tv; down = FocusRequester.Cancel })
+        RailRow(Icons.Rounded.Settings, t("Settings"), "rail_settings", onSettings, Modifier.focusRequester(settings).focusProperties { up = tv; down = FocusRequester.Cancel })
     }
 }
 
 @Composable
-private fun RailRow(label: String, tag: String, onClick: () -> Unit, modifier: Modifier = Modifier, selected: Boolean = false) {
-    FocusSurface(onClick = onClick, modifier = modifier.fillMaxWidth().testTag(tag), container = if (selected) Tokens.Raised else Color.Transparent, scale = 1.02f) {
-        Text(label, modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium))
+private fun RailRow(icon: ImageVector, label: String, tag: String, onClick: () -> Unit, modifier: Modifier = Modifier, selected: Boolean = false) {
+    FocusSurface(onClick = onClick, modifier = modifier.fillMaxWidth().testTag(tag), container = if (selected) Tokens.Selected else Color.Transparent, shape = Tokens.SmallShape, scale = 1.02f) {
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Icon(icon, contentDescription = null, tint = if (selected) Tokens.Cyan else Tokens.Text, modifier = Modifier.size(22.dp))
+            Text(label, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium))
+        }
     }
 }

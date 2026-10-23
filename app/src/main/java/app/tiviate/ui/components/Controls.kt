@@ -1,5 +1,15 @@
 package app.tiviate.ui.components
 
+import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -120,31 +130,73 @@ fun ActionButton(
     modifier: Modifier = Modifier,
     primary: Boolean = false,
     tag: String? = null,
+    icon: ImageVector? = null,
+    danger: Boolean = false,
 ) {
+    val fg = when {
+        primary -> Tokens.Background
+        danger -> Tokens.Danger
+        else -> Tokens.Text
+    }
     FocusSurface(
         onClick = onClick,
         modifier = modifier.then(if (tag != null) Modifier.testTag(tag) else Modifier),
-        container = if (primary) Tokens.Blue else Tokens.Raised,
-        focusedContainer = if (primary) Tokens.Cyan else Tokens.Outline,
+        shape = Tokens.PillShape,
+        container = if (primary) Tokens.Cyan else Tokens.Raised,
+        focusedContainer = when {
+            primary -> Tokens.Text
+            danger -> Tokens.Danger.copy(alpha = 0.3f).compositeOver(Tokens.Raised)
+            else -> Tokens.Focused
+        },
     ) {
-        Text(
-            text,
-            modifier = Modifier.padding(horizontal = 22.dp, vertical = 12.dp),
-            style = TextStyle(color = if (primary) Tokens.Background else Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold),
-        )
+        Row(
+            Modifier.padding(horizontal = if (icon != null) 16.dp else 20.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            icon?.let { Icon(it, contentDescription = null, tint = fg, modifier = Modifier.size(18.dp)) }
+            Text(text, maxLines = 1, style = TextStyle(color = fg, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+        }
+    }
+}
+
+/** A small rounded info chip: an icon and a short text (channels, last update, account state). */
+@Composable
+fun InfoChip(icon: ImageVector, text: String, tint: Color = Tokens.TextSecondary) {
+    Row(
+        Modifier.background(Tokens.Raised, Tokens.PillShape).padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+        Text(text, maxLines = 1, style = TextStyle(color = if (tint == Tokens.TextSecondary) Tokens.Text else tint, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Medium))
     }
 }
 
 @Composable
 fun ToggleRow(label: String, checked: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier, tag: String? = null) {
-    FocusSurface(onClick = onToggle, modifier = modifier.fillMaxWidth().then(if (tag != null) Modifier.testTag(tag) else Modifier)) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+    FocusSurface(onClick = onToggle, modifier = modifier.fillMaxWidth().then(if (tag != null) Modifier.testTag(tag) else Modifier), shape = Tokens.SmallShape, scale = 1.01f) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(label, modifier = Modifier.weight(1f), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
-            Text(
-                if (checked) t("On") else t("Off"),
-                modifier = Modifier.width(48.dp),
-                style = TextStyle(color = if (checked) Tokens.Cyan else Tokens.TextSecondary, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold),
-            )
+            Switch(checked, Modifier.semantics { stateDescription = if (checked) t("On") else t("Off") })
         }
+    }
+}
+
+/** A pill switch: accent track with the knob on the right when on. */
+@Composable
+fun Switch(checked: Boolean, modifier: Modifier = Modifier) {
+    val knobX by androidx.compose.animation.core.animateDpAsState(if (checked) 20.dp else 2.dp, Tokens.motion(), label = "switch")
+    Box(
+        modifier
+            .size(width = 44.dp, height = 24.dp)
+            .background(if (checked) Tokens.Cyan else Tokens.Outline, Tokens.PillShape),
+    ) {
+        Box(
+            Modifier
+                .offset(x = knobX, y = 2.dp)
+                .size(20.dp)
+                .background(if (checked) Tokens.Background else Tokens.TextSecondary, androidx.compose.foundation.shape.CircleShape),
+        )
     }
 }

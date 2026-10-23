@@ -87,6 +87,8 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)
+    // Menu and option icons (Apache-2.0); R8 keeps only the ones used.
+    implementation(libs.compose.icons)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.tv.material)
     implementation(libs.coroutines.android)
