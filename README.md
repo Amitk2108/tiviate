@@ -225,13 +225,6 @@ WorkManager · DataStore · Paging · OkHttp · Moshi · Coil · XZ for Java.
 
 Bug reports, ideas, translations and pull requests are welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
-## 👤 Author
-
-**Tiviate is designed and built by Amit Kumar** — [github.com/Amitk2108](https://github.com/Amitk2108).
-The same credit appears inside the app under *Settings → About*.
-
----
-
 ## ⚖️ Legal
 
 - **Player only.** Tiviate is media-player software. It does not provide, sell, host, store, index or link
