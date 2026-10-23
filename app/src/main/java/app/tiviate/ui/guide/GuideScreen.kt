@@ -109,6 +109,9 @@ fun GuideScreen() {
     val listState = rememberLazyListState()
     val gridFocus = remember { FocusRequester() }
     // Every start (first open, or back from the TV home screen) refreshes the guide and its preview.
+    val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    val logoPx = with(androidx.compose.ui.platform.LocalDensity.current) { 80.dp.roundToPx() }
+    LaunchedEffect(playlist?.id) { playlist?.id?.let { vm.prefetchLogos(appContext, logoPx) } }
     LifecycleStartEffect(Unit) {
         vm.open()
         state.backToNow(System.currentTimeMillis(), (if (state.row < items.itemCount) items.peek(state.row) else null)?.epgRef?.let { vm.programmes[it] }.orEmpty())

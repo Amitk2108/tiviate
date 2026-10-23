@@ -100,6 +100,7 @@ private fun ChannelCell(channel: ChannelEntity?, isPlaying: Boolean, showNumber:
             .fillMaxHeight()
             .padding(end = 4.dp)
             .background(if (rowFocused) Tokens.Raised else Tokens.Surface, Tokens.SmallShape)
+            .then(if (isPlaying) Modifier.border(2.dp, Tokens.Live, Tokens.SmallShape) else Modifier)
             .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -108,7 +109,7 @@ private fun ChannelCell(channel: ChannelEntity?, isPlaying: Boolean, showNumber:
         if (showNumber) Text("${channel.number}", modifier = Modifier.width(34.dp), style = TextStyle(color = if (isPlaying) Tokens.Cyan else Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.SemiBold))
         ChannelLogo(channel, 40.dp)
         Text(channel.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = if (isPlaying) Tokens.Cyan else Tokens.Text, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Medium))
-        if (isPlaying) Text("▶", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.CaptionSize)) // playing now
+        if (isPlaying) Text("▶", style = TextStyle(color = Tokens.Live, fontSize = Tokens.CaptionSize)) // playing now
     }
 }
 

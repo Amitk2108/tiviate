@@ -79,6 +79,8 @@ object Tokens {
     /** The accent colour (named Cyan for its default). */
     val Cyan: Color get() = ThemeState.accent
     val Danger = Color(0xFFFF5A6E)
+    /** The playing ("live") channel: its own colour, different from the focus. */
+    val Live = Color(0xFF3DDC84)
 
     /** Panel backgrounds over video; "UI transparency" makes them more see-through. */
     // Neutral black (not the navy background) so panels over the video never tint the picture blue.

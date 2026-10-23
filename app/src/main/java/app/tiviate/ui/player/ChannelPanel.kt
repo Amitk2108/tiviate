@@ -1,5 +1,6 @@
 package app.tiviate.ui.player
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -222,7 +223,11 @@ private fun ChannelRow(
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
 ) {
-    FocusSurface(onClick = onClick, onLongClick = onLongClick, modifier = modifier.fillMaxWidth().height(64.dp), container = androidx.compose.ui.graphics.Color.Transparent, scale = 1.02f) {
+    FocusSurface(
+        onClick = onClick, onLongClick = onLongClick,
+        modifier = modifier.fillMaxWidth().height(64.dp).then(if (isPlaying) Modifier.border(2.dp, Tokens.Live, Tokens.Shape) else Modifier),
+        container = androidx.compose.ui.graphics.Color.Transparent, scale = 1.02f,
+    ) {
         if (channel == null) return@FocusSurface
         Row(Modifier.fillMaxSize().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (showNumber) {
