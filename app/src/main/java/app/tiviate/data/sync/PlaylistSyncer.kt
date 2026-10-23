@@ -149,7 +149,7 @@ class PlaylistSyncer(
 
         fun flush() {
             if (buffer.isEmpty()) return
-            db.channels().insertAllBlocking(ArrayList(buffer))
+            db.channels().upsertBlocking(playlistId, ArrayList(buffer))
             buffer.clear()
             onProgress(count)
         }

@@ -172,4 +172,31 @@ class PlaylistSyncerTest {
         h.playlistSyncer().sync(id)
         assertEquals(listOf(1, 2, 3), h.db.channels().allInPlaylist(id).map { it.number })
     }
+
+    private fun ftsDocuments(): Int =
+        h.db.openHelper.readableDatabase.query("SELECT COUNT(*) FROM channel_fts_docsize").use { it.moveToFirst(); it.getInt(0) }
+
+    @Test
+    fun resyncUpdatesRowsInPlaceKeepingIdsGuideLinksAndSearchIndex() = runBlocking {
+        h.routes["/list.m3u"] = { text(m3u("a")) }
+        val id = addM3u()
+        h.playlistSyncer().sync(id)
+        val before = h.db.channels().allInPlaylist(id)
+        val news = before.first { it.name == "News One HD" }
+        h.db.channels().setEpg(news.id, "9:news.one", "http://epg/n1.png") // as left by the last guide sync
+
+        h.routes["/list.m3u"] = { text(m3u("b")) }
+        repeat(3) {
+            h.now += 1_000
+            h.playlistSyncer().sync(id)
+        }
+
+        val after = h.db.channels().allInPlaylist(id)
+        assertEquals("rows keep their ids, so lists don't rebuild", before.map { it.id }, after.map { it.id })
+        val newsAfter = after.first { it.name == "News One HD" }
+        assertEquals("guide link survives until the guide relinks", "9:news.one", newsAfter.epgRef)
+        assertEquals("http://epg/n1.png", newsAfter.logoFallback)
+        assertTrue(newsAfter.streamUrl.endsWith("token=b"))
+        assertEquals("no orphaned search entries", 3, ftsDocuments())
+    }
 }
