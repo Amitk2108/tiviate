@@ -458,6 +458,8 @@ private fun PlayerSection() {
         }
         Caption(t("A bigger buffer helps if channels often pause to load; a smaller one changes channels faster on a good connection."))
         ToggleRow(t("Prefer software video decoder"), settings.preferSoftwareDecoder, { update { it.copy(preferSoftwareDecoder = !it.preferSoftwareDecoder) } }, tag = "setting_software")
+        ToggleRow(t("Always highest quality"), settings.highestQuality, { update { it.copy(highestQuality = !it.highestQuality) } }, tag = "setting_highest_quality")
+        Caption(t("Off: automatic — the quality follows your connection."))
         ToggleRow(t("Tunneled playback"), settings.tunneling, { update { it.copy(tunneling = !it.tunneling) } }, tag = "setting_tunneling")
         ToggleRow(t("Match TV refresh rate to video"), settings.matchRefreshRate, { update { it.copy(matchRefreshRate = !it.matchRefreshRate) } }, tag = "setting_afr")
         Caption(t("Refresh-rate matching removes judder on 25/50 fps channels; the screen may blink when it switches."))

@@ -103,6 +103,8 @@ data class AppSettings(
     val bufferPreset: BufferPreset = BufferPreset.MEDIUM,
     val preferSoftwareDecoder: Boolean = false,
     val tunneling: Boolean = false,
+    /** Always play the best quality the TV supports; off = automatic (adapts to the connection). */
+    val highestQuality: Boolean = true,
     val matchRefreshRate: Boolean = false,
     val defaultUserAgent: String? = null,
     val showChannelNumbers: Boolean = true,
@@ -230,6 +232,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p[BUFFER] = next.bufferPreset.name
             p[SOFTWARE_DECODER] = next.preferSoftwareDecoder
             p[TUNNELING] = next.tunneling
+            p[HIGHEST_QUALITY] = next.highestQuality
             p[MATCH_REFRESH] = next.matchRefreshRate
             p.setOrRemove(USER_AGENT, next.defaultUserAgent)
             p[SHOW_NUMBERS] = next.showChannelNumbers
@@ -298,6 +301,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         bufferPreset = BufferPreset.fromStored(p[BUFFER]),
         preferSoftwareDecoder = p[SOFTWARE_DECODER] ?: false,
         tunneling = p[TUNNELING] ?: false,
+        highestQuality = p[HIGHEST_QUALITY] ?: true,
         matchRefreshRate = p[MATCH_REFRESH] ?: false,
         defaultUserAgent = p[USER_AGENT],
         showChannelNumbers = p[SHOW_NUMBERS] ?: true,
@@ -377,6 +381,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val BUFFER = stringPreferencesKey("buffer_preset")
         private val SOFTWARE_DECODER = booleanPreferencesKey("prefer_software_decoder")
         private val TUNNELING = booleanPreferencesKey("tunneling")
+        private val HIGHEST_QUALITY = booleanPreferencesKey("highest_quality")
         private val MATCH_REFRESH = booleanPreferencesKey("match_refresh_rate")
         private val USER_AGENT = stringPreferencesKey("default_user_agent")
         private val SHOW_NUMBERS = booleanPreferencesKey("show_channel_numbers")

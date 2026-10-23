@@ -196,6 +196,8 @@ class Media3Engine(
             .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !s.subtitlesForAll)
             .setPreferredTextLanguages(*listOfNotNull(s.preferredTextLanguage.takeIf { s.subtitlesForAll }).toTypedArray())
             .setSelectUndeterminedTextLanguage(s.subtitlesForAll)
+            // Highest quality by default; "automatic" lets the stream drop to a lower one on a slow connection.
+            .setForceHighestSupportedBitrate(s.highestQuality)
             .build()
     }
 
@@ -247,7 +249,8 @@ class Media3Engine(
             newSettings.tunneling != settings.tunneling
         val prefsChanged = newSettings.preferredAudioLanguage != settings.preferredAudioLanguage ||
             newSettings.subtitlesForAll != settings.subtitlesForAll ||
-            newSettings.preferredTextLanguage != settings.preferredTextLanguage
+            newSettings.preferredTextLanguage != settings.preferredTextLanguage ||
+            newSettings.highestQuality != settings.highestQuality
         audioOffsetUs = newSettings.audioOffsetMs * 1_000L
         settings = newSettings
         if (!needsRebuild) {

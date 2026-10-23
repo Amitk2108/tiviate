@@ -16,8 +16,8 @@ android {
         applicationId = "app.tiviate"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.2.1"
+        versionCode = 4
+        versionName = "0.2.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Each instrumented test runs in a fresh process with cleared app data.
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
