@@ -1,0 +1,107 @@
+package app.tiviate.data
+
+import androidx.room.withTransaction
+import app.tiviate.core.xtream.XtreamAccount
+import app.tiviate.core.xtream.XtreamCredentials
+import app.tiviate.core.xtream.XtreamJson
+import app.tiviate.core.xtream.XtreamUrls
+import app.tiviate.data.db.PlaylistEntity
+import app.tiviate.data.db.PlaylistType
+import app.tiviate.data.db.TiviateDatabase
+import app.tiviate.data.sync.EpgSyncer
+import app.tiviate.data.sync.PlaylistSyncer
+import app.tiviate.data.sync.getOrThrow
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+
+sealed interface SyncProgress {
+    data class Channels(val count: Int) : SyncProgress
+    data class Guide(val programmes: Int) : SyncProgress
+    data class Failed(val message: String) : SyncProgress
+    data object Done : SyncProgress
+}
+
+class PlaylistRepository(
+    private val db: TiviateDatabase,
+    private val http: OkHttpClient,
+    private val playlistSyncer: PlaylistSyncer,
+    private val epgSyncer: EpgSyncer,
+    private val clock: () -> Long = System::currentTimeMillis,
+) {
+    val playlists: Flow<List<PlaylistEntity>> = db.playlists().observeAll()
+
+    suspend fun get(id: Long): PlaylistEntity? = db.playlists().get(id)
+
+    suspend fun addM3uUrl(name: String, url: String, epgUrl: String?, userAgent: String?): Long =
+        db.playlists().insert(
+            PlaylistEntity(name = name, type = PlaylistType.M3U_URL, url = url.trim(), epgUrl = epgUrl.blankToNull(), userAgent = userAgent.blankToNull()),
+        )
+
+    suspend fun addM3uFile(name: String, uri: String, epgUrl: String?): Long =
+        db.playlists().insert(PlaylistEntity(name = name, type = PlaylistType.M3U_FILE, url = uri, epgUrl = epgUrl.blankToNull()))
+
+    suspend fun addXtream(name: String, creds: XtreamCredentials, preferHls: Boolean): Long =
+        db.playlists().insert(
+            PlaylistEntity(
+                name = name,
+                type = PlaylistType.XTREAM,
+                xtreamServer = XtreamUrls.normalizeServer(creds.server),
+                xtreamUser = creds.username.trim(),
+                xtreamPass = creds.password,
+                preferHls = preferHls,
+            ),
+        )
+
+    /** Playlist first, then its guide. Guide failures are recorded per source and never fail the playlist. */
+    fun sync(playlistId: Long): Flow<SyncProgress> = channelFlow {
+        try {
+            send(SyncProgress.Channels(0))
+            playlistSyncer.sync(playlistId) { trySend(SyncProgress.Channels(it)) }
+            send(SyncProgress.Guide(0))
+            epgSyncer.syncForPlaylist(playlistId) { trySend(SyncProgress.Guide(it)) }
+            send(SyncProgress.Done)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            send(SyncProgress.Failed(e.message ?: "Sync failed"))
+        }
+    }
+
+    suspend fun refreshGuide(playlistId: Long) = epgSyncer.syncForPlaylist(playlistId)
+
+    suspend fun syncAll() {
+        for (p in db.playlists().all().filter { it.enabled }) {
+            runCatching { playlistSyncer.sync(p.id) }
+            runCatching { epgSyncer.syncForPlaylist(p.id) }
+        }
+    }
+
+    suspend fun isStale(staleMs: Long): Boolean =
+        db.playlists().all().any { it.enabled && (it.lastSyncAt == null || clock() - it.lastSyncAt > staleMs) }
+
+    suspend fun delete(playlistId: Long) {
+        db.withTransaction {
+            db.epg().autoSource(playlistId)?.let { src ->
+                db.epg().deleteProgrammes(src.id)
+                db.epg().deleteChannels(src.id)
+                db.epg().deleteSource(src.id)
+            }
+            db.channels().deleteAll(playlistId)
+            db.favorites().clear(playlistId)
+            db.history().clear(playlistId)
+            db.playlists().delete(playlistId)
+        }
+    }
+
+    suspend fun xtreamAccount(playlistId: Long): XtreamAccount? = withContext(Dispatchers.IO) {
+        val p = db.playlists().get(playlistId)?.takeIf { it.type == PlaylistType.XTREAM } ?: return@withContext null
+        val creds = XtreamCredentials(p.xtreamServer.orEmpty(), p.xtreamUser.orEmpty(), p.xtreamPass.orEmpty())
+        runCatching { http.getOrThrow(XtreamUrls.api(creds), p.userAgent, "Account").use { XtreamJson.account(it.body.source()) } }.getOrNull()
+    }
+
+    private fun String?.blankToNull() = this?.trim()?.takeIf { it.isNotEmpty() }
+}

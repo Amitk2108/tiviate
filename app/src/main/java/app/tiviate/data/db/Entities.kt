@@ -125,3 +125,13 @@ data class ProgrammeEntity(
 )
 
 data class CategoryRow(@ColumnInfo(name = "name") val name: String?, @ColumnInfo(name = "count") val count: Int)
+
+/** Lightweight projection used for EPG matching so large playlists don't load full rows. */
+data class ChannelMatchRow(
+    val id: Long,
+    val tvgId: String?,
+    val tvgName: String?,
+    val name: String,
+    val epgRef: String?,
+    val logoFallback: String?,
+)

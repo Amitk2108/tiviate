@@ -24,6 +24,15 @@ interface ChannelDao {
     /** Upsert by (playlistId, stableKey); the old row id is replaced. */
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertAll(rows: List<ChannelEntity>)
 
+    /** Blocking variant for streaming parsers that call back on a worker thread. */
+    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insertAllBlocking(rows: List<ChannelEntity>)
+
+    @Query("SELECT id, tvgId, tvgName, name, epgRef, logoFallback FROM channel WHERE playlistId = :playlistId")
+    suspend fun matchRows(playlistId: Long): List<ChannelMatchRow>
+
+    @Query("UPDATE channel SET epgRef = :epgRef, logoFallback = :logoFallback WHERE id = :id")
+    fun setEpgBlocking(id: Long, epgRef: String?, logoFallback: String?)
+
     @Query("DELETE FROM channel WHERE playlistId = :playlistId AND syncStamp != :keepStamp")
     suspend fun deleteStale(playlistId: Long, keepStamp: Long): Int
 
@@ -98,6 +107,8 @@ interface FavoriteDao {
     suspend fun toggle(playlistId: Long, key: String, nowMs: Long): Boolean =
         if (isFavorite(playlistId, key)) { delete(playlistId, key); false } else { insert(FavoriteEntity(playlistId, key, nowMs)); true }
 
+    @Query("DELETE FROM favorite WHERE playlistId = :playlistId") suspend fun clear(playlistId: Long)
+
     @Query("SELECT stableKey FROM favorite WHERE playlistId = :playlistId")
     fun observeKeys(playlistId: Long): Flow<List<String>>
 
@@ -161,9 +172,19 @@ interface EpgDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertChannels(rows: List<EpgChannelEntity>)
     @Query("DELETE FROM epg_channel WHERE sourceId = :sourceId") suspend fun deleteChannels(sourceId: Long)
+    @Query("DELETE FROM programme WHERE sourceId = :sourceId") suspend fun deleteProgrammes(sourceId: Long)
     @Query("SELECT * FROM epg_channel WHERE sourceId = :sourceId") suspend fun channels(sourceId: Long): List<EpgChannelEntity>
 
     @Insert suspend fun insertProgrammes(rows: List<ProgrammeEntity>)
+
+    /** Blocking variant for the streaming XMLTV parser callbacks. */
+    @Insert fun insertProgrammesBlocking(rows: List<ProgrammeEntity>)
+
+    @Transaction
+    suspend fun replaceChannels(sourceId: Long, rows: List<EpgChannelEntity>) {
+        deleteChannels(sourceId)
+        rows.chunked(500).forEach { insertChannels(it) }
+    }
 
     @Query(
         """SELECT p.* FROM programme p JOIN epg_source s ON s.id = p.sourceId AND p.generation = s.activeGeneration
