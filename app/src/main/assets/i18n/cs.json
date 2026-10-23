@@ -329,5 +329,12 @@
 "Update the guide every": "Aktualizovat program každých",
 "%d hours": "%d hodin",
 "Subtitles on for English channels": "Titulky u anglických kanálů",
-"Options": "Možnosti"
+"Options": "Možnosti",
+"Made by %s": "Autor: %s",
+"Source code and updates: %s": "Zdrojový kód a aktualizace: %s",
+"Legal": "Právní informace",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate je pouze přehrávač. Neposkytuje, nehostuje ani neukládá žádné kanály, playlisty ani streamy.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Předplatné si přidáváte sami od svého poskytovatele a odpovídáte za to, že máte právo jej sledovat.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate je nezávislý projekt. Není spojen s TiviMate ani s žádným poskytovatelem IPTV a neobsahuje žádný jejich kód, obrázky ani texty.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Žádné účty, žádné reklamy a žádné sledování: vaše přihlašovací údaje zůstávají v tomto zařízení."
 }

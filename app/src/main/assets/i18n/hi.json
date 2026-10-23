@@ -335,5 +335,12 @@
 "Update the guide every": "गाइड अपडेट करें हर",
 "%d hours": "%d घंटे",
 "Subtitles on for English channels": "अंग्रेज़ी चैनलों पर सबटाइटल चालू",
-"Options": "विकल्प"
+"Options": "विकल्प",
+"Made by %s": "%s द्वारा निर्मित",
+"Source code and updates: %s": "सोर्स कोड और अपडेट: %s",
+"Legal": "कानूनी जानकारी",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate केवल एक प्लेयर है। यह कोई चैनल, प्लेलिस्ट या स्ट्रीम प्रदान, होस्ट या संग्रहीत नहीं करता।",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "आप अपने स्वयं के प्रदाता से अपनी सदस्यता जोड़ते हैं, और उसे देखने का अधिकार होना सुनिश्चित करना आपकी ज़िम्मेदारी है।",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate एक स्वतंत्र प्रोजेक्ट है। यह TiviMate या किसी भी IPTV प्रदाता से संबद्ध नहीं है, और इसमें उनका कोई कोड, चित्र या टेक्स्ट शामिल नहीं है।",
+"No accounts, no ads and no tracking: your logins stay on this device.": "कोई खाता नहीं, कोई विज्ञापन नहीं और कोई ट्रैकिंग नहीं: आपकी लॉगिन जानकारी इसी डिवाइस पर रहती है।"
 }

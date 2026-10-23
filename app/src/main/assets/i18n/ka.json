@@ -335,5 +335,12 @@
 "Update the guide every": "გიდის განახლება ყოველ",
 "%d hours": "%d საათში",
 "Subtitles on for English channels": "სუბტიტრები ინგლისურ არხებზე",
-"Options": "პარამეტრები"
+"Options": "პარამეტრები",
+"Made by %s": "შემქმნელი: %s",
+"Source code and updates: %s": "წყაროს კოდი და განახლებები: %s",
+"Legal": "სამართლებრივი ინფორმაცია",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate მხოლოდ ფლეერია. ის არ აწვდის, არ მასპინძლობს და არ ინახავს არხებს, დასაკრავ სიებს ან ნაკადებს.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "თქვენ ამატებთ საკუთარ გამოწერას საკუთარი პროვაიდერისგან და პასუხისმგებელი ხართ, რომ გქონდეთ მისი ყურების უფლება.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate დამოუკიდებელი პროექტია. ის არ არის დაკავშირებული TiviMate-თან ან რომელიმე IPTV პროვაიდერთან და არ შეიცავს მათ კოდს, სურათებს ან ტექსტს.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "არ არის ანგარიშები, რეკლამა ან თვალთვალი: თქვენი შესვლის მონაცემები ამ მოწყობილობაზე რჩება."
 }

@@ -332,5 +332,12 @@
 "Update the guide every": "Päivitä opas joka",
 "%d hours": "%d tunti",
 "Subtitles on for English channels": "Tekstitys englanninkielisille kanaville",
-"Options": "Valinnat"
+"Options": "Valinnat",
+"Made by %s": "Tekijä: %s",
+"Source code and updates: %s": "Lähdekoodi ja päivitykset: %s",
+"Legal": "Oikeudelliset tiedot",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate on pelkkä soitin. Se ei tarjoa, ylläpidä eikä tallenna kanavia, soittolistoja tai suoratoistoja.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Lisäät oman tilauksesi omalta palveluntarjoajaltasi, ja olet itse vastuussa siitä, että sinulla on oikeus katsoa sitä.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate on itsenäinen projekti. Se ei liity TiviMate-sovellukseen eikä mihinkään IPTV-palveluntarjoajaan, eikä se sisällä niiden koodia, kuvia tai tekstejä.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Ei tilejä, ei mainoksia eikä seurantaa: kirjautumistietosi pysyvät tällä laitteella."
 }

@@ -330,5 +330,12 @@
 "Update the guide every": "Atjaunināt ceļvedi ik pēc",
 "%d hours": "%d stundām",
 "Subtitles on for English channels": "Subtitri angļu valodas kanāliem",
-"Options": "Opcijas"
+"Options": "Opcijas",
+"Made by %s": "Izveidoja %s",
+"Source code and updates: %s": "Pirmkods un atjauninājumi: %s",
+"Legal": "Juridiskā informācija",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate ir tikai atskaņotājs. Tas nenodrošina, neizvieto un neglabā nekādus kanālus, atskaņošanas sarakstus vai straumes.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Jūs pievienojat savu abonementu no sava pakalpojumu sniedzēja un esat atbildīgs par to, lai jums būtu tiesības to skatīties.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate ir neatkarīgs projekts. Tas nav saistīts ar TiviMate vai kādu IPTV pakalpojumu sniedzēju un nesatur nekādu to kodu, attēlus vai tekstu.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Nav kontu, nav reklāmu un nav izsekošanas: jūsu pieteikšanās dati paliek šajā ierīcē."
 }

@@ -335,5 +335,12 @@
 "Update the guide every": "تحديث الدليل كل",
 "%d hours": "%d ساعة",
 "Subtitles on for English channels": "ترجمة مفعّلة للقنوات الإنجليزية",
-"Options": "الخيارات"
+"Options": "الخيارات",
+"Made by %s": "من تطوير %s",
+"Source code and updates: %s": "الشفرة المصدرية والتحديثات: %s",
+"Legal": "المعلومات القانونية",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate مجرد مشغّل. لا يوفّر أي قنوات أو قوائم تشغيل أو بثوث، ولا يستضيفها ولا يخزّنها.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "أنت تضيف اشتراكك الخاص من مزوّدك الخاص، وأنت مسؤول عن امتلاك حق مشاهدته.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate مشروع مستقل. لا يرتبط بـ TiviMate أو بأي مزوّد IPTV، ولا يحتوي على أي من شفرتهم أو صورهم أو نصوصهم.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "لا حسابات ولا إعلانات ولا تتبّع: تبقى بيانات تسجيل دخولك على هذا الجهاز."
 }

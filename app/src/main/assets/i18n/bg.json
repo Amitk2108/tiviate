@@ -335,5 +335,12 @@
 "Update the guide every": "Обновяване на програмата на всеки",
 "%d hours": "%d часа",
 "Subtitles on for English channels": "Субтитри за английските канали",
-"Options": "Опции"
+"Options": "Опции",
+"Made by %s": "Създадено от %s",
+"Source code and updates: %s": "Изходен код и актуализации: %s",
+"Legal": "Правна информация",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate е само плейър. Той не предоставя, не хоства и не съхранява канали, плейлисти или потоци.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Вие добавяте собствен абонамент от своя доставчик и носите отговорност да имате право да го гледате.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate е независим проект. Той не е свързан с TiviMate или с който и да е IPTV доставчик и не съдържа техен код, изображения или текст.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Без акаунти, без реклами и без проследяване: данните ви за вход остават на това устройство."
 }

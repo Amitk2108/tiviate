@@ -335,5 +335,12 @@
 "Update the guide every": "வழிகாட்டியைப் புதுப்பிக்கும் இடைவெளி",
 "%d hours": "%d மணிநேரம்",
 "Subtitles on for English channels": "ஆங்கில சேனல்களில் வசன வரிகள்",
-"Options": "விருப்பங்கள்"
+"Options": "விருப்பங்கள்",
+"Made by %s": "%s உருவாக்கியது",
+"Source code and updates: %s": "மூலக் குறியீடு மற்றும் புதுப்பிப்புகள்: %s",
+"Legal": "சட்டத் தகவல்",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate ஒரு பிளேயர் மட்டுமே. இது எந்த சேனல்கள், பிளேலிஸ்ட்கள் அல்லது ஸ்ட்ரீம்களையும் வழங்குவதோ, ஹோஸ்ட் செய்வதோ, சேமிப்பதோ இல்லை.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "உங்கள் சொந்த வழங்குநரிடமிருந்து உங்கள் சொந்தச் சந்தாவை நீங்களே சேர்க்கிறீர்கள், அதைப் பார்க்கும் உரிமை உங்களுக்கு இருப்பதை உறுதிசெய்வது உங்கள் பொறுப்பு.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate ஒரு சுயாதீனத் திட்டம். இது TiviMate அல்லது எந்த IPTV வழங்குநருடனும் தொடர்புடையது அல்ல, மேலும் அவர்களின் குறியீடு, படங்கள் அல்லது உரை எதுவும் இதில் இல்லை.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "கணக்குகள் இல்லை, விளம்பரங்கள் இல்லை, கண்காணிப்பு இல்லை: உங்கள் உள்நுழைவு விவரங்கள் இந்தச் சாதனத்திலேயே இருக்கும்."
 }
