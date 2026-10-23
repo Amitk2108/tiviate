@@ -1,5 +1,10 @@
 package app.tiviate.ui.components
 
+import androidx.compose.ui.graphics.FilterQuality
+import coil3.request.ImageRequest
+import coil3.compose.LocalPlatformContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +33,37 @@ import coil3.compose.AsyncImage
  * Logo URLs to try, in order: playlist logo, then the guide's channel icon. Plain-http URLs are tried
  * over https first, because some networks/ISP proxies stall plain http to image CDNs.
  */
-fun logoCandidates(channel: ChannelEntity): List<String> = imageCandidates(channel.logoUrl, channel.logoFallback)
+fun logoCandidates(channel: ChannelEntity): List<String> = LogoUrls.order(imageCandidates(channel.logoUrl, channel.logoFallback))
+
+/**
+ * Which logo links work, for this run of the app: the one that loaded is tried first next time and
+ * the ones that failed are skipped, so scrolling back never waits on a dead https/http attempt again.
+ */
+object LogoUrls {
+    private val good = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    private val bad = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    private var prefs: android.content.SharedPreferences? = null
+
+    /** Loads the links that worked last time, so a restart does not retry dead ones first. */
+    fun init(context: android.content.Context) {
+        val p = context.getSharedPreferences("logo_urls", android.content.Context.MODE_PRIVATE)
+        prefs = p
+        good += p.getStringSet("good", emptySet()).orEmpty()
+    }
+
+    fun worked(url: String) {
+        bad -= url
+        if (good.add(url)) prefs?.edit()?.putStringSet("good", HashSet(good))?.apply()
+    }
+    fun failed(url: String) { if (url !in good) bad += url }
+
+    fun order(candidates: List<String>): List<String> {
+        val known = candidates.filter { it in good }
+        if (known.isNotEmpty()) return known
+        return candidates.filter { it !in bad }.ifEmpty { candidates.takeLast(1) }
+    }
+}
 
 fun imageCandidates(vararg urls: String?): List<String> =
     urls.filterNotNull()
@@ -65,17 +100,24 @@ fun ChannelLogo(channel: ChannelEntity, size: Dp, modifier: Modifier = Modifier)
     var index by remember(candidates) { mutableIntStateOf(0) }
     val url = candidates.getOrNull(index)
     var loaded by remember(url) { mutableStateOf(false) }
+    // The letters show only if no logo arrived soon (or none exists): a saved logo appears without a flash.
+    var showMonogram by remember(url) { mutableStateOf(url == null) }
+    LaunchedEffect(url) { if (url != null) { kotlinx.coroutines.delay(400); if (!loaded) showMonogram = true } }
+    val px = with(LocalDensity.current) { size.roundToPx() }
+    val context = LocalPlatformContext.current
+    // Decoded at twice the tile size: the TV scales the whole picture up to 4K, so small logos stay crisp.
+    val request = remember(url, px) { url?.let { ImageRequest.Builder(context).data(it).size(px * 2).build() } }
     Box(modifier.size(size).clip(Tokens.LogoShape).background(Tokens.Raised), contentAlignment = Alignment.Center) {
-        // The monogram stays visible until a logo has actually loaded, so a tile is never blank.
-        if (!loaded) Monogram(channel.name, size)
-        if (url != null) {
+        if (showMonogram && !loaded) Monogram(channel.name, size)
+        if (request != null) {
             AsyncImage(
-                model = url,
+                model = request,
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
+                filterQuality = FilterQuality.High,
                 modifier = Modifier.fillMaxSize().padding(2.dp),
-                onSuccess = { loaded = true },
-                onError = { index++ },
+                onSuccess = { loaded = true; LogoUrls.worked(url!!) },
+                onError = { LogoUrls.failed(url!!); index++ },
             )
         }
     }
@@ -89,6 +131,19 @@ fun Monogram(name: String, size: Dp) {
             color = Tokens.Text,
             fontWeight = FontWeight.Bold,
             fontSize = (size.value * 0.34f).sp,
+        )
+    }
+}
+
+/** Fetches channel logos in the background so the lists show them at once (stored on disk by the image loader). */
+fun prefetchLogos(context: android.content.Context, channels: List<ChannelEntity>, sizePx: Int) {
+    val loader = coil3.SingletonImageLoader.get(context)
+    for (ch in channels) {
+        val url = logoCandidates(ch).firstOrNull() ?: continue
+        loader.enqueue(
+            ImageRequest.Builder(context).data(url).size(sizePx)
+                .listener(onSuccess = { _, _ -> LogoUrls.worked(url) }, onError = { _, _ -> LogoUrls.failed(url) })
+                .build(),
         )
     }
 }

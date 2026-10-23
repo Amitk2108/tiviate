@@ -15,5 +15,8 @@ class TiviateApp : Application(), SingletonImageLoader.Factory {
         graph = AppGraph(this)
     }
 
-    override fun newImageLoader(context: PlatformContext): ImageLoader = buildImageLoader(this, graph.http)
+    override fun newImageLoader(context: PlatformContext): ImageLoader {
+        app.tiviate.ui.components.LogoUrls.init(this)
+        return buildImageLoader(this, graph.http)
+    }
 }

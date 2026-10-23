@@ -115,6 +115,18 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
         viewModelScope.launch { graph.settings.update { it.copy(lastGroup = Category.remember(c)) } }
     }
 
+    private val prefetched = mutableSetOf<Long>()
+
+    /** Logos of this playlist's channels, fetched in the background once per run. */
+    fun prefetchLogos(context: android.content.Context, sizePx: Int) {
+        val pid = _playlist.value?.id ?: return
+        if (!prefetched.add(pid)) return
+        viewModelScope.launch {
+            val channels = repo.list(pid, Category.All).take(600)
+            app.tiviate.ui.components.prefetchLogos(context, channels, sizePx)
+        }
+    }
+
     fun tune(channel: ChannelEntity) = graph.player.tune(channel, _playlist.value?.userAgent)
 
     /** Shows another playlist: its first (or last watched) channel starts in the preview. */

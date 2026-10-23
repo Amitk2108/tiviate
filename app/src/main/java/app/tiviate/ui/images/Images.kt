@@ -22,7 +22,7 @@ val IMAGE_USER_AGENT = "Mozilla/5.0 (Linux; Android ${Build.VERSION.RELEASE}; TV
  */
 fun imageHttpClient(http: OkHttpClient): OkHttpClient = http.newBuilder()
     .dispatcher(Dispatcher())
-    .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+    .connectTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
     .readTimeout(8, java.util.concurrent.TimeUnit.SECONDS)
     .addInterceptor { chain -> chain.proceed(chain.request().newBuilder().header("User-Agent", IMAGE_USER_AGENT).build()) }
     .build()
@@ -34,7 +34,7 @@ fun buildImageLoader(context: Context, http: OkHttpClient): ImageLoader {
             add(OkHttpNetworkFetcherFactory(callFactory = { imageHttp }))
             add(SvgDecoder.Factory())
         }
-        .memoryCache { MemoryCache.Builder().maxSizePercent(context, 0.15).build() }
+        .memoryCache { MemoryCache.Builder().maxSizePercent(context, 0.25).build() }
         .diskCache {
             DiskCache.Builder()
                 .directory(context.cacheDir.resolve("images").toOkioPath())
