@@ -101,7 +101,8 @@ private fun ChannelCell(channel: ChannelEntity?, isPlaying: Boolean, showNumber:
         if (channel == null) return@Row
         if (showNumber) Text("${channel.number}", modifier = Modifier.width(34.dp), style = TextStyle(color = if (isPlaying) Tokens.Cyan else Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.SemiBold))
         ChannelLogo(channel, 40.dp)
-        Text(channel.name, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = if (isPlaying) Tokens.Cyan else Tokens.Text, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Medium))
+        Text(channel.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = if (isPlaying) Tokens.Cyan else Tokens.Text, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Medium))
+        if (isPlaying) Text("▶", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.CaptionSize)) // playing now
     }
 }
 

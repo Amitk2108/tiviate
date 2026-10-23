@@ -71,6 +71,9 @@ fun Clock(style: TextStyle, modifier: Modifier = Modifier) {
     Text(text, style = style.copy(fontSize = style.fontSize * scale), modifier = modifier)
 }
 
+/** Whole minutes until [stopMs], rounded up ("34 min left"). */
+fun minutesLeft(stopMs: Long, nowMs: Long): Int = ((stopMs - nowMs + 59_999) / 60_000).coerceAtLeast(0).toInt()
+
 fun progressOf(startMs: Long, stopMs: Long, nowMs: Long): Float =
     if (stopMs <= startMs) 0f else ((nowMs - startMs).toFloat() / (stopMs - startMs)).coerceIn(0f, 1f)
 

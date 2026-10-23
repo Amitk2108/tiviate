@@ -22,6 +22,14 @@ class UiLogicTest {
     )
 
     @Test
+    fun minutesLeftRoundsUp() {
+        val now = 1_000_000_000L
+        assertEquals(34, app.tiviate.ui.components.minutesLeft(now + 33 * 60_000 + 1, now))
+        assertEquals(1, app.tiviate.ui.components.minutesLeft(now + 5_000, now))
+        assertEquals(0, app.tiviate.ui.components.minutesLeft(now - 5_000, now))
+    }
+
+    @Test
     fun backToLiveSitsRightAfterPause() {
         val order = listOf("option_guide", "option_playpause", "option_audio")
         val tags = listOf("option_audio", "option_live", "option_unknown", "option_playpause", "option_guide")
