@@ -1,0 +1,5 @@
+# Ahead-of-time compile all of Tiviate's own code on install (profileinstaller applies this on
+# devices without Play's cloud profiles, e.g. Fire TV). Compose, Media3 and other libraries ship
+# their own profiles, which are merged automatically.
+HSPLapp/tiviate/**->**(**)**
+Lapp/tiviate/**;

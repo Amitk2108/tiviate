@@ -15,7 +15,7 @@ import app.tiviate.ui.theme.Tokens
 
 /**
  * The one focusable building block: a tv-material Surface with Tiviate's focus look
- * (cyan border, soft glow, slight scale). tv-material animates these on the render thread.
+ * (cyan border, slight scale). tv-material animates these on the render thread.
  */
 @Composable
 fun FocusSurface(
@@ -44,7 +44,8 @@ fun FocusSurface(
         border = ClickableSurfaceDefaults.border(
             focusedBorder = Border(BorderStroke(Tokens.FocusBorder, Tokens.Cyan), shape = shape),
         ),
-        glow = ClickableSurfaceDefaults.glow(focusedGlow = Glow(elevationColor = Tokens.Cyan.copy(alpha = 0.35f), elevation = 8.dp)),
+        // No glow: it is drawn as a shadow, which is expensive on low-end TV GPUs. Border + scale read clearly.
+        glow = ClickableSurfaceDefaults.glow(glow = Glow.None, focusedGlow = Glow.None, pressedGlow = Glow.None),
         content = content,
     )
 }

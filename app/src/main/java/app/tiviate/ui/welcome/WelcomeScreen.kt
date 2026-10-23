@@ -61,7 +61,7 @@ fun WelcomeScreen() {
 
 @Composable
 private fun SourceCard(title: String, subtitle: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    FocusSurface(onClick = onClick, modifier = modifier.width(220.dp)) {
+    FocusSurface(onClick = onClick, modifier = modifier.width(220.dp).height(118.dp)) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(title, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
             Text(subtitle, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))

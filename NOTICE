@@ -1,0 +1,14 @@
+Tiviate
+Copyright 2026 The Tiviate authors
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes software developed by third parties:
+
+- AndroidX (Media3/ExoPlayer, Compose, Compose for TV, Room, WorkManager, DataStore, Paging,
+  Lifecycle, Activity, Core, ProfileInstaller) — Apache License 2.0 — The Android Open Source Project
+- OkHttp, Okio, Moshi — Apache License 2.0 — Square, Inc.
+- Coil — Apache License 2.0 — Coil Contributors
+- Kotlin standard library and kotlinx.coroutines — Apache License 2.0 — JetBrains s.r.o.
+- XZ for Java — BSD Zero Clause License (0BSD) — Lasse Collin and contributors
+
+Tiviate does not contain code, images or text from TiviMate or any other proprietary player.
