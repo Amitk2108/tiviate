@@ -34,6 +34,23 @@ class XtreamUrlsTest {
     }
 
     @Test
+    fun liveUrlEncodesCredentialsAsPathSegments() {
+        val c = XtreamCredentials("http://h", "us er", "p#?/%&+")
+        assertEquals("http://h/live/us%20er/p%23%3F%2F%25%26%2B/42.ts", XtreamUrls.live(c, 42))
+    }
+
+    @Test
+    fun redactHidesPasswordsInQueryAndPath() {
+        assertEquals(
+            "http://h/xmltv.php?username=u&password=•••",
+            XtreamUrls.redact("http://h/xmltv.php?username=u&password=s3cr%26t"),
+        )
+        assertEquals("http://h/get.php?password=•••&type=m3u", XtreamUrls.redact("http://h/get.php?password=x&type=m3u"))
+        assertEquals("http://h/live/u/•••/42.ts", XtreamUrls.redact("http://h/live/u/s3cret/42.ts"))
+        assertEquals("http://h/epg.xml.gz", XtreamUrls.redact("http://h/epg.xml.gz"))
+    }
+
+    @Test
     fun preferredExtensionFollowsAllowedFormats() {
         assertEquals("m3u8", XtreamUrls.preferredExtension(listOf("m3u8"), preferHls = false))
         assertEquals("ts", XtreamUrls.preferredExtension(listOf("m3u8", "ts"), preferHls = false))
