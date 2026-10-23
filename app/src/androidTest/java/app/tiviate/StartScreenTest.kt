@@ -46,7 +46,8 @@ class StartScreenTest {
         scenario = ActivityScenario.launch(MainActivity::class.java)
         rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("guide_screen") }
         rule.waitUntil(15_000) { graph.player.engine.state.value.isPlaying }
-        Remote.back() // Back from the guide goes to fullscreen
+        rule.waitForIdle()
+        Remote.ok() // OK on the playing channel goes fullscreen (Back here would ask to exit)
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("player_screen") && !rule.onAllNodesWithTagExists("guide_screen") }
     }
 

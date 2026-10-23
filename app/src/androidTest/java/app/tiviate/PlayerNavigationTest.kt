@@ -149,12 +149,12 @@ class PlayerNavigationTest {
     }
 
     @Test
-    fun backTwiceExits() {
+    fun backFromFullscreenOpensTheGuide() {
         rule.waitUntil(8_000) { !rule.onAllNodesWithTagExists("zap_banner") } // first Back would only hide the banner
+        val starts = graph.player.engine.startCount
         Remote.back()
-        rule.waitUntil(3_000) { rule.textExists("Press Back again to exit") }
-        Remote.back()
-        rule.waitUntil(5_000) { scenario.state == androidx.lifecycle.Lifecycle.State.DESTROYED }
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }
+        assertEquals("the channel keeps playing in the preview", starts, graph.player.engine.startCount)
         assertNotEquals(null, graph)
     }
 

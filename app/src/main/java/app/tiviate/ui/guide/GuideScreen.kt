@@ -175,9 +175,21 @@ fun GuideScreen() {
         return true
     }
 
-    BackHandler(enabled = details != null || picker) {
-        details = null
-        picker = false
+    // Back closes what is open; on the bare guide it leaves the app (after a second press unless turned off).
+    val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
+    var lastBackAt by remember { mutableStateOf(0L) }
+    var toast by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(toast) { if (toast != null) { kotlinx.coroutines.delay(2_000); toast = null } }
+    BackHandler {
+        when {
+            details != null -> details = null
+            picker -> picker = false
+            !settings.confirmExit || System.currentTimeMillis() - lastBackAt < 2_000 -> activity?.finish()
+            else -> {
+                lastBackAt = System.currentTimeMillis()
+                toast = "Press Back again to exit"
+            }
+        }
     }
     LaunchedEffect(details, picker) { if (details == null && !picker && initialised) focusSoon(gridFocus) }
     KeepScreenOn()
@@ -238,6 +250,7 @@ fun GuideScreen() {
     }
 
     details?.let { ProgrammeDetailsDialog(it) { details = null } }
+    toast?.let { app.tiviate.ui.player.Toast(it) }
     if (picker) {
         GroupPicker(
             entries = listOf(Category.All, Category.Favorites, Category.Recent) + groups.mapNotNull { g -> g.name?.let { Category.Group(it) } },
