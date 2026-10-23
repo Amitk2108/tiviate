@@ -29,7 +29,7 @@ class AddPlaylistFlowTest {
     fun tearDown() = fixtures.shutdown()
 
     @Test
-    fun addM3uUrlThenAutoPlays() {
+    fun addM3uUrlOpensTheGuideWithThePreviewPlaying() {
         rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("welcome_screen") }
         rule.waitForIdle()
         Remote.ok() // the first card ("M3U link") has focus when the screen opens
@@ -38,7 +38,8 @@ class AddPlaylistFlowTest {
         rule.onNodeWithTag("field_url_input").performTextInput(fixtures.url("/list.m3u"))
         rule.onNodeWithTag("save_playlist").activate()
 
-        rule.waitUntil(30_000) { rule.onAllNodesWithTagExists("player_screen") }
+        // Like other TV players, a new playlist lands on the TV guide with the channel in the preview.
+        rule.waitUntil(30_000) { rule.onAllNodesWithTagExists("guide_screen") }
         val graph = (rule.activity.application as TiviateApp).graph
         rule.waitUntil(20_000) { graph.player.engine.state.value.isPlaying }
         rule.waitUntil(5_000) { graph.player.current.value?.name == fixtures.channelNames.first() }

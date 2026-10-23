@@ -283,6 +283,8 @@ private fun InterfaceSection() {
     fun update(transform: (AppSettings) -> AppSettings) = scope.launch { graph.settings.update(transform) }
     SectionColumn {
         Heading("Interface")
+        ToggleRow("Open last channel fullscreen on start", settings.startFullscreen, { update { it.copy(startFullscreen = !it.startFullscreen) } }, tag = "setting_start_fullscreen")
+        Caption("When off, Tiviate starts on the TV guide with the channel playing in the preview.")
         ToggleRow("Show channel numbers", settings.showChannelNumbers, { update { it.copy(showChannelNumbers = !it.showChannelNumbers) } })
         ToggleRow("Show clock", settings.showClock, { update { it.copy(showClock = !it.showClock) } })
         val seconds = settings.bannerTimeoutMs / 1000

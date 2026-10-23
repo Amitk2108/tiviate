@@ -25,6 +25,7 @@ class SettingsTest {
         assertEquals(BufferPreset.NORMAL, defaults.bufferPreset)
         assertFalse(defaults.tunneling)
         assertEquals(4_000, defaults.bannerTimeoutMs)
+        assertFalse("TV-guide start is the default", defaults.startFullscreen)
 
         store.update { it.copy(activePlaylistId = 7, bufferPreset = BufferPreset.STABLE, lastChannelKey = "x:6775", lastGroup = "Sports") }
         val updated = store.settings.first()

@@ -37,6 +37,7 @@ fun AppRoot() {
         val active = playlists.firstOrNull { it.id == settings.activePlaylistId } ?: playlists.first()
         if (settings.activePlaylistId != active.id) graph.settings.update { it.copy(activePlaylistId = active.id) }
         nav.replaceAll(Screen.Player)
+        if (!settings.startFullscreen) nav.push(Screen.Guide) // start on the TV guide; Back goes fullscreen
         if (graph.playlists.isStale(SyncScheduler.STALE_MS)) SyncScheduler.syncNow(context)
     }
 

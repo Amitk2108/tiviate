@@ -67,6 +67,11 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
             val p = graph.playlists.get(pid) ?: return@launch
             _category.value = settings.lastGroup?.let { Category.Group(it) } ?: Category.All
             _playlist.value = p
+            // Nothing playing yet (fresh start): put the last watched, or first, channel in the preview.
+            if (graph.player.current.value == null || graph.player.engine.state.value.channelKey == null) {
+                val channel = settings.lastChannelKey?.let { repo.byKey(pid, it) } ?: repo.first(pid, _category.value) ?: repo.first(pid, Category.All)
+                channel?.let { graph.player.tune(it, p.userAgent) }
+            }
             initialRow = graph.player.current.value?.let { repo.positionOf(pid, _category.value, it) } ?: 0
             _ready.value = true
         }

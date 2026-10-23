@@ -31,7 +31,7 @@ class SearchTest {
         runBlocking {
             val id = graph.playlists.addM3uUrl("Fixture", fixtures.url("/list.m3u"), null, null)
             graph.playlists.sync(id).first { it is SyncProgress.Done || it is SyncProgress.Failed }
-            graph.settings.update { it.copy(activePlaylistId = id) }
+            graph.settings.update { it.copy(activePlaylistId = id, startFullscreen = true) } // these flows start from fullscreen
         }
         scenario = ActivityScenario.launch(MainActivity::class.java)
         rule.waitUntil(15_000) { graph.player.engine.state.value.isPlaying }
