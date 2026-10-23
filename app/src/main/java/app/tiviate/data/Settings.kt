@@ -152,6 +152,11 @@ data class AppSettings(
     val hiddenOptionCards: Set<String> = emptySet(),
     /** Subtitles on by default when the channel's sound is English (Hindi and other channels stay off). */
     val englishSubtitles: Boolean = true,
+    /** Look for a new Tiviate on GitHub Releases once a day. */
+    val checkUpdates: Boolean = true,
+    val lastUpdateCheck: Long = 0,
+    /** The version the viewer said "Later" to (not offered again; a newer one is). */
+    val skippedUpdate: String? = null,
     val preferSurround: Boolean = false,
     /** Audio delay against the picture, ms (+ = sound later). */
     val audioOffsetMs: Int = 0,
@@ -230,6 +235,9 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p[HIDDEN_CARDS] = next.hiddenOptionCards
             p[PREFER_SURROUND] = next.preferSurround
             p[ENGLISH_SUBTITLES] = next.englishSubtitles
+            p[CHECK_UPDATES] = next.checkUpdates
+            p[LAST_UPDATE_CHECK] = next.lastUpdateCheck
+            p.setOrRemove(SKIPPED_UPDATE, next.skippedUpdate)
             p[AUDIO_OFFSET] = next.audioOffsetMs
             p[PIP_ON_HOME] = next.pipOnHome
             p[ALWAYS_EXTERNAL] = next.alwaysExternalPlayer
@@ -300,6 +308,9 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         hiddenOptionCards = p[HIDDEN_CARDS] ?: emptySet(),
         preferSurround = p[PREFER_SURROUND] ?: false,
         englishSubtitles = p[ENGLISH_SUBTITLES] ?: true,
+        checkUpdates = p[CHECK_UPDATES] ?: true,
+        lastUpdateCheck = p[LAST_UPDATE_CHECK] ?: 0L,
+        skippedUpdate = p[SKIPPED_UPDATE],
         audioOffsetMs = p[AUDIO_OFFSET] ?: 0,
         pipOnHome = p[PIP_ON_HOME] ?: false,
         alwaysExternalPlayer = p[ALWAYS_EXTERNAL] ?: false,
@@ -371,6 +382,9 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val HIDDEN_CARDS = stringSetPreferencesKey("hidden_option_cards")
         private val PREFER_SURROUND = booleanPreferencesKey("prefer_surround")
         private val ENGLISH_SUBTITLES = booleanPreferencesKey("english_subtitles")
+        private val CHECK_UPDATES = booleanPreferencesKey("check_updates")
+        private val LAST_UPDATE_CHECK = longPreferencesKey("last_update_check")
+        private val SKIPPED_UPDATE = stringPreferencesKey("skipped_update")
         private val AUDIO_OFFSET = intPreferencesKey("audio_offset_ms")
         private val PIP_ON_HOME = booleanPreferencesKey("pip_on_home")
         private val ALWAYS_EXTERNAL = booleanPreferencesKey("always_external_player")

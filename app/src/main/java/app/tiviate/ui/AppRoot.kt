@@ -1,5 +1,9 @@
 package app.tiviate.ui
 
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -47,6 +51,19 @@ fun AppRoot() {
         if (graph.playlists.needsStartSync(settings.playlistUpdate, settings.updateOnStart)) SyncScheduler.syncNow(context, atStart = true)
     }
 
+    // Once a day: is there a newer Tiviate on GitHub Releases?
+    LaunchedEffect(Unit) {
+        val s = graph.settings.settings.first()
+        val now = System.currentTimeMillis()
+        if (app.tiviate.data.update.UpdateChecker.dueForCheck(s.checkUpdates, s.lastUpdateCheck, now)) {
+            graph.settings.update { it.copy(lastUpdateCheck = now) }
+            val latest = app.tiviate.data.update.UpdateChecker.latest(graph.http)
+            if (latest != null && app.tiviate.data.update.UpdateChecker.shouldOffer(latest.version, app.tiviate.BuildConfig.VERSION_NAME, s.skippedUpdate)) {
+                app.tiviate.ui.components.UpdatePrompt.release = latest
+            }
+        }
+    }
+
     BackHandler(enabled = nav.canGoBack) { nav.back() }
     LaunchedEffect(Unit) {
         graph.longBack.collect { if (nav.current != Screen.Player && nav.current !is Screen.Welcome && nav.current !is Screen.AddPlaylist) nav.replaceAll(Screen.Player) }
@@ -66,7 +83,14 @@ fun AppRoot() {
             app.tiviate.ui.player.VideoHost(graph.player.engine)
             // Only the player and the guide let the video show through; every other screen is opaque.
             val opaque = nav.current != Screen.Player && nav.current != Screen.Guide
-            Box(Modifier.fillMaxSize().then(if (opaque) Modifier.background(Tokens.Background) else Modifier).graphicsLayer { alpha = fade.value }) {
+            val dialogOpen = app.tiviate.ui.components.UpdatePrompt.release != null
+            Box(
+                Modifier.fillMaxSize().then(if (opaque) Modifier.background(Tokens.Background) else Modifier).graphicsLayer { alpha = fade.value }
+                    // While the update dialog is open the screen behind it gets no focus and no keys.
+                    .onPreviewKeyEvent { dialogOpen }
+                    .focusProperties { onEnter = { if (dialogOpen) cancelFocusChange() } }
+                    .focusGroup(),
+            ) {
             when (val screen = nav.current) {
                 Screen.Loading -> Unit
                 Screen.Welcome -> WelcomeScreen()
@@ -81,6 +105,7 @@ fun AppRoot() {
                 Screen.Settings -> SettingsScreen()
             }
             }
+            app.tiviate.ui.components.UpdatePrompt.release?.let { r -> app.tiviate.ui.components.UpdateDialog(r) { app.tiviate.ui.components.UpdatePrompt.release = null } }
         }
     }
 }

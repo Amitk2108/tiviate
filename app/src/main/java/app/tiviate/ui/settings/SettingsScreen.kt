@@ -1,5 +1,6 @@
 package app.tiviate.ui.settings
 
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.foundation.shape.CircleShape
 import app.tiviate.ui.components.InfoChip
 import androidx.compose.foundation.border
@@ -580,6 +581,7 @@ private fun AboutSection() {
                 Caption(tf("Source code and updates: %s", PROJECT_URL))
             }
         }
+        UpdateRows()
         Text(t("Licence: GNU GPL v3.0"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
         Heading(t("Legal"))
         Caption(t("Tiviate is a player only. It does not provide, host or store any channels, playlists or streams."))
@@ -598,3 +600,31 @@ private fun AboutSection() {
 const val AUTHOR_NAME = "Amit Kumar"
 const val AUTHOR_GITHUB = "Amitk2108"
 const val PROJECT_URL = "github.com/Amitk2108/tiviate"
+
+
+@Composable
+private fun UpdateRows() {
+    val graph = LocalGraph.current
+    val scope = rememberCoroutineScope()
+    val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
+    var checking by remember { mutableStateOf(false) }
+    var result by remember { mutableStateOf<String?>(null) }
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        ActionButton(if (checking) t("Updating…") else t("Check for updates"), {
+            if (checking) return@ActionButton
+            checking = true
+            result = null
+            scope.launch {
+                val latest = app.tiviate.data.update.UpdateChecker.latest(graph.http)
+                checking = false
+                result = when {
+                    latest == null -> t("Couldn't check for updates")
+                    app.tiviate.data.update.UpdateChecker.isNewer(latest.version, BuildConfig.VERSION_NAME) -> { app.tiviate.ui.components.UpdatePrompt.release = latest; null }
+                    else -> t("You have the latest version")
+                }
+            }
+        }, tag = "about_check_updates", icon = androidx.compose.material.icons.Icons.Rounded.SystemUpdate)
+        result?.let { Caption(it) }
+    }
+    ToggleRow(t("Check for updates automatically"), settings.checkUpdates, { scope.launch { graph.settings.update { it.copy(checkUpdates = !it.checkUpdates) } } }, tag = "setting_check_updates")
+}
