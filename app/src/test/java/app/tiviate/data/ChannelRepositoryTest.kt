@@ -101,4 +101,29 @@ class ChannelRepositoryTest {
         assertEquals(3, repo.positionOf(pid, Category.All, d))
         assertEquals(2, repo.positionOf(pid, Category.Group("News"), d))
     }
+
+    @Test
+    fun ftsQueryUsesPrefixTokens() {
+        assertEquals("star* sp*", ChannelRepository.ftsQuery("Star  Sp!"))
+        assertEquals(null, ChannelRepository.ftsQuery("  ** "))
+    }
+
+    @Test
+    fun searchFindsChannelsAndProgrammesOnNowWithTheirChannel() = runBlocking {
+        val pid = seed()
+        val src = db.epg().insertSource(EpgSourceEntity(url = "e", name = "E", origin = EpgOrigin.MANUAL))
+        // seed() links channel "C" to guide ref "1:C"; use the real source id for the programme.
+        db.channels().setEpg(db.channels().byKey(pid, "C")!!.id, "$src:C", null)
+        db.epg().insertProgrammes(
+            listOf(
+                ProgrammeEntity(sourceId = src, epgRef = "$src:C", startMs = 500, stopMs = 2_000, title = "Cricket Live", generation = 0),
+                ProgrammeEntity(sourceId = src, epgRef = "$src:C", startMs = 20_000_000, stopMs = 21_000_000, title = "Cricket Tomorrow", generation = 0),
+            ),
+        )
+        val result = repo.search(pid, "cri")
+        assertEquals(listOf("Cricket Live"), result.programmes.map { it.programme.title })
+        assertEquals("C", result.programmes.single().channel.name)
+        assertEquals(emptyList<String>(), result.channels.map { it.name })
+        assertEquals(listOf("A"), repo.search(pid, "a").channels.map { it.name })
+    }
 }
