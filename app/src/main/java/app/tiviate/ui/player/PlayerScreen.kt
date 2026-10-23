@@ -253,9 +253,11 @@ fun PlayerScreen() {
             )
         }
 
-        playback.error?.let { message ->
+        playback.issue?.let { issue ->
             ErrorCard(
-                message = message,
+                issue = issue,
+                detail = playback.issueDetail,
+                channel = current,
                 onRetry = { engine.retryNow() },
                 onNext = { vm.zap(forward = true) },
                 onExternal = { current?.let { if (!ExternalPlayer.open(context, it.streamUrl, it.name)) vm.showToast("No other video player is installed") } },

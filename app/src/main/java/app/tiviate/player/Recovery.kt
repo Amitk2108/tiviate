@@ -1,6 +1,7 @@
 package app.tiviate.player
 
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.PlaybackException
 
 /** Exponential backoff for reconnecting a failed stream: 1, 2, 4, 8, 16 s, then give up. */
 class RetryPolicy(private val delaysMs: List<Long> = listOf(1_000, 2_000, 4_000, 8_000, 16_000)) {
@@ -15,13 +16,60 @@ class RetryPolicy(private val delaysMs: List<Long> = listOf(1_000, 2_000, 4_000,
     }
 }
 
-/** HTTP answers that mean "the provider refused this request", not "the stream is broken". */
-object Refusal {
-    /**
-     * Single-connection Xtream panels refuse a second session with a non-standard 458, a 407 from a
-     * gateway, a 429/503/509 rate limit — or, on some panels (the owner's provider), a bare 400.
-     */
-    fun isAccountBusy(code: Int): Boolean = code == 400 || code == 407 || code == 429 || code == 458 || code == 503 || code == 509
+/**
+ * Why a channel isn't playing, in words a viewer understands. Each issue carries its own retry
+ * schedule: an account busy elsewhere is worth waiting for; a channel that's down at the provider is not.
+ */
+enum class PlaybackIssue(val title: String, val body: String, val retry: RetryPolicy, val longRetry: Boolean = false) {
+    CHANNEL_UNAVAILABLE(
+        "This channel isn't available right now",
+        "Your provider couldn't start this channel. It is probably down at the provider's end — other channels should still play.",
+        RetryPolicy(listOf(1_000, 3_000)),
+    ),
+    ACCOUNT_BUSY(
+        "Your account is in use elsewhere",
+        "Your provider allows a limited number of connections and another device is using it. Close the other player, then try again.",
+        RetryPolicy.accountBusy(),
+        longRetry = true,
+    ),
+    ACCESS_DENIED(
+        "Your provider denied access",
+        "Your subscription may have expired, or this channel isn't part of your package.",
+        RetryPolicy(listOf(2_000)),
+    ),
+    NO_CONNECTION(
+        "Can't reach the stream",
+        "Check that this device is connected to the internet. Tiviate keeps trying automatically.",
+        RetryPolicy(),
+    ),
+    UNSUPPORTED_FORMAT(
+        "This device can't play this channel",
+        "The channel uses a format this TV can't decode. Try opening it in another player.",
+        RetryPolicy(emptyList()),
+    ),
+    UNKNOWN(
+        "Playback stopped",
+        "Something went wrong while playing this channel.",
+        RetryPolicy(),
+    ),
+    ;
+
+    companion object {
+        fun classify(httpStatus: Int?, errorCode: Int): PlaybackIssue = when {
+            httpStatus == 458 || httpStatus == 407 || httpStatus == 429 || httpStatus == 509 -> ACCOUNT_BUSY
+            httpStatus == 401 || httpStatus == 403 -> ACCESS_DENIED
+            httpStatus != null && httpStatus >= 400 -> CHANNEL_UNAVAILABLE
+            errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+                errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ||
+                errorCode == PlaybackException.ERROR_CODE_TIMEOUT -> NO_CONNECTION
+            errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ||
+                errorCode == PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED ||
+                errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED ||
+                errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_EXCEEDS_CAPABILITIES ||
+                errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED -> UNSUPPORTED_FORMAT
+            else -> UNKNOWN
+        }
+    }
 }
 
 /**

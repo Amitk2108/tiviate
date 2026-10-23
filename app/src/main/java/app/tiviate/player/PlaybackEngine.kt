@@ -10,6 +10,9 @@ data class PlaybackState(
     val isPlaying: Boolean = false,
     val isBuffering: Boolean = false,
     val isPaused: Boolean = false,
+    /** Set when playback has given up; [error] is its title for simple checks. */
+    val issue: PlaybackIssue? = null,
+    val issueDetail: String? = null,
     val error: String? = null,
     val videoWidth: Int = 0,
     val videoHeight: Int = 0,

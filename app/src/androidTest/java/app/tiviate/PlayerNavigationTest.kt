@@ -80,8 +80,9 @@ class PlayerNavigationTest {
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("categories_rail") }
         rule.waitUntil(3_000) { rule.textExists("Entertainment") }
         rule.onNodeWithText("Entertainment", substring = true, useUnmergedTree = true).assertExistsCompat()
-        // Rail order: Search, All channels, Favorites, Recent, News & Sports, Entertainment, Settings
-        Remote.down(5)
+        // Rail order: Search, All channels, Favorites, Recent, News & Sports, Entertainment, Settings.
+        // It opens focused on the current category (All channels).
+        Remote.down(4)
         Remote.ok()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
         Remote.ok() // first channel of "Entertainment"
@@ -141,13 +142,14 @@ class PlayerNavigationTest {
         rule.waitUntil(5_000) { current() == "Beacon Sports" }
         Thread.sleep(500)
         scenario.close()
-        graph.player.stop()
+        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync { graph.player.stop() }
         scenario = ActivityScenario.launch(MainActivity::class.java)
         rule.waitUntil(15_000) { current() == "Beacon Sports" && graph.player.engine.state.value.isPlaying }
     }
 
     @Test
     fun backTwiceExits() {
+        rule.waitUntil(8_000) { !rule.onAllNodesWithTagExists("zap_banner") } // first Back would only hide the banner
         Remote.back()
         rule.waitUntil(3_000) { rule.textExists("Press Back again to exit") }
         Remote.back()

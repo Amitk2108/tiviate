@@ -1,6 +1,7 @@
 package app.tiviate
 
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,6 +22,18 @@ class MainActivity : ComponentActivity() {
             }
         }
         SyncScheduler.schedulePeriodic(this)
+    }
+
+    /**
+     * The remote's Back always goes to the app's back handling. Without this, Compose may spend Back
+     * on moving focus out of a list (focus "exit"), so Back would not close an open channel list.
+     */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+            if (event.action == KeyEvent.ACTION_UP && !event.isCanceled) onBackPressedDispatcher.onBackPressed()
+            return true
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onStop() {
