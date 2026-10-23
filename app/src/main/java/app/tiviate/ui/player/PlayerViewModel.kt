@@ -37,15 +37,22 @@ sealed interface Overlay {
     data object None : Overlay
     data object Banner : Overlay
     data class Panel(val categoriesFocused: Boolean) : Overlay
-    data object QuickActions : Overlay
-    data class Tracks(val audio: Boolean) : Overlay
+    /** Fullscreen options: info plus a row of picture/sound cards (Down, Menu or long OK). */
+    data object Options : Overlay
+    /** A choice list opened from an options card; closing it returns to the options. */
+    data class Picker(val kind: PickerKind) : Overlay
     data object TouchControls : Overlay
 }
+
+enum class PickerKind { AUDIO, SUBTITLES }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
 
     private val controller = graph.player
+
+    /** The options card used last; the panel reopens with it focused. */
+    var lastOptionTag: String = "option_audio"
     private val repo = graph.channels
 
     private val _playlist = MutableStateFlow<PlaylistEntity?>(null)

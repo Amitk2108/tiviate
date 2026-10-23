@@ -50,30 +50,36 @@ fun ZapBanner(
             .padding(start = Tokens.SafeMargin, end = Tokens.SafeMargin, top = 64.dp, bottom = 36.dp)
             .testTag("zap_banner"),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            ChannelLogo(channel, 88.dp)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (showNumber) Text("${channel.number}", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Bold))
-                    Text(channel.name, style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Badges(playback)
-                }
-                val current = info?.now
-                if (current != null) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("${formatTime(current.startMs)} – ${formatTime(current.stopMs)}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
-                        Text(current.title, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    ProgressLine(progressOf(current.startMs, current.stopMs, now), Modifier.width(520.dp))
-                    info.next?.let { next ->
-                        Text("Next: ${formatTime(next.startMs)}  ${next.title}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                } else {
-                    Text("No programme information", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
-                }
+        ChannelInfo(channel, info, playback, showNumber, now)
+    }
+}
+
+/** Logo, number and name, stream badges, programme on now with progress, next programme and the clock. */
+@Composable
+fun ChannelInfo(channel: ChannelEntity, info: NowNext?, playback: PlaybackState, showNumber: Boolean, now: Long) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+        ChannelLogo(channel, 88.dp)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (showNumber) Text("${channel.number}", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Bold))
+                Text(channel.name, style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Badges(playback)
             }
-            Clock(TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Medium))
+            val current = info?.now
+            if (current != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("${formatTime(current.startMs)} – ${formatTime(current.stopMs)}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
+                    Text(current.title, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                ProgressLine(progressOf(current.startMs, current.stopMs, now), Modifier.width(520.dp))
+                info.next?.let { next ->
+                    Text("Next: ${formatTime(next.startMs)}  ${next.title}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            } else {
+                Text("No programme information", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
+            }
         }
+        Clock(TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Medium))
     }
 }
 

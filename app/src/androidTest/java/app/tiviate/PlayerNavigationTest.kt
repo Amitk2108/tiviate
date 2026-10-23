@@ -53,15 +53,32 @@ class PlayerNavigationTest {
     private fun current() = graph.player.current.value?.name
 
     @Test
-    fun zapDownChangesChannelAndShowsBanner() {
+    fun channelDownChangesChannelAndShowsBanner() {
         assertEquals("Aurora News", current())
-        Remote.down()
-        rule.waitUntil(5_000) { current() == "Ember Music" } // Down = previous channel, wrapping around
+        Remote.press(KeyEvent.KEYCODE_CHANNEL_DOWN)
+        rule.waitUntil(5_000) { current() == "Ember Music" } // CH− = previous channel, wrapping around
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("zap_banner") }
-        Remote.up()
-        rule.waitUntil(5_000) { current() == "Aurora News" }
         Remote.press(KeyEvent.KEYCODE_CHANNEL_UP)
+        rule.waitUntil(5_000) { current() == "Aurora News" }
+    }
+
+    @Test
+    fun upChangesToTheNextChannel() {
+        assertEquals("Aurora News", current())
+        Remote.up()
         rule.waitUntil(5_000) { current() == "Beacon Sports" }
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("zap_banner") }
+    }
+
+    @Test
+    fun downOpensTheOptionsPanel() {
+        Remote.down()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
+        rule.waitForIdle()
+        rule.onNodeWithTag("option_audio").assertIsFocused()
+        assertEquals("Down must not change channel", "Aurora News", current())
+        Remote.back()
+        rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("options_panel") }
     }
 
     @Test
@@ -91,27 +108,27 @@ class PlayerNavigationTest {
     }
 
     @Test
-    fun menuOpensQuickActionsAndTogglesFavorite() {
+    fun menuOpensTheOptionsPanelAndFavoriteToggles() {
         Remote.menu()
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("quick_actions") }
-        rule.onNodeWithTag("action_favorite").activate()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
+        rule.onNodeWithTag("option_favorite").activate()
         rule.waitUntil(3_000) { runBlocking { graph.channels.favoriteKeys(graph.player.current.value!!.playlistId).first().isNotEmpty() } }
     }
 
     @Test
     fun audioDialogListsTwoTracks() {
         rule.waitUntil(10_000) { graph.player.engine.audioTracksOnMain().size == 2 }
-        Remote.menu()
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("quick_actions") }
-        rule.onNodeWithTag("action_audio").activate()
+        Remote.down()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
+        rule.onNodeWithTag("option_audio").activate()
         rule.waitUntil(3_000) { rule.textExists("English") && rule.textExists("Deutsch") }
     }
 
     @Test
     fun subtitleDialogHasOffOption() {
-        Remote.menu()
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("quick_actions") }
-        rule.onNodeWithTag("action_subtitles").activate()
+        Remote.down()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
+        rule.onNodeWithTag("option_subtitles").activate()
         rule.waitUntil(3_000) { rule.textExists("Off") }
     }
 
