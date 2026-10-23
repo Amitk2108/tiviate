@@ -146,7 +146,17 @@ Every feature is free. There is no premium version, no account, no activation an
 ### ⚙️ System
 - Start Tiviate when the TV turns on, open the last channel fullscreen on start, confirm exit
 - **Hold Back** on any screen to return to the player
-- No accounts, no ads, no analytics, no tracking — nothing leaves your TV except the requests to your own provider
+- **Updates inside the app**: Tiviate checks this project's GitHub Releases once a day (or when you choose
+  *Check for updates*), shows what's new, downloads the APK and opens the installer; *Later* skips that
+  version, and the check can be turned off
+- **Backup and restore**: playlists (with their logins), favorites, recent channels, your own groups, hidden /
+  renamed / reordered channels, guide links and all settings in one file in `Download/Tiviate`; restore from
+  the list or pick any backup file, for example after reinstalling
+- **Automatic stream fallback**: when a channel fails as `.ts`, Tiviate tries the `.m3u8` link (or the other
+  way round) and remembers the one that worked
+- **Quick start-up**: a baseline profile ships with the app, so it opens fast from the first launch
+- No accounts, no ads, no analytics, no tracking — nothing leaves your TV except the requests to your own
+  provider and the update check
 
 ---
 
@@ -242,7 +252,8 @@ Bug reports, ideas, translations and pull requests are welcome — see **[CONTRI
   and are used here only to describe compatibility or comparison.
 - **Privacy.** No accounts, no analytics, no ads, no tracking. Your playlist logins are stored only on your
   device, and the only network requests go to the addresses you entered (your provider, guide links and
-  logo hosts).
+  logo hosts) and, unless you turn it off, a daily update check with GitHub (`api.github.com`) that sends
+  nothing about you. Backup files contain your playlist logins: keep them private.
 - **No warranty.** Tiviate is provided "as is", without warranty of any kind (see sections 15–16 of the GPL).
 - **Takedown or rights questions:** please open an issue on this repository.
 
