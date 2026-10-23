@@ -28,6 +28,7 @@ import app.tiviate.ui.components.Clock
 import app.tiviate.ui.components.ProgressLine
 import app.tiviate.ui.components.formatTime
 import app.tiviate.ui.components.progressOf
+import app.tiviate.ui.components.minutesLeft
 import app.tiviate.ui.components.rememberNow
 import app.tiviate.ui.theme.Tokens
 import app.tiviate.ui.t
@@ -76,7 +77,10 @@ fun ChannelInfo(channel: ChannelEntity, info: NowNext?, playback: PlaybackState,
                     Text("${formatTime(current.startMs)} – ${formatTime(current.stopMs)}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
                     Text(current.title, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-                ProgressLine(progressOf(current.startMs, current.stopMs, now), Modifier.width(520.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    ProgressLine(progressOf(current.startMs, current.stopMs, now), Modifier.width(520.dp))
+                    Text(tf("%d min left", minutesLeft(current.stopMs, now)), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
+                }
                 info.next?.let { next ->
                     Text(tf("Next: %s  %s", formatTime(next.startMs), next.title), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }

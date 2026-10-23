@@ -60,6 +60,7 @@ import app.tiviate.ui.components.FocusSurface
 import app.tiviate.ui.components.ProgressLine
 import app.tiviate.ui.components.formatTime
 import app.tiviate.ui.components.progressOf
+import app.tiviate.ui.components.minutesLeft
 import app.tiviate.ui.components.rememberNow
 import app.tiviate.ui.player.KeepScreenOn
 import app.tiviate.ui.player.VideoSurface
@@ -69,6 +70,7 @@ import app.tiviate.ui.theme.Tokens
 import app.tiviate.ui.components.RemoteImage
 import kotlinx.coroutines.launch
 import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 @Composable
 fun GuideScreen() {
@@ -365,7 +367,12 @@ private fun FocusDetails(block: FocusBlock?, channelName: String?, now: Long, mo
             Text(p?.title ?: t("No programme information"), maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
             if (block != null) {
                 Text("${formatTime(block.startMs)} – ${formatTime(block.stopMs)}" + (p?.episode?.let { "  ·  $it" } ?: ""), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
-                if (block.startMs <= now && now < block.stopMs) ProgressLine(progressOf(block.startMs, block.stopMs, now), Modifier.width(320.dp))
+                if (block.startMs <= now && now < block.stopMs) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        ProgressLine(progressOf(block.startMs, block.stopMs, now), Modifier.weight(1f))
+                        Text(tf("%d min left", minutesLeft(block.stopMs, now)), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
+                    }
+                }
             }
             p?.description?.let { Text(it, maxLines = 4, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.CaptionSize)) }
         }
