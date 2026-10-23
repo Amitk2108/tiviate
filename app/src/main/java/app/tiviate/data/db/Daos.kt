@@ -5,6 +5,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
+import androidx.sqlite.db.SupportSQLiteQuery
 import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +26,10 @@ interface ChannelDao {
     /** Upsert by (playlistId, stableKey); the old row id is replaced. */
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertAll(rows: List<ChannelEntity>)
 
-    @Query("SELECT id, stableKey, epgRef, logoFallback FROM channel WHERE playlistId = :playlistId AND stableKey IN (:keys)")
+    @Query(
+        """SELECT id, stableKey, epgRef, logoFallback, name, hidden, customSort, addedAt, epgOverride, renamed
+           FROM channel WHERE playlistId = :playlistId AND stableKey IN (:keys)""",
+    )
     fun storedBlocking(playlistId: Long, keys: List<String>): List<StoredChannelRow>
 
     @Update fun updateAllBlocking(rows: List<ChannelEntity>)
@@ -40,11 +45,22 @@ interface ChannelDao {
     fun upsertBlocking(playlistId: Long, rows: List<ChannelEntity>) {
         val stored = storedBlocking(playlistId, rows.map { it.stableKey }).associateBy { it.stableKey }
         val (known, fresh) = rows.partition { it.stableKey in stored }
-        updateAllBlocking(known.map { r -> stored.getValue(r.stableKey).let { s -> r.copy(id = s.id, epgRef = s.epgRef, logoFallback = s.logoFallback) } })
+        updateAllBlocking(
+            known.map { r ->
+                stored.getValue(r.stableKey).let { s ->
+                    r.copy(
+                        id = s.id, epgRef = s.epgRef, logoFallback = s.logoFallback,
+                        name = if (s.renamed) s.name else r.name, renamed = s.renamed,
+                        hidden = s.hidden, customSort = s.customSort, addedAt = s.addedAt.takeIf { it > 0 } ?: r.addedAt,
+                        epgOverride = s.epgOverride,
+                    )
+                }
+            },
+        )
         insertNewBlocking(fresh)
     }
 
-    @Query("SELECT id, tvgId, tvgName, name, epgRef, logoFallback FROM channel WHERE playlistId = :playlistId")
+    @Query("SELECT id, tvgId, tvgName, COALESCE(originalName, name) AS name, epgRef, logoFallback, epgOverride FROM channel WHERE playlistId = :playlistId")
     suspend fun matchRows(playlistId: Long): List<ChannelMatchRow>
 
     @Query("UPDATE channel SET epgRef = :epgRef, logoFallback = :logoFallback WHERE id = :id")
@@ -57,11 +73,49 @@ interface ChannelDao {
 
     @Query("SELECT COUNT(*) FROM channel WHERE playlistId = :playlistId") suspend fun count(playlistId: Long): Int
 
+    /** Groups shown in the lists: not hidden, in the viewer's order (then playlist order), with own names. */
     @Query(
-        """SELECT groupName AS name, COUNT(*) AS count FROM channel WHERE playlistId = :playlistId
-           GROUP BY groupName ORDER BY MIN(sortIndex)""",
+        """SELECT c.groupName AS name, COUNT(*) AS count, MAX(gp.displayName) AS label FROM channel c
+           LEFT JOIN group_pref gp ON gp.playlistId = c.playlistId AND gp.name = c.groupName
+           WHERE c.playlistId = :playlistId AND c.hidden = 0 AND COALESCE(gp.hidden, 0) = 0
+           GROUP BY c.groupName ORDER BY COALESCE(MIN(gp.position), 1000000 + MIN(c.sortIndex))""",
     )
     fun categories(playlistId: Long): Flow<List<CategoryRow>>
+
+    /** Every provider group, hidden ones too, for "Manage groups". */
+    @Query(
+        """SELECT c.groupName AS name, MAX(gp.displayName) AS label, COUNT(*) AS count, COALESCE(MAX(gp.hidden), 0) AS hidden,
+           MIN(gp.position) AS position FROM channel c
+           LEFT JOIN group_pref gp ON gp.playlistId = c.playlistId AND gp.name = c.groupName
+           WHERE c.playlistId = :playlistId AND c.groupName IS NOT NULL
+           GROUP BY c.groupName ORDER BY COALESCE(MIN(gp.position), 1000000 + MIN(c.sortIndex))""",
+    )
+    fun allGroups(playlistId: Long): Flow<List<GroupRow>>
+
+    @RawQuery(observedEntities = [ChannelEntity::class, FavoriteEntity::class, HistoryEntity::class, GroupPrefEntity::class, CustomGroupMemberEntity::class])
+    fun pageRaw(query: SupportSQLiteQuery): PagingSource<Int, ChannelEntity>
+
+    @RawQuery suspend fun idsRaw(query: SupportSQLiteQuery): List<Long>
+
+    @RawQuery suspend fun listRaw(query: SupportSQLiteQuery): List<ChannelEntity>
+
+    @Query("SELECT * FROM channel WHERE id = :id") suspend fun byId(id: Long): ChannelEntity?
+
+    @Query("UPDATE channel SET hidden = :hidden WHERE playlistId = :playlistId AND stableKey IN (:keys)")
+    suspend fun setHidden(playlistId: Long, keys: List<String>, hidden: Boolean)
+
+    @Query("UPDATE channel SET hidden = 0 WHERE playlistId = :playlistId")
+    suspend fun showAll(playlistId: Long)
+
+    @Query("UPDATE channel SET customSort = :customSort WHERE id = :id") suspend fun setCustomSort(id: Long, customSort: Int?)
+
+    @Query("UPDATE channel SET name = :name, renamed = :renamed WHERE id = :id") suspend fun setName(id: Long, name: String, renamed: Boolean)
+
+    @Query("UPDATE channel SET epgOverride = :ref, epgRef = :ref, logoFallback = :logo WHERE id = :id")
+    suspend fun setEpgOverride(id: Long, ref: String?, logo: String?)
+
+    @Query("SELECT id, originalName, name, renamed FROM channel WHERE playlistId = :playlistId")
+    suspend fun nameRows(playlistId: Long): List<NameRow>
 
     @Query(
         """SELECT * FROM channel WHERE playlistId = :playlistId AND (:group IS NULL OR groupName = :group)
@@ -99,12 +153,13 @@ interface ChannelDao {
     @Query("SELECT * FROM channel WHERE playlistId = :playlistId AND stableKey = :stableKey")
     fun observeByKey(playlistId: Long, stableKey: String): Flow<ChannelEntity?>
 
-    @Query("SELECT * FROM channel WHERE playlistId = :playlistId AND number = :number ORDER BY sortIndex LIMIT 1")
+    @Query("SELECT * FROM channel WHERE playlistId = :playlistId AND number = :number AND hidden = 0 ORDER BY sortIndex LIMIT 1")
     suspend fun byNumber(playlistId: Long, number: Int): ChannelEntity?
 
     @Query(
         """SELECT channel.* FROM channel JOIN channel_fts ON channel.id = channel_fts.rowid
-           WHERE channel_fts MATCH :ftsQuery AND channel.playlistId = :playlistId ORDER BY channel.sortIndex LIMIT :limit""",
+           WHERE channel_fts MATCH :ftsQuery AND channel.playlistId = :playlistId AND channel.hidden = 0
+           ORDER BY channel.sortIndex LIMIT :limit""",
     )
     suspend fun search(playlistId: Long, ftsQuery: String, limit: Int = 50): List<ChannelEntity>
 
@@ -119,6 +174,43 @@ interface ChannelDao {
 
     @Query("SELECT DISTINCT epgRef FROM channel WHERE playlistId = :playlistId AND epgRef IS NOT NULL")
     suspend fun epgRefs(playlistId: Long): List<String>
+}
+
+@Dao
+interface OrganiseDao {
+    @Query("SELECT * FROM group_pref WHERE playlistId = :playlistId AND name = :name")
+    suspend fun groupPref(playlistId: Long, name: String): GroupPrefEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putGroupPref(p: GroupPrefEntity)
+
+    @Query("SELECT * FROM custom_group WHERE playlistId = :playlistId ORDER BY position, id")
+    fun customGroups(playlistId: Long): Flow<List<CustomGroupEntity>>
+
+    @Insert suspend fun insertCustomGroup(g: CustomGroupEntity): Long
+    @Update suspend fun updateCustomGroup(g: CustomGroupEntity)
+    @Query("SELECT * FROM custom_group WHERE id = :id") suspend fun customGroup(id: Long): CustomGroupEntity?
+
+    @Query("DELETE FROM custom_group WHERE id = :id") suspend fun deleteCustomGroup(id: Long)
+    @Query("DELETE FROM custom_group_member WHERE groupId = :groupId") suspend fun clearMembers(groupId: Long)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun addMembers(members: List<CustomGroupMemberEntity>)
+
+    @Query("DELETE FROM custom_group_member WHERE groupId = :groupId AND stableKey IN (:keys)")
+    suspend fun removeMembers(groupId: Long, keys: List<String>)
+
+    @Query("SELECT COALESCE(MAX(position), -1) FROM custom_group_member WHERE groupId = :groupId")
+    suspend fun lastMemberPosition(groupId: Long): Int
+
+    @Query("UPDATE custom_group_member SET position = :position WHERE groupId = :groupId AND stableKey = :key")
+    suspend fun setMemberPosition(groupId: Long, key: String, position: Int)
+
+    @Query("SELECT stableKey FROM custom_group_member WHERE groupId = :groupId")
+    suspend fun memberKeys(groupId: Long): List<String>
+
+    @Query("DELETE FROM custom_group_member WHERE groupId IN (SELECT id FROM custom_group WHERE playlistId = :playlistId)")
+    suspend fun clearMembersOfPlaylist(playlistId: Long)
+    @Query("DELETE FROM custom_group WHERE playlistId = :playlistId") suspend fun clearCustomGroups(playlistId: Long)
+    @Query("DELETE FROM group_pref WHERE playlistId = :playlistId") suspend fun clearGroupPrefs(playlistId: Long)
 }
 
 @Dao
@@ -143,9 +235,12 @@ interface FavoriteDao {
 
     @Query(
         """SELECT channel.* FROM favorite JOIN channel ON channel.playlistId = favorite.playlistId
-           AND channel.stableKey = favorite.stableKey WHERE favorite.playlistId = :playlistId ORDER BY favorite.addedAt""",
+           AND channel.stableKey = favorite.stableKey WHERE favorite.playlistId = :playlistId ORDER BY favorite.position, favorite.addedAt""",
     )
     fun favoriteChannels(playlistId: Long): Flow<List<ChannelEntity>>
+
+    @Query("UPDATE favorite SET position = :position WHERE playlistId = :playlistId AND stableKey = :key")
+    suspend fun setPosition(playlistId: Long, key: String, position: Int)
 }
 
 @Dao

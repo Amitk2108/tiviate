@@ -30,6 +30,9 @@ data class PlaylistEntity(
     val lastError: String? = null,
     val enabled: Boolean = true,
     val sortIndex: Int = 0,
+    /** Names editor: comma-separated prefixes / suffixes removed from channel names (e.g. "UK:", "| FHD"). */
+    val namePrefixes: String? = null,
+    val nameSuffixes: String? = null,
 )
 
 @Entity(
@@ -61,6 +64,17 @@ data class ChannelEntity(
     val catchupDays: Int?,
     val sortIndex: Int,
     val syncStamp: Long,
+    /** The name exactly as the playlist has it ([name] may be cleaned by the names editor or renamed). */
+    val originalName: String? = null,
+    @ColumnInfo(defaultValue = "0") val hidden: Boolean = false,
+    /** Position chosen by the viewer ("Reorder channels"); null = playlist order. */
+    val customSort: Int? = null,
+    /** First time this channel appeared in the playlist (for "newest first"). */
+    @ColumnInfo(defaultValue = "0") val addedAt: Long = 0,
+    /** Guide link chosen by hand ("Assign guide"); wins over automatic matching. */
+    val epgOverride: String? = null,
+    /** True when the viewer renamed the channel; syncs then keep [name]. */
+    @ColumnInfo(defaultValue = "0") val renamed: Boolean = false,
 )
 
 @Fts4(contentEntity = ChannelEntity::class)
@@ -68,7 +82,29 @@ data class ChannelEntity(
 data class ChannelFts(val name: String)
 
 @Entity(tableName = "favorite", primaryKeys = ["playlistId", "stableKey"])
-data class FavoriteEntity(val playlistId: Long, val stableKey: String, val addedAt: Long)
+data class FavoriteEntity(val playlistId: Long, val stableKey: String, val addedAt: Long, @ColumnInfo(defaultValue = "0") val position: Int = 0)
+
+/** Viewer choices for a provider group: hidden, position in the groups list, own name. */
+@Entity(tableName = "group_pref", primaryKeys = ["playlistId", "name"])
+data class GroupPrefEntity(
+    val playlistId: Long,
+    val name: String,
+    @ColumnInfo(defaultValue = "0") val hidden: Boolean = false,
+    val position: Int? = null,
+    val displayName: String? = null,
+)
+
+/** A group the viewer made ("Create group"); channels are added by stable key. */
+@Entity(tableName = "custom_group", indices = [Index(value = ["playlistId"])])
+data class CustomGroupEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val playlistId: Long,
+    val name: String,
+    @ColumnInfo(defaultValue = "0") val position: Int = 0,
+)
+
+@Entity(tableName = "custom_group_member", primaryKeys = ["groupId", "stableKey"])
+data class CustomGroupMemberEntity(val groupId: Long, val stableKey: String, @ColumnInfo(defaultValue = "0") val position: Int = 0)
 
 @Entity(tableName = "history", primaryKeys = ["playlistId", "stableKey"])
 data class HistoryEntity(val playlistId: Long, val stableKey: String, val lastWatchedAt: Long, val totalWatchSec: Int)
@@ -124,7 +160,20 @@ data class ProgrammeEntity(
     val generation: Int,
 )
 
-data class CategoryRow(@ColumnInfo(name = "name") val name: String?, @ColumnInfo(name = "count") val count: Int)
+data class CategoryRow(
+    @ColumnInfo(name = "name") val name: String?,
+    @ColumnInfo(name = "count") val count: Int,
+    /** The viewer's own name for the group, if renamed. */
+    @ColumnInfo(name = "label") val label: String? = null,
+) {
+    val shownName: String? get() = label ?: name
+}
+
+/** Name state of a channel, for the names editor and "Restore name". */
+data class NameRow(val id: Long, val originalName: String?, val name: String, val renamed: Boolean)
+
+/** A provider group with the viewer's choices, for the group managers. */
+data class GroupRow(val name: String, val label: String?, val count: Int, val hidden: Boolean, val position: Int?)
 
 /** Lightweight projection used for EPG matching so large playlists don't load full rows. */
 data class ChannelMatchRow(
@@ -134,7 +183,19 @@ data class ChannelMatchRow(
     val name: String,
     val epgRef: String?,
     val logoFallback: String?,
+    val epgOverride: String? = null,
 )
 
-/** What a resync keeps from a stored channel row. */
-data class StoredChannelRow(val id: Long, val stableKey: String, val epgRef: String?, val logoFallback: String?)
+/** What a resync keeps from a stored channel row: ids, guide links and everything the viewer chose. */
+data class StoredChannelRow(
+    val id: Long,
+    val stableKey: String,
+    val epgRef: String?,
+    val logoFallback: String?,
+    val name: String,
+    val hidden: Boolean,
+    val customSort: Int?,
+    val addedAt: Long,
+    val epgOverride: String?,
+    val renamed: Boolean,
+)

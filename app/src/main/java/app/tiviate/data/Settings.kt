@@ -35,6 +35,38 @@ enum class BufferPreset(val label: String, val minMs: Int, val maxMs: Int, val s
     }
 }
 
+/** Order of channels inside a group. */
+enum class ChannelSort(val label: String) {
+    PLAYLIST("Playlist order"), NAME("Name"), NUMBER("Number"), NEWEST("Newest first"), MOST_WATCHED("Most watched"), MANUAL("My order"),
+}
+
+/** What a playlist opens on when you switch to it. */
+enum class OpenOn(val label: String) { ALL("All channels"), FAVORITES("Favorites") }
+
+enum class AccentColor(val label: String, val argb: Long) {
+    CYAN("Cyan", 0xFF2EC5E8), BLUE("Blue", 0xFF3B8BFF), INDIGO("Indigo", 0xFF6C7BFF), PURPLE("Purple", 0xFFB06CFF),
+    PINK("Pink", 0xFFFF5FA2), RED("Red", 0xFFFF5A5A), ORANGE("Orange", 0xFFFF9A3C), AMBER("Amber", 0xFFFFC23D),
+    YELLOW("Yellow", 0xFFE8E04A), LIME("Lime", 0xFFA6E04A), GREEN("Green", 0xFF45D483), TEAL("Teal", 0xFF2BC2A8),
+}
+
+enum class BackgroundTheme(val label: String) { DARK("Dark"), BLACK("Black"), BLUE_GREY("Blue grey") }
+
+enum class FontSize(val label: String, val scale: Float) { SMALL("Small", 0.9f), MEDIUM("Medium", 1.0f), LARGE("Large", 1.15f) }
+
+enum class ClockSize(val label: String) { SMALL("Small"), MEDIUM("Medium"), LARGE("Large") }
+
+/** A clock shown over the video in fullscreen. */
+enum class ClockCorner(val label: String) { OFF("Off"), TOP_LEFT("Top left"), TOP_RIGHT("Top right"), BOTTOM_LEFT("Bottom left"), BOTTOM_RIGHT("Bottom right") }
+
+enum class LogoStyle(val label: String) { ROUNDED("Rounded"), SQUARE("Square"), CIRCLE("Circle") }
+
+/** The fullscreen options cards, in their default order. */
+val DEFAULT_OPTION_CARDS = listOf(
+    "option_guide", "option_playpause", "option_previous", "option_audio", "option_subtitles", "option_display", "option_zoom",
+    "option_quality", "option_audio_sync", "option_stats", "option_sleep", "option_favorite", "option_pip", "option_external",
+    "option_search", "option_settings",
+)
+
 /** How the TV guide marks programmes on air. */
 enum class GuideHighlight(val label: String) { ON_AIR("On-air programmes"), PROGRESS("Progress only"), NONE("None") }
 
@@ -88,6 +120,45 @@ data class AppSettings(
     val panelTimeoutSec: Int = 0,
     /** Display mode chosen for single channels ("<playlistId>:<stableKey>"), overriding [displayMode]. */
     val channelDisplayModes: Map<String, DisplayMode> = emptyMap(),
+    // --- B2: organising
+    val channelSort: ChannelSort = ChannelSort.PLAYLIST,
+    val openPlaylistOn: OpenOn = OpenOn.ALL,
+    // --- B2: screens
+    /** TV guide drawn over the full-screen video (instead of the preview window). */
+    val guideOverlay: Boolean = false,
+    /** Channel list with the video in a small window (instead of over the full-screen video). */
+    val listPreview: Boolean = false,
+    val stayOnList: Boolean = false,
+    /** Tune the focused channel after this many seconds of browsing the list; 0 = off. */
+    val autoplayDelaySec: Int = 0,
+    // --- B2: player
+    val optionCards: List<String> = DEFAULT_OPTION_CARDS,
+    val hiddenOptionCards: Set<String> = emptySet(),
+    val preferSurround: Boolean = false,
+    /** Audio delay against the picture, ms (+ = sound later). */
+    val audioOffsetMs: Int = 0,
+    val pipOnHome: Boolean = false,
+    val alwaysExternalPlayer: Boolean = false,
+    val blackOnSwitch: Boolean = false,
+    // --- B2: appearance
+    val accent: AccentColor = AccentColor.CYAN,
+    val backgroundTheme: BackgroundTheme = BackgroundTheme.DARK,
+    val fontSize: FontSize = FontSize.MEDIUM,
+    /** Panel transparency, 0 (solid) to 60 %. */
+    val panelTransparency: Int = 0,
+    val clockSize: ClockSize = ClockSize.MEDIUM,
+    val clockShowDate: Boolean = false,
+    val clockCorner: ClockCorner = ClockCorner.OFF,
+    val logoStyle: LogoStyle = LogoStyle.ROUNDED,
+    val twoLineNames: Boolean = false,
+    val twoLineTitles: Boolean = false,
+    val showPlaylistAndGroup: Boolean = false,
+    val showAllChannels: Boolean = true,
+    val showFavoritesGroup: Boolean = true,
+    val showRecentGroup: Boolean = true,
+    val animations: Boolean = true,
+    /** UI language tag, null = the TV's language. */
+    val language: String? = null,
 ) {
     fun displayModeFor(channelKey: String?): DisplayMode = channelKey?.let { channelDisplayModes[it] } ?: displayMode
 }
@@ -130,6 +201,35 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p[GUIDE_HIGHLIGHT] = next.guideHighlight.name
             p[PANEL_TIMEOUT] = next.panelTimeoutSec
             p[CHANNEL_DISPLAY] = next.channelDisplayModes.map { (k, v) -> "${v.name}=$k" }.toSet()
+            p[CHANNEL_SORT] = next.channelSort.name
+            p[OPEN_ON] = next.openPlaylistOn.name
+            p[GUIDE_OVERLAY] = next.guideOverlay
+            p[LIST_PREVIEW] = next.listPreview
+            p[STAY_ON_LIST] = next.stayOnList
+            p[AUTOPLAY] = next.autoplayDelaySec
+            p[OPTION_CARDS] = next.optionCards.joinToString(",")
+            p[HIDDEN_CARDS] = next.hiddenOptionCards
+            p[PREFER_SURROUND] = next.preferSurround
+            p[AUDIO_OFFSET] = next.audioOffsetMs
+            p[PIP_ON_HOME] = next.pipOnHome
+            p[ALWAYS_EXTERNAL] = next.alwaysExternalPlayer
+            p[BLACK_ON_SWITCH] = next.blackOnSwitch
+            p[ACCENT] = next.accent.name
+            p[BACKGROUND] = next.backgroundTheme.name
+            p[FONT_SIZE] = next.fontSize.name
+            p[TRANSPARENCY] = next.panelTransparency
+            p[CLOCK_SIZE] = next.clockSize.name
+            p[CLOCK_DATE] = next.clockShowDate
+            p[CLOCK_CORNER] = next.clockCorner.name
+            p[LOGO_STYLE] = next.logoStyle.name
+            p[TWO_LINE_NAMES] = next.twoLineNames
+            p[TWO_LINE_TITLES] = next.twoLineTitles
+            p[SHOW_PLAYLIST_GROUP] = next.showPlaylistAndGroup
+            p[SHOW_ALL] = next.showAllChannels
+            p[SHOW_FAVORITES] = next.showFavoritesGroup
+            p[SHOW_RECENT] = next.showRecentGroup
+            p[ANIMATIONS] = next.animations
+            p.setOrRemove(LANGUAGE, next.language)
         }
     }
 
@@ -167,7 +267,41 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             val mode = runCatching { DisplayMode.valueOf(entry.substringBefore('=')) }.getOrNull() ?: return@mapNotNull null
             entry.substringAfter('=') to mode
         }.toMap(),
+        channelSort = enumOr(p[CHANNEL_SORT], ChannelSort.PLAYLIST),
+        openPlaylistOn = enumOr(p[OPEN_ON], OpenOn.ALL),
+        guideOverlay = p[GUIDE_OVERLAY] ?: false,
+        listPreview = p[LIST_PREVIEW] ?: false,
+        stayOnList = p[STAY_ON_LIST] ?: false,
+        autoplayDelaySec = p[AUTOPLAY] ?: 0,
+        optionCards = p[OPTION_CARDS]?.split(',')?.filter { it.isNotBlank() }?.let { saved ->
+            saved.filter { it in DEFAULT_OPTION_CARDS } + DEFAULT_OPTION_CARDS.filter { it !in saved } // new cards appear at the end
+        } ?: DEFAULT_OPTION_CARDS,
+        hiddenOptionCards = p[HIDDEN_CARDS] ?: emptySet(),
+        preferSurround = p[PREFER_SURROUND] ?: false,
+        audioOffsetMs = p[AUDIO_OFFSET] ?: 0,
+        pipOnHome = p[PIP_ON_HOME] ?: false,
+        alwaysExternalPlayer = p[ALWAYS_EXTERNAL] ?: false,
+        blackOnSwitch = p[BLACK_ON_SWITCH] ?: false,
+        accent = enumOr(p[ACCENT], AccentColor.CYAN),
+        backgroundTheme = enumOr(p[BACKGROUND], BackgroundTheme.DARK),
+        fontSize = enumOr(p[FONT_SIZE], FontSize.MEDIUM),
+        panelTransparency = p[TRANSPARENCY] ?: 0,
+        clockSize = enumOr(p[CLOCK_SIZE], ClockSize.MEDIUM),
+        clockShowDate = p[CLOCK_DATE] ?: false,
+        clockCorner = enumOr(p[CLOCK_CORNER], ClockCorner.OFF),
+        logoStyle = enumOr(p[LOGO_STYLE], LogoStyle.ROUNDED),
+        twoLineNames = p[TWO_LINE_NAMES] ?: false,
+        twoLineTitles = p[TWO_LINE_TITLES] ?: false,
+        showPlaylistAndGroup = p[SHOW_PLAYLIST_GROUP] ?: false,
+        showAllChannels = p[SHOW_ALL] ?: true,
+        showFavoritesGroup = p[SHOW_FAVORITES] ?: true,
+        showRecentGroup = p[SHOW_RECENT] ?: true,
+        animations = p[ANIMATIONS] ?: true,
+        language = p[LANGUAGE],
     )
+
+    private inline fun <reified E : Enum<E>> enumOr(name: String?, default: E): E =
+        name?.let { n -> enumValues<E>().firstOrNull { it.name == n } } ?: default
 
     private fun <T> androidx.datastore.preferences.core.MutablePreferences.setOrRemove(key: Preferences.Key<T>, value: T?) {
         if (value == null) remove(key) else this[key] = value
@@ -204,6 +338,35 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val GUIDE_HIGHLIGHT = stringPreferencesKey("guide_highlight")
         private val PANEL_TIMEOUT = intPreferencesKey("panel_timeout_sec")
         private val CHANNEL_DISPLAY = stringSetPreferencesKey("channel_display_modes")
+        private val CHANNEL_SORT = stringPreferencesKey("channel_sort")
+        private val OPEN_ON = stringPreferencesKey("open_playlist_on")
+        private val GUIDE_OVERLAY = booleanPreferencesKey("guide_overlay")
+        private val LIST_PREVIEW = booleanPreferencesKey("list_preview")
+        private val STAY_ON_LIST = booleanPreferencesKey("stay_on_list")
+        private val AUTOPLAY = intPreferencesKey("autoplay_delay_sec")
+        private val OPTION_CARDS = stringPreferencesKey("option_cards")
+        private val HIDDEN_CARDS = stringSetPreferencesKey("hidden_option_cards")
+        private val PREFER_SURROUND = booleanPreferencesKey("prefer_surround")
+        private val AUDIO_OFFSET = intPreferencesKey("audio_offset_ms")
+        private val PIP_ON_HOME = booleanPreferencesKey("pip_on_home")
+        private val ALWAYS_EXTERNAL = booleanPreferencesKey("always_external_player")
+        private val BLACK_ON_SWITCH = booleanPreferencesKey("black_on_switch")
+        private val ACCENT = stringPreferencesKey("accent")
+        private val BACKGROUND = stringPreferencesKey("background_theme")
+        private val FONT_SIZE = stringPreferencesKey("font_size")
+        private val TRANSPARENCY = intPreferencesKey("panel_transparency")
+        private val CLOCK_SIZE = stringPreferencesKey("clock_size")
+        private val CLOCK_DATE = booleanPreferencesKey("clock_show_date")
+        private val CLOCK_CORNER = stringPreferencesKey("clock_corner")
+        private val LOGO_STYLE = stringPreferencesKey("logo_style")
+        private val TWO_LINE_NAMES = booleanPreferencesKey("two_line_names")
+        private val TWO_LINE_TITLES = booleanPreferencesKey("two_line_titles")
+        private val SHOW_PLAYLIST_GROUP = booleanPreferencesKey("show_playlist_and_group")
+        private val SHOW_ALL = booleanPreferencesKey("show_all_channels")
+        private val SHOW_FAVORITES = booleanPreferencesKey("show_favorites_group")
+        private val SHOW_RECENT = booleanPreferencesKey("show_recent_group")
+        private val ANIMATIONS = booleanPreferencesKey("animations")
+        private val LANGUAGE = stringPreferencesKey("language")
 
         fun create(context: Context): SettingsStore = forFile(context.preferencesDataStoreFile("settings"))
 

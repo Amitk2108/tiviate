@@ -1,6 +1,7 @@
 package app.tiviate.data.sync
 
 import app.tiviate.core.m3u.M3uParser
+import app.tiviate.core.match.NameEditor
 import app.tiviate.core.match.StableKeyAssigner
 import app.tiviate.core.xtream.XtreamCredentials
 import app.tiviate.core.xtream.XtreamJson
@@ -36,6 +37,9 @@ class PlaylistSyncer(
         val stamp = clock()
         try {
             val writer = ChannelWriter(playlist.id, stamp, onProgress)
+            val prefixes = NameEditor.parse(playlist.namePrefixes)
+            val suffixes = NameEditor.parse(playlist.nameSuffixes)
+            writer.cleanName = { NameEditor.clean(it, prefixes, suffixes) }
             val result = when (playlist.type) {
                 PlaylistType.M3U_URL -> http.getOrThrow(requireNotNull(playlist.url), playlist.userAgent, "Playlist").use {
                     syncM3u(it.body.byteStream(), writer)
@@ -138,11 +142,13 @@ class PlaylistSyncer(
     /** Buffers rows and writes them in transactions of [BATCH] to keep memory flat on large playlists. */
     private inner class ChannelWriter(val playlistId: Long, val stamp: Long, private val onProgress: (Int) -> Unit) {
         private val buffer = ArrayList<ChannelEntity>(BATCH)
+        var cleanName: (String) -> String = { it }
         var count = 0
             private set
 
+        /** Keeps the playlist's own name, shows the cleaned one, and dates new channels. */
         fun add(row: ChannelEntity) {
-            buffer += row
+            buffer += row.copy(originalName = row.name, name = cleanName(row.name), addedAt = stamp)
             count++
             if (buffer.size >= BATCH) flush()
         }

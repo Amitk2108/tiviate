@@ -83,6 +83,7 @@ fun categoryLabel(c: Category) = when (c) {
     Category.Favorites -> "Favorites"
     Category.Recent -> "Recent"
     is Category.Group -> c.name
+    is Category.Custom -> c.name
 }
 
 /**
