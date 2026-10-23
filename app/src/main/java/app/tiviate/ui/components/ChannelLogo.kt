@@ -28,12 +28,23 @@ import coil3.compose.AsyncImage
  * Logo URLs to try, in order: playlist logo, then the guide's channel icon. Plain-http URLs are tried
  * over https first, because some networks/ISP proxies stall plain http to image CDNs.
  */
-fun logoCandidates(channel: ChannelEntity): List<String> =
-    listOfNotNull(channel.logoUrl, channel.logoFallback)
+fun logoCandidates(channel: ChannelEntity): List<String> = imageCandidates(channel.logoUrl, channel.logoFallback)
+
+fun imageCandidates(vararg urls: String?): List<String> =
+    urls.filterNotNull()
         .map { it.trim() }
         .filter { it.isNotEmpty() }
         .flatMap { url -> if (url.startsWith("http://")) listOf("https://" + url.removePrefix("http://"), url) else listOf(url) }
         .distinct()
+
+/** An image that tries each candidate URL in turn and shows nothing (just its background) if all fail. */
+@Composable
+fun RemoteImage(url: String?, modifier: Modifier = Modifier, contentScale: ContentScale = ContentScale.Crop) {
+    val candidates = remember(url) { imageCandidates(url) }
+    var index by remember(candidates) { mutableIntStateOf(0) }
+    val current = candidates.getOrNull(index) ?: return
+    AsyncImage(model = current, contentDescription = null, contentScale = contentScale, modifier = modifier, onError = { index++ })
+}
 
 fun monogramInitials(name: String): String {
     val words = name.split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }
