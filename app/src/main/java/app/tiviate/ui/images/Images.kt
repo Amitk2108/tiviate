@@ -8,6 +8,7 @@ import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okio.Path.Companion.toOkioPath
 
@@ -16,9 +17,11 @@ val IMAGE_USER_AGENT = "Mozilla/5.0 (Linux; Android ${Build.VERSION.RELEASE}; TV
 
 /**
  * Shares the app's connection pool but always presents a browser User-Agent. Short timeouts so a
- * dead logo URL falls through to the next candidate quickly instead of leaving a tile empty.
+ * dead logo URL falls through to the next candidate quickly instead of leaving a tile empty. Its own
+ * dispatcher keeps slow logo hosts from taking the per-host request slots the stream needs.
  */
 fun imageHttpClient(http: OkHttpClient): OkHttpClient = http.newBuilder()
+    .dispatcher(Dispatcher())
     .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
     .readTimeout(8, java.util.concurrent.TimeUnit.SECONDS)
     .addInterceptor { chain -> chain.proceed(chain.request().newBuilder().header("User-Agent", IMAGE_USER_AGENT).build()) }

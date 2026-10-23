@@ -8,6 +8,8 @@ import okhttp3.Request
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertSame
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -30,5 +32,14 @@ class ImageClientTest {
         } finally {
             server.shutdown()
         }
+    }
+
+    @Test
+    fun logoDownloadsHaveTheirOwnQueueSoTheyNeverDelayTheStream() {
+        val http = HttpClients.create()
+        val images = imageHttpClient(http)
+        // OkHttp allows 5 requests per host per dispatcher; slow logos on the stream's host must not use those slots.
+        assertNotSame(http.dispatcher, images.dispatcher)
+        assertSame("the connection pool is still shared", http.connectionPool, images.connectionPool)
     }
 }
