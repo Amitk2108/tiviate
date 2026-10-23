@@ -1,5 +1,6 @@
 package app.tiviate.data
 
+import kotlinx.coroutines.flow.first
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
@@ -189,6 +190,28 @@ data class AppSettings(
 class SettingsStore private constructor(private val store: DataStore<Preferences>) {
 
     val settings: Flow<AppSettings> = store.data.map(::read)
+
+    /** Every stored setting, by key name (for backups). */
+    suspend fun exportRaw(): Map<String, Any> = store.data.first().asMap().mapKeys { it.key.name }
+
+    /** Replaces all settings with [values] (a restored backup). */
+    @Suppress("UNCHECKED_CAST")
+    suspend fun importRaw(values: Map<String, Any>) {
+        store.edit { p ->
+            p.clear()
+            for ((k, v) in values) {
+                when (v) {
+                    is Boolean -> p[androidx.datastore.preferences.core.booleanPreferencesKey(k)] = v
+                    is Int -> p[androidx.datastore.preferences.core.intPreferencesKey(k)] = v
+                    is Long -> p[androidx.datastore.preferences.core.longPreferencesKey(k)] = v
+                    is Float -> p[androidx.datastore.preferences.core.floatPreferencesKey(k)] = v
+                    is Double -> p[androidx.datastore.preferences.core.doublePreferencesKey(k)] = v
+                    is String -> p[androidx.datastore.preferences.core.stringPreferencesKey(k)] = v
+                    is Set<*> -> p[androidx.datastore.preferences.core.stringSetPreferencesKey(k)] = v as Set<String>
+                }
+            }
+        }
+    }
 
     suspend fun update(transform: (AppSettings) -> AppSettings) {
         store.edit { p ->

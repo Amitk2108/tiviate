@@ -1,5 +1,9 @@
 package app.tiviate.ui.settings
 
+import kotlinx.coroutines.flow.first
+import app.tiviate.data.SyncProgress
+import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.foundation.shape.CircleShape
 import app.tiviate.ui.components.InfoChip
@@ -548,6 +552,7 @@ private fun OtherSection() {
     val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
     var done by remember { mutableStateOf(false) }
     SectionColumn {
+        BackupRows()
         Heading(t("Recent channels"))
         ValueRow(t("Channels to keep"), "${settings.recentCount}", "setting_recent_count") {
             scope.launch { graph.settings.update { it.copy(recentCount = listOf(20, 50, 100).after(it.recentCount)) } }
@@ -627,4 +632,69 @@ private fun UpdateRows() {
         result?.let { Caption(it) }
     }
     ToggleRow(t("Check for updates automatically"), settings.checkUpdates, { scope.launch { graph.settings.update { it.copy(checkUpdates = !it.checkUpdates) } } }, tag = "setting_check_updates")
+}
+
+@Composable
+private fun BackupRows() {
+    val graph = LocalGraph.current
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val activity = context as? android.app.Activity
+    val scope = rememberCoroutineScope()
+    var status by remember { mutableStateOf<String?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    var backups by remember { mutableStateOf(emptyList<app.tiviate.data.backup.BackupFile>()) }
+    var confirm by remember { mutableStateOf<android.net.Uri?>(null) }
+    val backup = remember { app.tiviate.data.backup.Backup(graph.db, graph.settings, BuildConfig.VERSION_NAME) }
+    LaunchedEffect(Unit) { backups = app.tiviate.data.backup.BackupFiles.list(context) }
+
+    fun restore(uri: android.net.Uri) {
+        busy = true
+        status = t("Restoring… loading your channels")
+        graph.appScope.launch {
+            val ok = runCatching {
+                val json = app.tiviate.data.backup.BackupFiles.read(context, uri)
+                graph.player.stop()
+                backup.restore(json) { id -> graph.playlists.sync(id).first { it is SyncProgress.Done || it is SyncProgress.Failed } }
+            }.isSuccess
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                busy = false
+                if (ok) activity?.recreate() else status = t("Couldn't read this backup")
+            }
+        }
+    }
+    val pick = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) confirm = uri
+    }
+    val writePermission = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { }
+
+    Heading(t("Backup"))
+    Caption(t("Backups include your playlist logins — keep the file private."))
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        ActionButton(t("Back up now"), {
+            if (busy) return@ActionButton
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q &&
+                androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) { writePermission.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE); return@ActionButton }
+            scope.launch {
+                status = runCatching { tf("Saved to %s", app.tiviate.data.backup.BackupFiles.save(context, backup.toJson())) }
+                    .getOrElse { t("Couldn't read this backup") }
+                backups = app.tiviate.data.backup.BackupFiles.list(context)
+            }
+        }, tag = "backup_now", icon = androidx.compose.material.icons.Icons.Rounded.Backup)
+        ActionButton(t("Choose a file…"), { pick.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }, tag = "backup_pick", icon = androidx.compose.material.icons.Icons.Rounded.FolderOpen)
+    }
+    status?.let { Caption(it) }
+    backups.take(5).forEach { f ->
+        ActionButton(t("Restore") + ": " + f.name.removePrefix("tiviate-backup-").removeSuffix(".json"), { confirm = f.uri }, tag = "backup_restore_${f.name}", icon = androidx.compose.material.icons.Icons.Rounded.Restore)
+    }
+    confirm?.let { uri ->
+        Column(Modifier.fillMaxWidth().background(Tokens.Surface, Tokens.Shape).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(t("Restore this backup?"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
+            Caption(t("It replaces the playlists, favourites and settings on this TV."))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                ActionButton(t("Restore"), { confirm = null; restore(uri) }, primary = true, tag = "backup_confirm")
+                ActionButton(t("Cancel"), { confirm = null }, tag = "backup_cancel")
+            }
+        }
+    }
 }
