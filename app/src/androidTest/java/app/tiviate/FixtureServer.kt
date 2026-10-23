@@ -19,7 +19,19 @@ class FixtureServer {
         server.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 val path = request.requestUrl?.encodedPath.orEmpty()
+                val query = request.requestUrl?.queryParameter("action")
                 return when {
+                    path == "/player_api.php" && query == "get_live_categories" ->
+                        MockResponse().setBody("""[{"category_id":"1","category_name":"News & Sports"},{"category_id":"2","category_name":"Entertainment"}]""")
+                    path == "/player_api.php" && query == "get_live_streams" -> MockResponse().setBody(xtreamStreams())
+                    path == "/player_api.php" -> MockResponse().setBody(
+                        """{"user_info":{"auth":1,"status":"Active","exp_date":"1924992000","max_connections":"2","active_cons":"0","allowed_output_formats":["m3u8"]}}""",
+                    )
+                    path == "/xmltv.php" -> MockResponse().setBody(guide())
+                    path.startsWith("/live/u/p/") -> {
+                        val rest = path.removePrefix("/live/u/p/")
+                        if (rest.matches(Regex("""\d+\.m3u8"""))) asset("fixture/hls/master.m3u8") else asset("fixture/hls/$rest")
+                    }
                     path == "/list.m3u" -> MockResponse().setBody(playlist())
                     path == "/epg.xml" -> MockResponse().setBody(guide())
                     path.startsWith("/hls/") -> asset("fixture" + path)
@@ -45,6 +57,10 @@ class FixtureServer {
             appendLine(url("/hls/master.m3u8") + "?ch=$i")
         }
     }
+
+    private fun xtreamStreams() = channelNames.mapIndexed { i, name ->
+        """{"num":${i + 1},"name":"$name","stream_id":${i + 1},"stream_icon":"","epg_channel_id":"ch$i","category_id":"${if (i < 2) 1 else 2}","tv_archive":0}"""
+    }.joinToString(",", "[", "]")
 
     private fun guide(): String {
         val now = System.currentTimeMillis()
