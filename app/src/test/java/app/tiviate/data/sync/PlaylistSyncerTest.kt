@@ -173,6 +173,28 @@ class PlaylistSyncerTest {
         assertEquals(listOf(1, 2, 3), h.db.channels().allInPlaylist(id).map { it.number })
     }
 
+    @Test
+    fun xtreamGroupsFollowTheProvidersCategoryOrder() = runBlocking {
+        // The provider lists its categories News, Sports, Movies, but its first channel is a movie.
+        h.routes["/player_api.php?username=u&password=p&action=get_live_categories"] = {
+            text("""[{"category_id":"1","category_name":"News"},{"category_id":"2","category_name":"Sports"},{"category_id":"3","category_name":"Movies"}]""")
+        }
+        h.routes["/player_api.php?username=u&password=p&action=get_live_streams"] = {
+            text(
+                """[{"name":"Film 1","stream_id":1,"category_id":"3"},{"name":"Match","stream_id":2,"category_id":"2"},
+                   {"name":"Headlines","stream_id":3,"category_id":"1"},{"name":"Film 2","stream_id":4,"category_id":"3"}]""",
+            )
+        }
+        h.routes["/player_api.php?username=u&password=p"] = { text("""{"user_info":{"auth":1,"allowed_output_formats":["ts"]}}""") }
+        val id = h.db.playlists().insert(
+            PlaylistEntity(name = "X", type = PlaylistType.XTREAM, xtreamServer = h.url("/").trimEnd('/'), xtreamUser = "u", xtreamPass = "p"),
+        )
+        h.playlistSyncer().sync(id)
+        assertEquals(listOf("News", "Sports", "Movies"), h.db.channels().categories(id).first().map { it.name })
+        // Inside a group the provider's channel order stays.
+        assertEquals(listOf("Film 1", "Film 2"), h.db.channels().allInPlaylist(id).filter { it.groupName == "Movies" }.sortedBy { it.sortIndex }.map { it.name })
+    }
+
     private fun ftsDocuments(): Int =
         h.db.openHelper.readableDatabase.query("SELECT COUNT(*) FROM channel_fts_docsize").use { it.moveToFirst(); it.getInt(0) }
 

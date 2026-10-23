@@ -124,6 +124,7 @@ fun ChannelPanel(
     onRail: (RailEntry) -> Unit,
     onOpenRail: () -> Unit,
     onCloseRail: () -> Unit,
+    onBrowse: (Category) -> Unit = {},
 ) {
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = (initialIndex - 3).coerceAtLeast(0))
     val rowFocus = remember { FocusRequester() }
@@ -159,7 +160,7 @@ fun ChannelPanel(
     }
 
     Row(Modifier.fillMaxSize()) {
-        if (categoriesFocused) CategoriesRail(railEntries, category, onRail, onCloseRail)
+        if (categoriesFocused) CategoriesRail(railEntries, category, onRail, onCloseRail, onBrowse)
         Column(
             Modifier
                 .width(470.dp)
@@ -277,9 +278,11 @@ private fun DetailsCard(channel: ChannelEntity, info: NowNext?, now: Long, showD
 }
 
 @Composable
-private fun CategoriesRail(entries: List<RailEntry>, selected: Category, onRail: (RailEntry) -> Unit, onClose: () -> Unit) {
+private fun CategoriesRail(entries: List<RailEntry>, selected: Category, onRail: (RailEntry) -> Unit, onClose: () -> Unit, onBrowse: (Category) -> Unit) {
     val first = remember { FocusRequester() }
-    val selectedIndex = entries.indexOfFirst { it is RailEntry.Pick && it.category == selected }.coerceAtLeast(0)
+    // Focus starts on the group the rail opened on; moving through the groups shows their channels.
+    val openedOn = remember { selected }
+    val selectedIndex = entries.indexOfFirst { it is RailEntry.Pick && it.category == openedOn }.coerceAtLeast(0)
     val state = rememberLazyListState(initialFirstVisibleItemIndex = (selectedIndex - 3).coerceAtLeast(0))
     LaunchedEffect(Unit) {
         repeat(10) {
@@ -307,7 +310,8 @@ private fun CategoriesRail(entries: List<RailEntry>, selected: Category, onRail:
             }
             FocusSurface(
                 onClick = { onRail(entry) },
-                modifier = (if (i == selectedIndex) Modifier.focusRequester(first) else Modifier).fillMaxWidth(),
+                modifier = (if (i == selectedIndex) Modifier.focusRequester(first) else Modifier).fillMaxWidth()
+                    .onFocusChanged { if (it.isFocused && entry is RailEntry.Pick) onBrowse(entry.category) },
                 container = androidx.compose.ui.graphics.Color.Transparent,
                 scale = 1.02f,
             ) {
