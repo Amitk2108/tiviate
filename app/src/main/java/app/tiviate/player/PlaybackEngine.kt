@@ -3,7 +3,22 @@ package app.tiviate.player
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.flow.StateFlow
 
-data class TrackOption(val groupIndex: Int, val trackIndex: Int, val label: String, val selected: Boolean)
+data class TrackOption(val groupIndex: Int, val trackIndex: Int, val label: String, val selected: Boolean, val language: String? = null)
+
+/** What the Stats overlay shows; null/0 where the stream doesn't say. */
+data class PlaybackStats(
+    val videoCodec: String? = null,
+    val width: Int = 0,
+    val height: Int = 0,
+    val frameRate: Float? = null,
+    val videoBitrate: Int? = null,
+    val audioCodec: String? = null,
+    val audioChannels: Int = 0,
+    val sampleRate: Int = 0,
+    val bufferedMs: Long = 0,
+    val droppedFrames: Int = 0,
+    val bandwidthKbps: Long = 0,
+)
 
 data class PlaybackState(
     val channelKey: String? = null,
@@ -36,6 +51,10 @@ interface PlaybackEngine {
     fun release()
     fun audioTracks(): List<TrackOption>
     fun textTracks(): List<TrackOption>
+    fun videoTracks(): List<TrackOption>
+    /** Null = automatic quality. */
+    fun selectVideo(option: TrackOption?)
+    fun stats(): PlaybackStats
     fun selectAudio(option: TrackOption)
     /** Null turns subtitles off. */
     fun selectText(option: TrackOption?)

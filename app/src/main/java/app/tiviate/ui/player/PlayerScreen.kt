@@ -37,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import app.tiviate.data.AppSettings
 import app.tiviate.data.Category
+import app.tiviate.data.DisplayMode
 import app.tiviate.data.UpDownMode
 import app.tiviate.player.ExternalPlayer
 import app.tiviate.ui.LocalGraph
@@ -67,7 +68,8 @@ fun PlayerScreen() {
     val favorites by vm.favoriteKeys.collectAsStateWithLifecycle()
     val numberText by vm.numberText.collectAsStateWithLifecycle()
     val toast by vm.toast.collectAsStateWithLifecycle()
-    val aspect by vm.aspect.collectAsStateWithLifecycle()
+    val showStats by vm.showStats.collectAsStateWithLifecycle()
+    val sleepMinutes by graph.player.sleepMinutes.collectAsStateWithLifecycle()
     val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
 
     val rootFocus = remember { FocusRequester() }
@@ -185,7 +187,8 @@ fun PlayerScreen() {
                 ) { _, dy -> total += dy }
             },
     ) {
-        VideoSurface(engine, aspect, Modifier.fillMaxSize())
+        VideoSurface(engine, settings.displayMode, settings.zoomPercent, playback.videoWidth, playback.videoHeight, Modifier.fillMaxSize())
+        if (showStats) StatsOverlay(engine)
 
         if (playback.isBuffering && !playback.isPaused && playback.error == null) BufferingIndicator(playback.retrying, playback.notice)
         if (playback.isPaused) PausedBadge()
@@ -243,6 +246,14 @@ fun PlayerScreen() {
                         OptionItem("option_guide", "TV guide", null) { vm.close(); nav.push(Screen.Guide) },
                         OptionItem("option_audio", "Audio", playback.audioLabel ?: "Default") { pick("option_audio", PickerKind.AUDIO) },
                         OptionItem("option_subtitles", "Subtitles", subtitle) { pick("option_subtitles", PickerKind.SUBTITLES) },
+                        OptionItem("option_display", "Display", settings.displayMode.label) { pick("option_display", PickerKind.DISPLAY) },
+                        OptionItem("option_zoom", "Zoom", "${settings.zoomPercent}%") { pick("option_zoom", PickerKind.ZOOM) },
+                        OptionItem(
+                            "option_quality", "Quality",
+                            if (playback.videoHeight > 0) "${playback.videoWidth} × ${playback.videoHeight}" else "Automatic",
+                        ) { pick("option_quality", PickerKind.QUALITY) },
+                        OptionItem("option_stats", "Stats", if (showStats) "On" else "Off") { vm.lastOptionTag = "option_stats"; vm.toggleStats() },
+                        OptionItem("option_sleep", "Sleep timer", sleepMinutes?.let { "$it min left" } ?: "Off") { pick("option_sleep", PickerKind.SLEEP) },
                         ch?.let {
                             OptionItem("option_favorite", "Favorite", if (it.stableKey in favorites) "Added" else "Not added") {
                                 vm.lastOptionTag = "option_favorite"
@@ -259,14 +270,84 @@ fun PlayerScreen() {
                     ),
                 )
             }
-            is Overlay.Picker -> when (o.kind) {
-                PickerKind.AUDIO, PickerKind.SUBTITLES -> {
-                    val audio = o.kind == PickerKind.AUDIO
-                    val options = remember(o, playback.channelKey) { if (audio) engine.audioTracks() else engine.textTracks() }
-                    TrackDialog(if (audio) "Audio" else "Subtitles", options, allowOff = !audio) { choice ->
-                        if (audio) choice?.let(engine::selectAudio) else engine.selectText(choice)
-                        vm.open(Overlay.Options)
+            is Overlay.Picker -> {
+                fun done() = vm.open(Overlay.Options)
+                fun save(change: (AppSettings) -> AppSettings) { graph.appScope.launch { graph.settings.update(change) } }
+                when (o.kind) {
+                    PickerKind.AUDIO -> {
+                        val tracks = remember(o, playback.channelKey) { engine.audioTracks() }
+                        val forAll = settings.preferredAudioLanguage != null
+                        ChoiceDialog(
+                            title = "Audio",
+                            choices = tracks.map { t ->
+                                Choice(t.label, t.selected) {
+                                    engine.selectAudio(t)
+                                    if (forAll && t.language != null) save { it.copy(preferredAudioLanguage = t.language) }
+                                    done()
+                                }
+                            },
+                            toggle = ToggleChoice("Use this language for all channels", forAll) { on ->
+                                val lang = tracks.firstOrNull { it.selected }?.language
+                                when {
+                                    !on -> save { it.copy(preferredAudioLanguage = null) }
+                                    lang != null -> save { it.copy(preferredAudioLanguage = lang) }
+                                    else -> vm.showToast("This track has no language set")
+                                }
+                            },
+                            empty = "This channel has only one audio track.",
+                            tag = "track_dialog",
+                        )
                     }
+                    PickerKind.SUBTITLES -> {
+                        val tracks = remember(o, playback.channelKey) { engine.textTracks() }
+                        ChoiceDialog(
+                            title = "Subtitles",
+                            choices = listOf(
+                                Choice("Off", tracks.none { it.selected }) {
+                                    engine.selectText(null)
+                                    if (settings.subtitlesForAll) save { it.copy(subtitlesForAll = false) }
+                                    done()
+                                },
+                            ) + tracks.map { t ->
+                                Choice(t.label, t.selected) {
+                                    engine.selectText(t)
+                                    if (settings.subtitlesForAll) save { it.copy(preferredTextLanguage = t.language) }
+                                    done()
+                                }
+                            },
+                            toggle = ToggleChoice("Turn on for all channels", settings.subtitlesForAll) { on ->
+                                val lang = tracks.firstOrNull { it.selected }?.language
+                                save { it.copy(subtitlesForAll = on, preferredTextLanguage = if (on) lang ?: it.preferredTextLanguage else it.preferredTextLanguage) }
+                            },
+                            tag = "track_dialog",
+                        )
+                    }
+                    PickerKind.DISPLAY -> ChoiceDialog(
+                        title = "Display (all channels)",
+                        choices = DisplayMode.entries.map { m -> Choice(m.label, m == settings.displayMode) { save { it.copy(displayMode = m) }; done() } },
+                        tag = "display_dialog",
+                    )
+                    PickerKind.ZOOM -> ChoiceDialog(
+                        title = "Zoom (all channels)",
+                        choices = ZOOM_STEPS.map { z -> Choice("$z%", z == settings.zoomPercent) { save { it.copy(zoomPercent = z) }; done() } },
+                        tag = "zoom_dialog",
+                    )
+                    PickerKind.QUALITY -> {
+                        val tracks = remember(o, playback.channelKey) { engine.videoTracks() }
+                        val auto = remember(o) { engine.isAutoQuality() }
+                        ChoiceDialog(
+                            title = "Quality",
+                            choices = listOf(Choice("Automatic", auto) { engine.selectVideo(null); done() }) +
+                                tracks.map { t -> Choice(t.label, !auto && t.selected) { engine.selectVideo(t); done() } },
+                            tag = "quality_dialog",
+                        )
+                    }
+                    PickerKind.SLEEP -> ChoiceDialog(
+                        title = "Sleep timer",
+                        choices = listOf(Choice("Off", sleepMinutes == null) { graph.player.setSleepTimer(null); done() }) +
+                            SLEEP_STEPS.map { m -> Choice("$m min", false) { graph.player.setSleepTimer(m); vm.showToast("Tiviate will stop in $m min"); done() } },
+                        tag = "sleep_dialog",
+                    )
                 }
             }
             Overlay.TouchControls -> TouchControls(
@@ -331,3 +412,6 @@ private fun MatchRefreshRate(enabled: Boolean, frameRate: Float?) {
         }
     }
 }
+
+private val ZOOM_STEPS = listOf(100, 110, 120, 130, 140, 150)
+private val SLEEP_STEPS = listOf(15, 30, 60, 90, 120)

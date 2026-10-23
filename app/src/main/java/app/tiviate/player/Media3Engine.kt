@@ -133,7 +133,22 @@ class Media3Engine(
         private set
 
     init {
+        applyPreferences(settings)
         main.post(tick)
+    }
+
+    /**
+     * "For all channels" choices: the preferred audio language, and subtitles on (with a language)
+     * or off. Per-channel picks are overrides that a channel change clears again.
+     */
+    private fun applyPreferences(s: AppSettings) {
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+            .clearOverrides()
+            .setPreferredAudioLanguages(*listOfNotNull(s.preferredAudioLanguage).toTypedArray())
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !s.subtitlesForAll)
+            .setPreferredTextLanguages(*listOfNotNull(s.preferredTextLanguage.takeIf { s.subtitlesForAll }).toTypedArray())
+            .setSelectUndeterminedTextLanguage(s.subtitlesForAll)
+            .build()
     }
 
     private fun buildPlayer(s: AppSettings): ExoPlayer {
@@ -171,11 +186,18 @@ class Media3Engine(
         val needsRebuild = newSettings.bufferPreset != settings.bufferPreset ||
             newSettings.preferSoftwareDecoder != settings.preferSoftwareDecoder ||
             newSettings.tunneling != settings.tunneling
+        val prefsChanged = newSettings.preferredAudioLanguage != settings.preferredAudioLanguage ||
+            newSettings.subtitlesForAll != settings.subtitlesForAll ||
+            newSettings.preferredTextLanguage != settings.preferredTextLanguage
         settings = newSettings
-        if (!needsRebuild) return
+        if (!needsRebuild) {
+            if (prefsChanged) applyPreferences(newSettings)
+            return
+        }
         player.removeListener(listener)
         player.release()
         player = buildPlayer(newSettings)
+        applyPreferences(newSettings)
         boundView?.player = player
         if (request != null) startCurrent()
     }
@@ -185,6 +207,7 @@ class Media3Engine(
         request = Request(url, headers, userAgent, channelKey)
         reconnector.reset()
         pausedAtMs = null
+        applyPreferences(settings) // a new channel starts from the "for all channels" choices
         _state.value = PlaybackState(channelKey = channelKey, isBuffering = true)
         startCurrent()
     }
@@ -272,6 +295,42 @@ class Media3Engine(
 
     override fun audioTracks(): List<TrackOption> = options(C.TRACK_TYPE_AUDIO)
     override fun textTracks(): List<TrackOption> = options(C.TRACK_TYPE_TEXT)
+    override fun videoTracks(): List<TrackOption> = options(C.TRACK_TYPE_VIDEO)
+
+    override fun selectVideo(option: TrackOption?) {
+        val builder = player.trackSelectionParameters.buildUpon()
+        if (option == null) {
+            builder.clearOverridesOfType(C.TRACK_TYPE_VIDEO)
+        } else {
+            val group = player.currentTracks.groups.getOrNull(option.groupIndex) ?: return
+            builder.setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, option.trackIndex))
+        }
+        player.trackSelectionParameters = builder.build()
+    }
+
+    /** True unless the viewer picked a fixed quality for this channel. */
+    fun isAutoQuality(): Boolean = player.trackSelectionParameters.overrides.values.none { it.type == C.TRACK_TYPE_VIDEO }
+
+    override fun stats(): PlaybackStats {
+        val v = player.videoFormat
+        val a = player.audioFormat
+        return PlaybackStats(
+            videoCodec = v?.let { codecName(it) },
+            width = v?.width?.takeIf { it > 0 } ?: 0,
+            height = v?.height?.takeIf { it > 0 } ?: 0,
+            frameRate = v?.frameRate?.takeIf { it > 0 },
+            videoBitrate = v?.bitrate?.takeIf { it > 0 },
+            audioCodec = a?.let { codecName(it) },
+            audioChannels = a?.channelCount?.takeIf { it > 0 } ?: 0,
+            sampleRate = a?.sampleRate?.takeIf { it > 0 } ?: 0,
+            bufferedMs = player.totalBufferedDuration,
+            droppedFrames = player.videoDecoderCounters?.droppedBufferCount ?: 0,
+            bandwidthKbps = androidx.media3.exoplayer.upstream.DefaultBandwidthMeter.getSingletonInstance(context).bitrateEstimate / 1000,
+        )
+    }
+
+    private fun codecName(f: Format): String =
+        (f.codecs?.substringBefore('.')?.takeIf { it.isNotBlank() } ?: f.sampleMimeType?.substringAfter('/') ?: "?").uppercase(Locale.ROOT)
 
     override fun selectAudio(option: TrackOption) {
         val group = player.currentTracks.groups.getOrNull(option.groupIndex) ?: return
@@ -306,8 +365,15 @@ class Media3Engine(
                 if (!group.isTrackSupported(ti)) continue
                 val f = group.getTrackFormat(ti)
                 val name = f.label ?: f.language?.let { Locale.forLanguageTag(it).displayLanguage.takeIf(String::isNotBlank) } ?: "Track ${out.size + 1}"
-                val label = if (type == C.TRACK_TYPE_AUDIO) listOfNotNull(name, audioBadge(f)).joinToString(" · ") else name
-                out += TrackOption(gi, ti, label, group.isTrackSelected(ti))
+                val label = when (type) {
+                    C.TRACK_TYPE_AUDIO -> listOfNotNull(name, audioBadge(f)).joinToString(" · ")
+                    C.TRACK_TYPE_VIDEO -> listOfNotNull(
+                        "${f.width} × ${f.height}".takeIf { f.width > 0 && f.height > 0 },
+                        f.bitrate.takeIf { it > 0 }?.let { "%.1f Mbps".format(Locale.ROOT, it / 1_000_000f) },
+                    ).joinToString(" · ").ifBlank { "Track ${out.size + 1}" }
+                    else -> name
+                }
+                out += TrackOption(gi, ti, label, group.isTrackSelected(ti), f.language)
             }
         }
         return out

@@ -5,6 +5,10 @@ import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import app.tiviate.data.sync.SyncScheduler
 import app.tiviate.ui.AppRoot
 import app.tiviate.ui.LocalGraph
@@ -22,6 +26,12 @@ class MainActivity : ComponentActivity() {
             }
         }
         SyncScheduler.schedulePeriodic(this)
+        // Sleep timer fired: playback has stopped; leave the app so the TV can go to sleep.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                graph.player.sleepDue.collect { due -> if (due) { graph.player.consumeSleepDue(); finish() } }
+            }
+        }
     }
 
     /**

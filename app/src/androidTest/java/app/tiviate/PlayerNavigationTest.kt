@@ -111,7 +111,9 @@ class PlayerNavigationTest {
     fun menuOpensTheOptionsPanelAndFavoriteToggles() {
         Remote.menu()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
-        rule.onNodeWithTag("option_favorite").activate()
+        rule.waitForIdle()
+        repeat(12) { if (runCatching { rule.onNodeWithTag("option_favorite").assertIsFocused() }.isFailure) { Remote.right(); rule.waitForIdle() } }
+        Remote.ok()
         rule.waitUntil(3_000) { runBlocking { graph.channels.favoriteKeys(graph.player.current.value!!.playlistId).first().isNotEmpty() } }
     }
 

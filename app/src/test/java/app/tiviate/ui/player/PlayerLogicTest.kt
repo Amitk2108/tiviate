@@ -2,6 +2,7 @@ package app.tiviate.ui.player
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import app.tiviate.data.DisplayMode
 import org.junit.Test
 
 class NumberEntryTest {
@@ -52,5 +53,18 @@ class DisplayModeMatcherTest {
     fun noSwitchWhenNothingMatches() {
         assertNull(DisplayModeMatcher.pick(listOf(DisplayModeInfo(1, 1920, 1080, 60f)), DisplayModeInfo(1, 1920, 1080, 60f), 25f))
         assertNull(DisplayModeMatcher.pick(modes, modes[0], 0f))
+    }
+
+    @Test
+    fun videoFrameFollowsDisplayModeAndZoom() {
+        fun f(mode: DisplayMode, vw: Int, vh: Int, zoom: Int = 100) = videoFrame(mode, zoom, 1920, 1080, vw, vh).let { it.width to it.height }
+        assertEquals(1920 to 1080, f(DisplayMode.FIT, 1280, 720))
+        assertEquals("4:3 video fits with side bars", 1440 to 1080, f(DisplayMode.FIT, 640, 480))
+        assertEquals("stretch ignores the video shape", 1920 to 1080, f(DisplayMode.FILL, 640, 480))
+        assertEquals("fill screen crops top and bottom", 1920 to 1440, f(DisplayMode.ZOOM, 640, 480))
+        assertEquals(1920 to 1080, f(DisplayMode.RATIO_16_9, 640, 480))
+        assertEquals(1440 to 1080, f(DisplayMode.RATIO_4_3, 1280, 720))
+        assertEquals("zoom enlarges the frame", 2304 to 1296, f(DisplayMode.FIT, 1280, 720, zoom = 120))
+        assertEquals("unknown video size fills the screen", 1920 to 1080, f(DisplayMode.FIT, 0, 0))
     }
 }

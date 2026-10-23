@@ -44,12 +44,17 @@ sealed interface Overlay {
     data object TouchControls : Overlay
 }
 
-enum class PickerKind { AUDIO, SUBTITLES }
+enum class PickerKind { AUDIO, SUBTITLES, DISPLAY, ZOOM, QUALITY, SLEEP }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
 
     private val controller = graph.player
+
+    private val _showStats = MutableStateFlow(false)
+    /** The Stats card's overlay (stream numbers, top left). */
+    val showStats: StateFlow<Boolean> = _showStats
+    fun toggleStats() { _showStats.value = !_showStats.value }
 
     /** The options card used last; the panel reopens with it focused. */
     var lastOptionTag: String = "option_audio"
@@ -76,8 +81,6 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     private val _toast = MutableStateFlow<String?>(null)
     val toast: StateFlow<String?> = _toast
 
-    private val _aspect = MutableStateFlow(AspectMode.FIT)
-    val aspect: StateFlow<AspectMode> = _aspect
 
     val current: StateFlow<ChannelEntity?> = controller.current
 
@@ -231,11 +234,6 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     }
 
     fun togglePause() = controller.engine.togglePause()
-
-    fun cycleAspect() {
-        val values = AspectMode.entries
-        _aspect.value = values[(values.indexOf(_aspect.value) + 1) % values.size]
-    }
 
     fun showToast(text: String) {
         _toast.value = text
