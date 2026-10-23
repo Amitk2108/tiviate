@@ -44,7 +44,7 @@ sealed interface Overlay {
     data object TouchControls : Overlay
 }
 
-enum class PickerKind { AUDIO, SUBTITLES, DISPLAY, ZOOM, QUALITY, SLEEP }
+enum class PickerKind { AUDIO, SUBTITLES, DISPLAY, ZOOM, QUALITY, SLEEP, AUDIO_SYNC }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
@@ -130,6 +130,36 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
         tuneJob?.cancel()
         _pending.value = null
         controller.tune(channel, _playlist.value?.userAgent)
+    }
+
+    /** Previous channel ("last channel"): swaps back and forth between the last two. */
+    fun previousChannel() {
+        controller.previous.value?.let { tune(it) } ?: showToast("No previous channel yet")
+        showBanner()
+    }
+
+    private var peeking = false
+
+    /** With the info bar up, Left/Right show the next/previous channel's info without switching; OK switches. */
+    fun peek(forward: Boolean) {
+        val pid = _playlist.value?.id ?: return
+        val from = _pending.value ?: controller.current.value ?: return
+        viewModelScope.launch {
+            val next = repo.neighbor(pid, _category.value, from, forward) ?: return@launch
+            tuneJob?.cancel()
+            peeking = true
+            _pending.value = next
+            showBanner()
+        }
+    }
+
+    /** OK on a peeked channel tunes it; returns false when nothing was being peeked. */
+    fun commitPeek(): Boolean {
+        val p = _pending.value
+        if (!peeking || p == null) return false
+        peeking = false
+        tune(p)
+        return true
     }
 
     /** Zaps within the current category. Rapid presses only move the banner; the stream follows 250 ms after the last press. */
@@ -234,6 +264,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     }
 
     fun close() {
+        if (peeking) { peeking = false; _pending.value = null }
         _overlay.value = Overlay.None
     }
 

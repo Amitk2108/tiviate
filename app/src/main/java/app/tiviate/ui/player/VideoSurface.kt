@@ -28,17 +28,17 @@ import app.tiviate.player.PlaybackEngine
  */
 @OptIn(UnstableApi::class)
 @Composable
-fun VideoSurface(engine: PlaybackEngine, mode: DisplayMode, zoomPercent: Int, videoWidth: Int, videoHeight: Int, modifier: Modifier = Modifier) {
+fun VideoSurface(engine: PlaybackEngine, mode: DisplayMode, zoomPercent: Int, videoWidth: Int, videoHeight: Int, modifier: Modifier = Modifier, blackOnSwitch: Boolean = false) {
     BoxWithConstraints(modifier.clipToBounds(), contentAlignment = Alignment.Center) {
         val frame = videoFrame(mode, zoomPercent, constraints.maxWidth, constraints.maxHeight, videoWidth, videoHeight)
         val size = with(LocalDensity.current) { DpSize(frame.width.toDp(), frame.height.toDp()) }
-        PlayerSurface(engine, Modifier.requiredSize(size))
+        PlayerSurface(engine, Modifier.requiredSize(size), blackOnSwitch)
     }
 }
 
 @OptIn(UnstableApi::class)
 @Composable
-private fun PlayerSurface(engine: PlaybackEngine, modifier: Modifier) {
+private fun PlayerSurface(engine: PlaybackEngine, modifier: Modifier, blackOnSwitch: Boolean) {
     AndroidView(
         modifier = modifier,
         factory = { context ->
@@ -51,7 +51,14 @@ private fun PlayerSurface(engine: PlaybackEngine, modifier: Modifier) {
                 engine.bindView(this)
             }
         },
-        update = { it.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL },
+        update = {
+            it.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
+            // Keep the last picture while the next channel loads, unless "black screen while switching" is on.
+            it.setKeepContentOnPlayerReset(!blackOnSwitch)
+            // Subtitles follow the TV's caption style (Settings → Accessibility → Captions).
+            it.subtitleView?.setUserDefaultStyle()
+            it.subtitleView?.setUserDefaultTextSize()
+        },
         // Detach from the shared player when this view goes away (guide ⇄ fullscreen hand-over).
         onRelease = { it.player = null },
     )

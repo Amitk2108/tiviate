@@ -90,12 +90,18 @@ fun PlayerScreen() {
     KeepScreenOn()
     MatchRefreshRate(enabled = settings.matchRefreshRate, frameRate = playback.frameRate)
     LaunchedEffect(Unit) { graph.longBack.collect { vm.close() } }
+    val inPip by graph.player.inPip.collectAsStateWithLifecycle()
+    LaunchedEffect(inPip) { if (inPip) vm.close() }
     LifecycleStartEffect(Unit) {
         vm.ensurePlaying()
         onStopOrDispose { }
     }
 
     val inFullscreen = overlay == Overlay.None || overlay == Overlay.Banner
+    DisposableEffect(inFullscreen) {
+        graph.player.fullscreenVisible = inFullscreen
+        onDispose { graph.player.fullscreenVisible = false }
+    }
     var lastInputAt by remember { mutableLongStateOf(SystemClock.uptimeMillis()) }
     // "Close the channel list and options after N s": an idle panel closes by itself.
     LaunchedEffect(overlay, settings.panelTimeoutSec, lastInputAt) {
@@ -125,7 +131,7 @@ fun PlayerScreen() {
         when (native.keyCode) {
             AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER, AndroidKeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 when (okPress.onKey(native)) {
-                    KeyAction.Short -> openPanel(categories = false)
+                    KeyAction.Short -> if (!vm.commitPeek()) openPanel(categories = false)
                     KeyAction.Long -> vm.open(Overlay.Options)
                     KeyAction.None -> Unit
                 }
@@ -148,9 +154,14 @@ fun PlayerScreen() {
                 if (down && native.repeatCount % 3 == 0) vm.zap(forward = false)
                 return true
             }
-            AndroidKeyEvent.KEYCODE_DPAD_LEFT -> { if (down) openPanel(categories = true); return true }
+            // Info bar up: Left/Right look at the previous/next channel's programme; OK switches to it.
+            AndroidKeyEvent.KEYCODE_DPAD_LEFT -> { if (down) { if (overlay == Overlay.Banner) vm.peek(forward = false) else openPanel(categories = true) }; return true }
+            AndroidKeyEvent.KEYCODE_LAST_CHANNEL -> { if (down) vm.previousChannel(); return true }
+            AndroidKeyEvent.KEYCODE_MEDIA_STOP -> { if (down) { graph.player.stop(); nav.push(Screen.Guide) }; return true }
             AndroidKeyEvent.KEYCODE_DPAD_RIGHT, AndroidKeyEvent.KEYCODE_GUIDE, AndroidKeyEvent.KEYCODE_TV_INPUT -> {
-                if (down) nav.push(Screen.Guide)
+                if (down) {
+                    if (native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_RIGHT && overlay == Overlay.Banner) vm.peek(forward = true) else nav.push(Screen.Guide)
+                }
                 return true
             }
             AndroidKeyEvent.KEYCODE_MENU, AndroidKeyEvent.KEYCODE_SETTINGS -> { if (down) vm.open(Overlay.Options); return true }
@@ -218,7 +229,7 @@ fun PlayerScreen() {
         } else {
             Modifier.fillMaxSize()
         }
-        VideoSurface(engine, settings.displayModeFor(channelKey), settings.zoomPercent, playback.videoWidth, playback.videoHeight, videoModifier)
+        VideoSurface(engine, settings.displayModeFor(channelKey), settings.zoomPercent, playback.videoWidth, playback.videoHeight, videoModifier, blackOnSwitch = settings.blackOnSwitch)
         if (showStats) StatsOverlay(engine)
 
         if (playback.isBuffering && !playback.isPaused && playback.error == null) BufferingIndicator(playback.retrying, playback.notice)
@@ -295,7 +306,16 @@ fun PlayerScreen() {
                         },
                         if (playback.isPaused) OptionItem("option_live", "Back to live", null) { vm.lastOptionTag = "option_playpause"; engine.goLive() } else null,
                         OptionItem("option_audio", "Audio", playback.audioLabel ?: "Default") { pick("option_audio", PickerKind.AUDIO) },
+                        graph.player.previous.value?.let { prev ->
+                            OptionItem("option_previous", "Previous channel", prev.name) { vm.lastOptionTag = "option_previous"; vm.close(); vm.previousChannel() }
+                        },
                         OptionItem("option_subtitles", "Subtitles", subtitle) { pick("option_subtitles", PickerKind.SUBTITLES) },
+                        OptionItem("option_audio_sync", "Audio sync", audioSyncLabel(settings.audioOffsetMs)) { pick("option_audio_sync", PickerKind.AUDIO_SYNC) },
+                        OptionItem("option_pip", "Picture-in-picture", null) {
+                            vm.lastOptionTag = "option_pip"
+                            vm.close()
+                            if ((context as? app.tiviate.MainActivity)?.enterPip() != true) vm.showToast("This TV doesn't support picture-in-picture")
+                        },
                         OptionItem("option_display", "Display", settings.displayModeFor(ch?.let { "${it.playlistId}:${it.stableKey}" }).label) { pick("option_display", PickerKind.DISPLAY) },
                         OptionItem("option_zoom", "Zoom", "${settings.zoomPercent}%") { pick("option_zoom", PickerKind.ZOOM) },
                         OptionItem(
@@ -318,7 +338,8 @@ fun PlayerScreen() {
                         ch?.let { OptionItem("option_channel", "Channel options", null) { vm.lastOptionTag = "option_channel"; vm.close(); sheet = SheetTarget(it.playlistId, it, category, vm.nowNext[it.epgRef]?.now?.title) } },
                         OptionItem("option_search", "Search", null) { vm.close(); nav.push(Screen.Search) },
                         OptionItem("option_settings", "Settings", null) { vm.close(); nav.push(Screen.Settings) },
-                    ),
+                    ).filter { it.tag !in settings.hiddenOptionCards }
+                        .sortedBy { settings.optionCards.indexOf(it.tag).let { i -> if (i < 0) Int.MAX_VALUE else i } },
                 )
             }
             is Overlay.Picker -> {
@@ -412,6 +433,11 @@ fun PlayerScreen() {
                             tag = "quality_dialog",
                         )
                     }
+                    PickerKind.AUDIO_SYNC -> ChoiceDialog(
+                        title = "Audio sync (all channels)",
+                        choices = AUDIO_SYNC_STEPS.map { ms -> Choice(audioSyncLabel(ms), ms == settings.audioOffsetMs) { save { it.copy(audioOffsetMs = ms) }; done() } },
+                        tag = "audio_sync_dialog",
+                    )
                     PickerKind.SLEEP -> ChoiceDialog(
                         title = "Sleep timer",
                         choices = listOf(Choice("Off", sleepMinutes == null) { graph.player.setSleepTimer(null); done() }) +
@@ -486,3 +512,11 @@ private fun MatchRefreshRate(enabled: Boolean, frameRate: Float?) {
 
 private val ZOOM_STEPS = listOf(100, 110, 120, 130, 140, 150)
 private val SLEEP_STEPS = listOf(15, 30, 60, 90, 120)
+private val AUDIO_SYNC_STEPS = listOf(-500, -400, -300, -200, -150, -100, -50, 0, 50, 100, 150, 200, 300, 400, 500)
+
+/** "0 ms", "Sound 100 ms later", "Sound 200 ms earlier". */
+fun audioSyncLabel(ms: Int): String = when {
+    ms == 0 -> "0 ms"
+    ms > 0 -> "Sound $ms ms later"
+    else -> "Sound ${-ms} ms earlier"
+}

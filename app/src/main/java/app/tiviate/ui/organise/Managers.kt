@@ -221,3 +221,52 @@ fun ReorderList(items: SnapshotStateList<Pair<String, String>>, onDrop: (List<Pa
         }
     }
 }
+
+/** Names of the fullscreen option cards, for the "Option cards" setting. */
+val OPTION_CARD_TITLES = mapOf(
+    "option_guide" to "TV guide", "option_playpause" to "Pause / Back to live", "option_previous" to "Previous channel",
+    "option_audio" to "Audio", "option_subtitles" to "Subtitles", "option_display" to "Display", "option_zoom" to "Zoom",
+    "option_quality" to "Quality", "option_audio_sync" to "Audio sync", "option_stats" to "Stats", "option_sleep" to "Sleep timer",
+    "option_favorite" to "Favorite", "option_channel" to "Channel options", "option_pip" to "Picture-in-picture",
+    "option_external" to "Other player", "option_search" to "Search", "option_settings" to "Settings",
+)
+
+/** Which option cards show in the fullscreen options, and in what order. */
+@Composable
+fun OptionCardsScreen() {
+    val graph = LocalGraph.current
+    val scope = rememberCoroutineScope()
+    val settings by graph.settings.settings.collectAsState(initial = app.tiviate.data.AppSettings())
+    var reorder by remember { mutableStateOf(false) }
+    val list = remember { mutableStateListOf<Pair<String, String>>() }
+    LaunchedEffect(reorder) { if (reorder) { list.clear(); list.addAll(settings.optionCards.map { it to (OPTION_CARD_TITLES[it] ?: it) }) } }
+    val first = remember { FocusRequester() }
+    LaunchedEffect(reorder) { if (!reorder) focusSoon(first) }
+    ManagerFrame(
+        "Option cards",
+        if (reorder) "OK picks a card; Up/Down move it; Left/Right send it to the start or end; OK again puts it down." else "OK shows or hides a card in the fullscreen options (Down / Menu).",
+        "option_cards",
+        actions = { ActionButton(if (reorder) "Show or hide cards" else "Change the order", { reorder = !reorder }, tag = "cards_mode") },
+    ) {
+        if (reorder) {
+            ReorderList(list, onDrop = { ordered -> scope.launch { graph.settings.update { it.copy(optionCards = ordered.map { p -> p.first }) } } })
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                itemsIndexed(settings.optionCards, key = { _, t -> t }) { i, tag ->
+                    val hidden = tag in settings.hiddenOptionCards
+                    FocusSurface(
+                        onClick = { scope.launch { graph.settings.update { it.copy(hiddenOptionCards = if (hidden) it.hiddenOptionCards - tag else it.hiddenOptionCards + tag) } } },
+                        modifier = (if (i == 0) Modifier.focusRequester(first) else Modifier).fillMaxWidth().testTag("card_row_$tag"),
+                        container = Color.Transparent,
+                        scale = 1.01f,
+                    ) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(OPTION_CARD_TITLES[tag] ?: tag, modifier = Modifier.weight(1f), style = TextStyle(color = if (hidden) Tokens.TextSecondary else Tokens.Text, fontSize = Tokens.BodySize))
+                            Text(if (hidden) "Hidden" else "Shown", style = TextStyle(color = if (hidden) Tokens.TextSecondary else Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
