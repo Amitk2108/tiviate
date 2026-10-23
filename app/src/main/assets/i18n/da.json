@@ -322,5 +322,12 @@
 "Update the guide every": "Opdater guiden hver",
 "%d hours": "%d timer",
 "Subtitles on for English channels": "Undertekster på engelske kanaler",
-"Options": "Indstillinger"
+"Options": "Indstillinger",
+"Made by %s": "Lavet af %s",
+"Source code and updates: %s": "Kildekode og opdateringer: %s",
+"Legal": "Juridisk",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate er kun en afspiller. Den leverer, hoster eller gemmer ingen kanaler, playlister eller streams.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Du tilføjer dit eget abonnement fra din egen udbyder, og du er ansvarlig for at have ret til at se det.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate er et uafhængigt projekt. Det er ikke tilknyttet TiviMate eller nogen IPTV-udbyder og indeholder ingen af deres kode, billeder eller tekst.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Ingen konti, ingen reklamer og ingen sporing: dine logins forbliver på denne enhed."
 }

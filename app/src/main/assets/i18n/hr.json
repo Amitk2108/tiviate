@@ -332,5 +332,12 @@
 "Update the guide every": "Ažuriraj vodič svakih",
 "%d hours": "%d sati",
 "Subtitles on for English channels": "Titlovi na engleskim kanalima",
-"Options": "Opcije"
+"Options": "Opcije",
+"Made by %s": "Autor: %s",
+"Source code and updates: %s": "Izvorni kod i ažuriranja: %s",
+"Legal": "Pravne informacije",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate je samo reproduktor. Ne pruža, ne hostira i ne pohranjuje nikakve kanale, popise za reprodukciju ni prijenose.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Vlastitu pretplatu dodajete od vlastitog pružatelja usluge i odgovorni ste za to da imate pravo na njezino gledanje.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate je neovisan projekt. Nije povezan s aplikacijom TiviMate ni s bilo kojim IPTV pružateljem usluge i ne sadrži njihov kod, slike ni tekst.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Bez računa, bez oglasa i bez praćenja: vaši podaci za prijavu ostaju na ovom uređaju."
 }

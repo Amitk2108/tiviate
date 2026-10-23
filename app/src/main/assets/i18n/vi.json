@@ -333,5 +333,12 @@
 "Update the guide every": "Cập nhật lịch phát sóng mỗi",
 "%d hours": "%d giờ",
 "Subtitles on for English channels": "Phụ đề cho kênh tiếng Anh",
-"Options": "Tùy chọn"
+"Options": "Tùy chọn",
+"Made by %s": "Phát triển bởi %s",
+"Source code and updates: %s": "Mã nguồn và bản cập nhật: %s",
+"Legal": "Thông tin pháp lý",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate chỉ là một trình phát. Ứng dụng không cung cấp, không lưu trữ trên máy chủ và không lưu giữ bất kỳ kênh, danh sách phát hay luồng phát nào.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Bạn tự thêm gói đăng ký từ nhà cung cấp của riêng mình và chịu trách nhiệm đảm bảo mình có quyền xem nội dung đó.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate là một dự án độc lập. Ứng dụng không liên kết với TiviMate hay bất kỳ nhà cung cấp IPTV nào và không chứa mã nguồn, hình ảnh hay văn bản nào của họ.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Không tài khoản, không quảng cáo và không theo dõi: thông tin đăng nhập của bạn chỉ được lưu trên thiết bị này."
 }

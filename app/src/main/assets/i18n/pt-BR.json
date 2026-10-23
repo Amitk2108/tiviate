@@ -328,5 +328,12 @@
 "Update the guide every": "Atualizar o guia a cada",
 "%d hours": "%d horas",
 "Subtitles on for English channels": "Legendas em canais em inglês",
-"Options": "Opções"
+"Options": "Opções",
+"Made by %s": "Feito por %s",
+"Source code and updates: %s": "Código-fonte e atualizações: %s",
+"Legal": "Informações legais",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "O Tiviate é apenas um player. Ele não fornece, hospeda nem armazena canais, playlists ou transmissões.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Você adiciona sua própria assinatura do seu próprio provedor e é responsável por ter o direito de assisti-la.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "O Tiviate é um projeto independente. Ele não é afiliado ao TiviMate nem a qualquer provedor de IPTV e não contém nenhum código, imagem ou texto deles.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Sem contas, sem anúncios e sem rastreamento: seus logins ficam neste dispositivo."
 }

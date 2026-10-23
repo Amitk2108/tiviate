@@ -335,5 +335,12 @@
 "Update the guide every": "עדכון המדריך כל",
 "%d hours": "%d שעות",
 "Subtitles on for English channels": "כתוביות בערוצים באנגלית",
-"Options": "אפשרויות"
+"Options": "אפשרויות",
+"Made by %s": "נוצר על ידי %s",
+"Source code and updates: %s": "קוד מקור ועדכונים: %s",
+"Legal": "מידע משפטי",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate הוא נגן בלבד. הוא אינו מספק, מארח או מאחסן ערוצים, רשימות השמעה או שידורים.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "את המנוי שלך מוסיפים מהספק שלך, והאחריות לוודא שיש לך זכות לצפות בו היא שלך.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate הוא פרויקט עצמאי. הוא אינו קשור ל-TiviMate או לספק IPTV כלשהו, ואינו מכיל קוד, תמונות או טקסט שלהם.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "ללא חשבונות, ללא פרסומות וללא מעקב: פרטי ההתחברות שלך נשארים במכשיר זה."
 }

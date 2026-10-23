@@ -335,5 +335,12 @@
 "Update the guide every": "A műsorújság frissítése",
 "%d hours": "%d óránként",
 "Subtitles on for English channels": "Feliratok az angol csatornákon",
-"Options": "Beállítások"
+"Options": "Beállítások",
+"Made by %s": "Készítette: %s",
+"Source code and updates: %s": "Forráskód és frissítések: %s",
+"Legal": "Jogi információk",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "A Tiviate csak egy lejátszó. Nem szolgáltat, nem üzemeltet és nem tárol semmilyen csatornát, lejátszási listát vagy streamet.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Ön a saját előfizetését adja hozzá a saját szolgáltatójától, és Ön felel azért, hogy joga legyen megnézni azt.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "A Tiviate független projekt. Nem áll kapcsolatban a TiviMate alkalmazással vagy bármely IPTV-szolgáltatóval, és nem tartalmazza azok kódját, képeit vagy szövegeit.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Nincs fiók, nincs reklám és nincs követés: a bejelentkezési adatai ezen az eszközön maradnak."
 }

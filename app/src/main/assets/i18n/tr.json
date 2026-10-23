@@ -334,5 +334,12 @@
 "Update the guide every": "Rehberi güncelleme sıklığı",
 "%d hours": "%d saatte bir",
 "Subtitles on for English channels": "İngilizce kanallarda altyazı açık",
-"Options": "Seçenekler"
+"Options": "Seçenekler",
+"Made by %s": "Geliştiren: %s",
+"Source code and updates: %s": "Kaynak kodu ve güncellemeler: %s",
+"Legal": "Yasal bilgiler",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate yalnızca bir oynatıcıdır. Herhangi bir kanal, oynatma listesi veya yayın sağlamaz, barındırmaz ya da depolamaz.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Kendi aboneliğinizi kendi sağlayıcınızdan eklersiniz ve onu izleme hakkına sahip olmaktan siz sorumlusunuz.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate bağımsız bir projedir. TiviMate veya herhangi bir IPTV sağlayıcısıyla bağlantılı değildir ve onlara ait hiçbir kod, görsel veya metin içermez.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Hesap yok, reklam yok, izleme yok: giriş bilgileriniz bu cihazda kalır."
 }

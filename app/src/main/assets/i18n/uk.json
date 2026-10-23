@@ -335,5 +335,12 @@
 "Update the guide every": "Оновлювати телегід кожні",
 "%d hours": "%d год",
 "Subtitles on for English channels": "Субтитри на англійських каналах",
-"Options": "Параметри"
+"Options": "Параметри",
+"Made by %s": "Автор: %s",
+"Source code and updates: %s": "Вихідний код і оновлення: %s",
+"Legal": "Правова інформація",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate — це лише плеєр. Він не надає, не розміщує і не зберігає жодних каналів, плейлистів чи потоків.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Ви додаєте власну підписку від свого провайдера і несете відповідальність за наявність права на її перегляд.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate — незалежний проєкт. Він не пов’язаний із TiviMate чи будь-яким IPTV-провайдером і не містить їхнього коду, зображень чи текстів.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Без облікових записів, реклами та відстеження: ваші дані для входу залишаються на цьому пристрої."
 }

@@ -325,5 +325,12 @@
 "Update the guide every": "Actualizează ghidul la fiecare",
 "%d hours": "%d ore",
 "Subtitles on for English channels": "Subtitrări pe canalele în engleză",
-"Options": "Opțiuni"
+"Options": "Opțiuni",
+"Made by %s": "Creat de %s",
+"Source code and updates: %s": "Cod sursă și actualizări: %s",
+"Legal": "Informații legale",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate este doar un player. Nu furnizează, nu găzduiește și nu stochează canale, liste de redare sau fluxuri.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Vă adăugați propriul abonament de la propriul furnizor și sunteți responsabil să aveți dreptul de a-l viziona.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate este un proiect independent. Nu este afiliat cu TiviMate sau cu vreun furnizor IPTV și nu conține cod, imagini sau texte ale acestora.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Fără conturi, fără reclame și fără urmărire: datele dvs. de autentificare rămân pe acest dispozitiv."
 }

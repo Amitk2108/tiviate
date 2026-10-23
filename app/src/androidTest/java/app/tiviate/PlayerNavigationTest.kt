@@ -75,7 +75,7 @@ class PlayerNavigationTest {
         Remote.down()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
         rule.waitForIdle()
-        rule.onNodeWithTag("option_audio").assertIsFocused()
+        rule.onNodeWithTag("option_playpause").assertIsFocused() // the options open on Pause
         assertEquals("Down must not change channel", "Aurora News", current())
         Remote.back()
         rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("options_panel") }

@@ -334,5 +334,12 @@
 "Update the guide every": "Atnaujinti gidą kas",
 "%d hours": "%d val.",
 "Subtitles on for English channels": "Subtitrai angliškuose kanaluose",
-"Options": "Parinktys"
+"Options": "Parinktys",
+"Made by %s": "Sukūrė %s",
+"Source code and updates: %s": "Šaltinio kodas ir naujinimai: %s",
+"Legal": "Teisinė informacija",
+"Tiviate is a player only. It does not provide, host or store any channels, playlists or streams.": "Tiviate yra tik grotuvas. Jis neteikia, netalpina ir nesaugo jokių kanalų, grojaraščių ar srautų.",
+"You add your own subscription from your own provider, and you are responsible for having the right to watch it.": "Savo prenumeratą pridedate iš savo paslaugų teikėjo ir esate atsakingi už tai, kad turėtumėte teisę ją žiūrėti.",
+"Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text.": "Tiviate yra nepriklausomas projektas. Jis nesusijęs su TiviMate ar jokiu IPTV paslaugų teikėju ir neturi jokio jų kodo, vaizdų ar teksto.",
+"No accounts, no ads and no tracking: your logins stay on this device.": "Jokių paskyrų, jokių reklamų ir jokio sekimo: jūsų prisijungimo duomenys lieka šiame įrenginyje."
 }

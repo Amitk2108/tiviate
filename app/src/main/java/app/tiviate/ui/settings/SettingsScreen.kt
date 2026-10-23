@@ -565,7 +565,27 @@ private fun AboutSection() {
     SectionColumn {
         Heading("Tiviate ${BuildConfig.VERSION_NAME}")
         Caption(t("A player for your own IPTV playlists. Tiviate doesn't provide any channels or content."))
+        // Who made it.
+        Row(
+            Modifier.fillMaxWidth().background(Tokens.Surface, Tokens.Shape).padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Box(Modifier.size(56.dp).background(Tokens.BrandGradient, CircleShape), contentAlignment = Alignment.Center) {
+                Text("AK", style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Bold))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(tf("Made by %s", AUTHOR_NAME), style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
+                Text("github.com/$AUTHOR_GITHUB", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium))
+                Caption(tf("Source code and updates: %s", PROJECT_URL))
+            }
+        }
         Text(t("Licence: GNU GPL v3.0"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
+        Heading(t("Legal"))
+        Caption(t("Tiviate is a player only. It does not provide, host or store any channels, playlists or streams."))
+        Caption(t("You add your own subscription from your own provider, and you are responsible for having the right to watch it."))
+        Caption(t("Tiviate is an independent project. It is not affiliated with TiviMate or any IPTV provider, and contains none of their code, images or text."))
+        Caption(t("No accounts, no ads and no tracking: your logins stay on this device."))
         Caption(
             t("Open-source components: AndroidX Media3 (ExoPlayer), Jetpack Compose & Compose for TV, Room, WorkManager, ") +
                 t("DataStore, Paging (Apache-2.0); OkHttp & Okio, Moshi (Apache-2.0); Coil (Apache-2.0); XZ for Java (0BSD); Kotlin (Apache-2.0); ") +
@@ -573,3 +593,8 @@ private fun AboutSection() {
         )
     }
 }
+
+/** The maker of Tiviate, shown in Settings → About (and in the README). */
+const val AUTHOR_NAME = "Amit Kumar"
+const val AUTHOR_GITHUB = "Amitk2108"
+const val PROJECT_URL = "github.com/Amitk2108/tiviate"
