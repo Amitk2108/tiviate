@@ -29,6 +29,9 @@ class AppGraph(context: Context) {
     val settings: SettingsStore by lazy { SettingsStore.create(appContext) }
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     val channels: ChannelRepository by lazy { ChannelRepository(db, sortSetting = settings.settings.map { it.channelSort }) }
+    /** Long press of Back: return to fullscreen from anywhere (TiviMate's "Long Back"). */
+    val longBack = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
     val player: PlayerController by lazy { PlayerController(appContext, http, settings, channels, appScope) }
 
     val playlists: PlaylistRepository by lazy {

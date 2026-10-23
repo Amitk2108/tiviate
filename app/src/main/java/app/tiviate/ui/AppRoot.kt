@@ -42,6 +42,9 @@ fun AppRoot() {
     }
 
     BackHandler(enabled = nav.canGoBack) { nav.back() }
+    LaunchedEffect(Unit) {
+        graph.longBack.collect { if (nav.current != Screen.Player && nav.current !is Screen.Welcome && nav.current !is Screen.AddPlaylist) nav.replaceAll(Screen.Player) }
+    }
 
     CompositionLocalProvider(LocalNavigator provides nav) {
         Box(Modifier.fillMaxSize().background(Tokens.Background)) {

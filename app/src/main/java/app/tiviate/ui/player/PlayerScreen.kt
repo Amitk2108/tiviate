@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -87,6 +89,7 @@ fun PlayerScreen() {
 
     KeepScreenOn()
     MatchRefreshRate(enabled = settings.matchRefreshRate, frameRate = playback.frameRate)
+    LaunchedEffect(Unit) { graph.longBack.collect { vm.close() } }
     LifecycleStartEffect(Unit) {
         vm.ensurePlaying()
         onStopOrDispose { }
@@ -208,7 +211,14 @@ fun PlayerScreen() {
             },
     ) {
         val channelKey = current?.let { "${it.playlistId}:${it.stableKey}" }
-        VideoSurface(engine, settings.displayModeFor(channelKey), settings.zoomPercent, playback.videoWidth, playback.videoHeight, Modifier.fillMaxSize())
+        // Channel list in preview mode: the video moves into a window at the top right.
+        val preview = settings.listPreview && overlay is Overlay.Panel
+        val videoModifier = if (preview) {
+            Modifier.align(Alignment.TopEnd).padding(Tokens.SafeMargin).fillMaxWidth(0.42f).aspectRatio(16f / 9f).background(Color.Black, Tokens.SmallShape)
+        } else {
+            Modifier.fillMaxSize()
+        }
+        VideoSurface(engine, settings.displayModeFor(channelKey), settings.zoomPercent, playback.videoWidth, playback.videoHeight, videoModifier)
         if (showStats) StatsOverlay(engine)
 
         if (playback.isBuffering && !playback.isPaused && playback.error == null) BufferingIndicator(playback.retrying, playback.notice)
@@ -241,7 +251,15 @@ fun PlayerScreen() {
                     showDescription = settings.listShowDescription,
                     initialIndex = panelIndex,
                     requestNowNext = vm::loadNowNext,
-                    onTune = { ch -> if (ch.stableKey == current?.stableKey) vm.close() else vm.tune(ch) },
+                    onTune = { ch ->
+                        when {
+                            ch.stableKey == current?.stableKey -> vm.close()
+                            settings.alwaysExternalPlayer -> { if (!ExternalPlayer.open(context, ch.streamUrl, ch.name)) vm.showToast("No other video player is installed") }
+                            else -> { vm.tune(ch); if (!settings.stayOnList) vm.close() }
+                        }
+                    },
+                    autoplayDelaySec = settings.autoplayDelaySec,
+                    onAutoplay = { ch -> if (ch.stableKey != current?.stableKey) vm.tune(ch) },
                     onRail = { entry ->
                         when (entry) {
                             RailEntry.Search -> { vm.close(); nav.push(Screen.Search) }

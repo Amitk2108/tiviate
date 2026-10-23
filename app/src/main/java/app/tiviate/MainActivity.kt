@@ -42,12 +42,28 @@ class MainActivity : ComponentActivity() {
      * The remote's Back always goes to the app's back handling. Without this, Compose may spend Back
      * on moving focus out of a list (focus "exit"), so Back would not close an open channel list.
      */
+    private var longBackFired = false
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
-            if (event.action == KeyEvent.ACTION_UP && !event.isCanceled) onBackPressedDispatcher.onBackPressed()
+            when (event.action) {
+                KeyEvent.ACTION_DOWN -> {
+                    if (event.repeatCount == 0) longBackFired = false
+                    // Held Back (about half a second): straight back to the player.
+                    if (!longBackFired && event.eventTime - event.downTime >= LONG_BACK_MS) {
+                        longBackFired = true
+                        graph.longBack.tryEmit(Unit)
+                    }
+                }
+                KeyEvent.ACTION_UP -> if (!event.isCanceled && !longBackFired) onBackPressedDispatcher.onBackPressed()
+            }
             return true
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    private companion object {
+        const val LONG_BACK_MS = 600L
     }
 
     override fun onStop() {

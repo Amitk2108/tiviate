@@ -235,10 +235,15 @@ fun GuideScreen() {
     LaunchedEffect(details, side, sheet) { if (details == null && sheet == null && side == SideNav.GRID && initialised) focusSoon(gridFocus) }
     KeepScreenOn()
 
-    Column(Modifier.fillMaxSize().background(Tokens.Background).testTag("guide_screen")) {
+    // Overlay mode: the guide sits over the full-screen video instead of next to a preview window.
+    if (settings.guideOverlay) {
+        val playback by graph.player.engine.state.collectAsStateWithLifecycle()
+        VideoSurface(graph.player.engine, settings.displayModeFor(current?.let { "${it.playlistId}:${it.stableKey}" }), settings.zoomPercent, playback.videoWidth, playback.videoHeight, Modifier.fillMaxSize())
+    }
+    Column(Modifier.fillMaxSize().background(if (settings.guideOverlay) Tokens.Background.copy(alpha = 0.82f) else Tokens.Background).testTag("guide_screen")) {
         // Top: live preview of the playing channel and details of the focused programme.
         Row(Modifier.fillMaxWidth().weight(0.4f).padding(start = Tokens.SafeMargin, end = Tokens.SafeMargin, top = 24.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
-            Box(Modifier.fillMaxHeight().aspectRatio(16f / 9f).background(Color.Black, Tokens.SmallShape), contentAlignment = Alignment.Center) {
+            if (!settings.guideOverlay) Box(Modifier.fillMaxHeight().aspectRatio(16f / 9f).background(Color.Black, Tokens.SmallShape), contentAlignment = Alignment.Center) {
                 val playback by graph.player.engine.state.collectAsStateWithLifecycle()
                 VideoSurface(graph.player.engine, DisplayMode.FIT, 100, playback.videoWidth, playback.videoHeight, Modifier.fillMaxSize())
                 when {

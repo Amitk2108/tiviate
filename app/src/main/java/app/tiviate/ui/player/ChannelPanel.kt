@@ -116,6 +116,8 @@ fun ChannelPanel(
     requestNowNext: (Collection<String>) -> Unit,
     onTune: (ChannelEntity) -> Unit,
     onRowMenu: (ChannelEntity) -> Unit = {},
+    autoplayDelaySec: Int = 0,
+    onAutoplay: (ChannelEntity) -> Unit = {},
     onRail: (RailEntry) -> Unit,
     onOpenRail: () -> Unit,
     onCloseRail: () -> Unit,
@@ -125,6 +127,13 @@ fun ChannelPanel(
     var focused by remember { mutableStateOf<ChannelEntity?>(current) }
     val now = rememberNow()
     val focusManager = LocalFocusManager.current
+    // Autoplay: the channel you rest on starts playing after a short pause.
+    LaunchedEffect(focused?.stableKey, autoplayDelaySec) {
+        val f = focused ?: return@LaunchedEffect
+        if (autoplayDelaySec <= 0 || categoriesFocused) return@LaunchedEffect
+        delay(autoplayDelaySec * 1_000L)
+        onAutoplay(f)
+    }
     fun pageRows() = (listState.layoutInfo.visibleItemsInfo.size - 1).coerceAtLeast(1)
 
     LaunchedEffect(listState, channels) {
