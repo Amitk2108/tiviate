@@ -13,6 +13,7 @@ import app.tiviate.data.sync.PlaylistSyncer
 import app.tiviate.player.PlayerController
 import java.io.File
 import java.io.InputStream
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,7 +35,7 @@ class AppGraph(context: Context) {
             db = db,
             http = http,
             playlistSyncer = PlaylistSyncer(db, http, openLocal = ::openLocal),
-            epgSyncer = EpgSyncer(db, http, newPullParser = { Xml.newPullParser() }),
+            epgSyncer = EpgSyncer(db, http, newPullParser = { Xml.newPullParser() }, pastDays = { settings.settings.first().epgPastDays }),
         )
     }
 

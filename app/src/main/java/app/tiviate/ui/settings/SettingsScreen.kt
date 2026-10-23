@@ -38,6 +38,9 @@ import app.tiviate.core.xtream.XtreamAccount
 import app.tiviate.core.xtream.XtreamUrls
 import app.tiviate.data.AppSettings
 import app.tiviate.data.BufferPreset
+import app.tiviate.data.DisplayMode
+import app.tiviate.data.UpDownMode
+import app.tiviate.data.sync.SyncScheduler
 import app.tiviate.data.db.EpgOrigin
 import app.tiviate.data.db.PlaylistEntity
 import app.tiviate.data.db.PlaylistType
@@ -55,18 +58,20 @@ import java.util.Date
 import kotlinx.coroutines.launch
 
 private enum class Section(val tag: String, val label: String) {
+    GENERAL("section_general", "General"),
     PLAYLISTS("section_playlists", "Playlists"),
     GUIDE("section_guide", "TV guide"),
-    PLAYER("section_player", "Player"),
-    INTERFACE("section_interface", "Interface"),
-    HISTORY("section_history", "History"),
+    APPEARANCE("section_appearance", "Appearance"),
+    PLAYER("section_player", "Playback"),
+    REMOTE("section_remote", "Remote control"),
+    OTHER("section_other", "Other"),
     ABOUT("section_about", "About"),
 }
 
 /** Two-pane settings: sections on the left drive the content on the right. */
 @Composable
 fun SettingsScreen() {
-    var section by remember { mutableStateOf(Section.PLAYLISTS) }
+    var section by remember { mutableStateOf(Section.GENERAL) }
     val first = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusSoon(first) }
 
@@ -86,11 +91,13 @@ fun SettingsScreen() {
         }
         Box(Modifier.weight(1f).fillMaxHeight()) {
             when (section) {
+                Section.GENERAL -> GeneralSection()
                 Section.PLAYLISTS -> PlaylistsSection()
                 Section.GUIDE -> GuideSection()
+                Section.APPEARANCE -> AppearanceSection()
                 Section.PLAYER -> PlayerSection()
-                Section.INTERFACE -> InterfaceSection()
-                Section.HISTORY -> HistorySection()
+                Section.REMOTE -> RemoteSection()
+                Section.OTHER -> OtherSection()
                 Section.ABOUT -> AboutSection()
             }
         }
@@ -104,6 +111,60 @@ private fun SectionColumn(content: @Composable () -> Unit) {
 
 @Composable
 private fun Caption(text: String) = Text(text, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
+
+/** A setting showing its current value; OK moves to the next choice. */
+@Composable
+private fun ValueRow(label: String, value: String, tag: String, onClick: () -> Unit) {
+    FocusSurface(onClick = onClick, modifier = Modifier.fillMaxWidth().testTag(tag)) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(label, modifier = Modifier.weight(1f), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
+            Text(value, style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+        }
+    }
+}
+
+private fun <T> List<T>.after(current: T): T = this[(indexOf(current).coerceAtLeast(0) + 1) % size]
+
+@Composable
+private fun GeneralSection() {
+    val graph = LocalGraph.current
+    val scope = rememberCoroutineScope()
+    val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
+    var ua by remember(settings.defaultUserAgent) { mutableStateOf(settings.defaultUserAgent.orEmpty()) }
+    fun update(transform: (AppSettings) -> AppSettings) = scope.launch { graph.settings.update(transform) }
+    SectionColumn {
+        Heading("General")
+        ToggleRow("Open last channel fullscreen on start", settings.startFullscreen, { update { it.copy(startFullscreen = !it.startFullscreen) } }, tag = "setting_start_fullscreen")
+        Caption("When off, Tiviate starts on the TV guide with the channel playing in the preview.")
+        ToggleRow("Confirm exit with a second Back", settings.confirmExit, { update { it.copy(confirmExit = !it.confirmExit) } }, tag = "setting_confirm_exit")
+        ToggleRow("Start Tiviate when the TV turns on", settings.autoStartOnBoot, { update { it.copy(autoStartOnBoot = !it.autoStartOnBoot) } }, tag = "setting_autostart")
+        Caption("Works on Fire TV and on Android TV up to Android 9; newer Android TV may not allow it.")
+        TvTextField("Default User-Agent (optional)", ua, { ua = it }, tag = "setting_ua", hint = "Leave empty to use Tiviate's")
+        ActionButton("Save User-Agent", { update { it.copy(defaultUserAgent = ua.trim().ifEmpty { null }) } })
+    }
+}
+
+@Composable
+private fun RemoteSection() {
+    val graph = LocalGraph.current
+    val scope = rememberCoroutineScope()
+    val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
+    SectionColumn {
+        Heading("Remote control")
+        ValueRow(
+            "Up / Down while watching",
+            if (settings.upDownMode == UpDownMode.UP_NEXT_DOWN_OPTIONS) "Up: next channel · Down: options" else "Up and Down: change channel",
+            "setting_updown",
+        ) {
+            scope.launch {
+                graph.settings.update {
+                    it.copy(upDownMode = if (it.upDownMode == UpDownMode.ZAP) UpDownMode.UP_NEXT_DOWN_OPTIONS else UpDownMode.ZAP)
+                }
+            }
+        }
+        Caption("Menu or a long press of OK always opens the options. CH+ and CH− always change channel.")
+    }
+}
 
 @Composable
 private fun Heading(text: String) = Text(text, style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
@@ -148,6 +209,15 @@ private fun PlaylistsSection() {
     SectionColumn {
         Heading("Playlists")
         playlists.forEachIndexed { i, p -> PlaylistCard(i, p, active = p.id == settings.activePlaylistId, onDelete = { confirm = p }) }
+        if (playlists.size > 1) {
+            var updatingAll by remember { mutableStateOf(false) }
+            ActionButton(if (updatingAll) "Updating…" else "Update all playlists", {
+                if (!updatingAll) {
+                    updatingAll = true
+                    graph.appScope.launch { graph.playlists.syncAll(); updatingAll = false }
+                }
+            }, tag = "playlist_update_all")
+        }
         Caption("Add another playlist")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ActionButton("M3U link", { nav.push(Screen.AddPlaylist(PlaylistType.M3U_URL)) })
@@ -243,6 +313,17 @@ private fun GuideSection() {
                 }
             }, primary = true, tag = "epg_refresh")
         }
+        Heading("Updates")
+        val context = androidx.compose.ui.platform.LocalContext.current
+        ValueRow("Keep past programmes for", if (settings.epgPastDays == 1) "1 day" else "${settings.epgPastDays} days", "setting_epg_past_days") {
+            scope.launch { graph.settings.update { it.copy(epgPastDays = listOf(1, 2, 3, 7).after(it.epgPastDays)) } }
+        }
+        ToggleRow("Update when Tiviate starts", settings.updateOnStart, { scope.launch { graph.settings.update { it.copy(updateOnStart = !it.updateOnStart) } } }, tag = "setting_update_on_start")
+        ValueRow("Update playlists and guide every", "${settings.updateIntervalHours} hours", "setting_update_interval") {
+            val next = listOf(6, 12, 24).after(settings.updateIntervalHours)
+            scope.launch { graph.settings.update { it.copy(updateIntervalHours = next) } }
+            graph.appScope.launch(kotlinx.coroutines.Dispatchers.IO) { SyncScheduler.schedulePeriodic(context, next) }
+        }
     }
 }
 
@@ -251,10 +332,9 @@ private fun PlayerSection() {
     val graph = LocalGraph.current
     val scope = rememberCoroutineScope()
     val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
-    var ua by remember(settings.defaultUserAgent) { mutableStateOf(settings.defaultUserAgent.orEmpty()) }
     fun update(transform: (AppSettings) -> AppSettings) = scope.launch { graph.settings.update(transform) }
     SectionColumn {
-        Heading("Player")
+        Heading("Playback")
         val label = when (settings.bufferPreset) {
             BufferPreset.FAST -> "Fast start (smaller buffer)"
             BufferPreset.NORMAL -> "Balanced"
@@ -271,23 +351,29 @@ private fun PlayerSection() {
         ToggleRow("Tunneled playback", settings.tunneling, { update { it.copy(tunneling = !it.tunneling) } }, tag = "setting_tunneling")
         ToggleRow("Match TV refresh rate to video", settings.matchRefreshRate, { update { it.copy(matchRefreshRate = !it.matchRefreshRate) } }, tag = "setting_afr")
         Caption("Refresh-rate matching removes judder on 25/50 fps channels; the screen may blink when it switches.")
-        TvTextField("Default User-Agent (optional)", ua, { ua = it }, tag = "setting_ua", hint = "Leave empty to use Tiviate's")
-        ActionButton("Save User-Agent", { update { it.copy(defaultUserAgent = ua.trim().ifEmpty { null }) } })
+        Heading("For all channels")
+        ValueRow(
+            "Audio language",
+            settings.preferredAudioLanguage?.let { java.util.Locale.forLanguageTag(it).displayLanguage.ifBlank { it } } ?: "Not set",
+            "setting_audio_lang",
+        ) { if (settings.preferredAudioLanguage != null) update { it.copy(preferredAudioLanguage = null) } }
+        Caption("Choose it while watching: Down → Audio → \"Use this language for all channels\". OK here clears it.")
+        ToggleRow("Subtitles on", settings.subtitlesForAll, { update { it.copy(subtitlesForAll = !it.subtitlesForAll) } }, tag = "setting_subs_all")
+        ValueRow("Display mode", settings.displayMode.label, "setting_display_mode") { update { it.copy(displayMode = DisplayMode.entries.after(it.displayMode)) } }
+        ValueRow("Zoom", "${settings.zoomPercent}%", "setting_zoom") { update { it.copy(zoomPercent = listOf(100, 110, 120, 130, 140, 150).after(it.zoomPercent)) } }
     }
 }
 
 private fun nextPreset(p: BufferPreset) = BufferPreset.entries[(p.ordinal + 1) % BufferPreset.entries.size]
 
 @Composable
-private fun InterfaceSection() {
+private fun AppearanceSection() {
     val graph = LocalGraph.current
     val scope = rememberCoroutineScope()
     val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
     fun update(transform: (AppSettings) -> AppSettings) = scope.launch { graph.settings.update(transform) }
     SectionColumn {
-        Heading("Interface")
-        ToggleRow("Open last channel fullscreen on start", settings.startFullscreen, { update { it.copy(startFullscreen = !it.startFullscreen) } }, tag = "setting_start_fullscreen")
-        Caption("When off, Tiviate starts on the TV guide with the channel playing in the preview.")
+        Heading("Appearance")
         ToggleRow("Show channel numbers", settings.showChannelNumbers, { update { it.copy(showChannelNumbers = !it.showChannelNumbers) } })
         ToggleRow("Show clock", settings.showClock, { update { it.copy(showClock = !it.showClock) } })
         val seconds = settings.bannerTimeoutMs / 1000
@@ -303,7 +389,7 @@ private fun InterfaceSection() {
 private fun nextBanner(ms: Int): Int = listOf(3_000, 4_000, 6_000, 8_000).let { list -> list[(list.indexOf(ms).coerceAtLeast(0) + 1) % list.size] }
 
 @Composable
-private fun HistorySection() {
+private fun OtherSection() {
     val graph = LocalGraph.current
     val scope = rememberCoroutineScope()
     val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())

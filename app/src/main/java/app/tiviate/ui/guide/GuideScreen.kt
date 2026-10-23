@@ -83,6 +83,7 @@ fun GuideScreen() {
 
     val now = rememberNow(30_000)
     val state = remember { GuideState(System.currentTimeMillis()) }
+    LaunchedEffect(settings.epgPastDays) { state.pastDays = settings.epgPastDays }
     var tick by remember { mutableIntStateOf(0) } // bumps after every GuideState change
     var initialised by remember(category) { mutableStateOf(false) }
     LaunchedEffect(ready) { if (!ready) initialised = false }

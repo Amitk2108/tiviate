@@ -23,7 +23,15 @@ class GuideState(
     pastMs: Long = 24 * 60 * 60_000L,
     futureMs: Long = 7 * 24 * 60 * 60_000L,
 ) {
-    val minStartMs: Long = floorToSlot(nowMs - pastMs)
+    private val openedAtMs = nowMs
+    private var pastWindowMs = pastMs
+
+    /** "Days of past programmes to keep": how far back the guide scrolls. */
+    var pastDays: Int
+        get() = (pastWindowMs / (24 * 60 * 60_000L)).toInt()
+        set(value) { pastWindowMs = value.coerceIn(1, 14) * 24 * 60 * 60_000L }
+
+    val minStartMs: Long get() = floorToSlot(openedAtMs - pastWindowMs)
     val maxEndMs: Long = nowMs + futureMs
 
     var row: Int = 0

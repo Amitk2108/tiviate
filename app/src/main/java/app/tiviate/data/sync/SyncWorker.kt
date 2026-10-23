@@ -26,14 +26,27 @@ object SyncScheduler {
     private const val NOW = "tiviate-sync-now"
     const val STALE_MS = 12 * 3_600_000L
 
+    /**
+     * "Update when Tiviate starts": refresh unless it was updated within the last hour. A playlist
+     * that never loaded is always fetched.
+     */
+    fun shouldSyncOnStart(enabled: Boolean, lastSyncAt: Long?, nowMs: Long): Boolean =
+        lastSyncAt == null || (enabled && nowMs - lastSyncAt >= 3_600_000L)
+
     private val network = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
-    fun schedulePeriodic(context: Context) {
-        val request = PeriodicWorkRequestBuilder<SyncWorker>(12, TimeUnit.HOURS)
+    /** Background refresh every [hours] (setting "Update every"); changing it reschedules the job. */
+    fun schedulePeriodic(context: Context, hours: Int = 12) {
+        val h = hours.coerceIn(1, 72).toLong()
+        val request = PeriodicWorkRequestBuilder<SyncWorker>(h, TimeUnit.HOURS)
             .setConstraints(network)
-            .setInitialDelay(12, TimeUnit.HOURS)
+            .setInitialDelay(h, TimeUnit.HOURS)
+            .addTag("every-${h}h")
             .build()
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.KEEP, request)
+        val wm = WorkManager.getInstance(context)
+        val current = wm.getWorkInfosForUniqueWork(PERIODIC).get().firstOrNull { !it.state.isFinished }
+        val policy = if (current != null && "every-${h}h" !in current.tags) ExistingPeriodicWorkPolicy.UPDATE else ExistingPeriodicWorkPolicy.KEEP
+        wm.enqueueUniquePeriodicWork(PERIODIC, policy, request)
     }
 
     fun syncNow(context: Context) {

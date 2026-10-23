@@ -12,6 +12,7 @@ import app.tiviate.data.db.PlaylistType
 import app.tiviate.data.db.TiviateDatabase
 import app.tiviate.data.sync.EpgSyncer
 import app.tiviate.data.sync.PlaylistSyncer
+import app.tiviate.data.sync.SyncScheduler
 import app.tiviate.data.sync.getOrThrow
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -136,8 +137,9 @@ class PlaylistRepository(
         runCatching { epgSyncer.syncPlaylists(enabled) } // shared guide links download once
     }
 
-    suspend fun isStale(staleMs: Long): Boolean =
-        db.playlists().all().any { it.enabled && (it.lastSyncAt == null || clock() - it.lastSyncAt > staleMs) }
+    /** "Update when Tiviate starts" (or a playlist that never loaded). */
+    suspend fun needsStartSync(updateOnStart: Boolean): Boolean =
+        db.playlists().all().any { it.enabled && SyncScheduler.shouldSyncOnStart(updateOnStart, it.lastSyncAt, clock()) }
 
     suspend fun delete(playlistId: Long) = syncLock.withLock {
         db.withTransaction {

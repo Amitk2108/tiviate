@@ -8,6 +8,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import app.tiviate.data.sync.SyncScheduler
 import app.tiviate.ui.AppRoot
@@ -25,7 +27,9 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(LocalGraph provides graph) { AppRoot() }
             }
         }
-        SyncScheduler.schedulePeriodic(this)
+        lifecycleScope.launch(Dispatchers.IO) {
+            SyncScheduler.schedulePeriodic(this@MainActivity, graph.settings.settings.first().updateIntervalHours)
+        }
         // Sleep timer fired: playback has stopped; leave the app so the TV can go to sleep.
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

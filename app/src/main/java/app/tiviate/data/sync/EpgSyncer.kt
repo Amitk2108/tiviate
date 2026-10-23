@@ -32,8 +32,9 @@ class EpgSyncer(
     private val http: OkHttpClient,
     private val newPullParser: () -> XmlPullParser,
     private val clock: () -> Long = System::currentTimeMillis,
-    private val pastMs: Long = DAY,
     private val futureMs: Long = 7 * DAY,
+    /** "Days of past programmes to keep" (setting): how far back the guide reaches. */
+    private val pastDays: suspend () -> Int = { 1 },
 ) {
 
     suspend fun syncForPlaylist(playlistId: Long, onProgress: (Int) -> Unit = {}): EpgSyncResult =
@@ -47,6 +48,7 @@ class EpgSyncer(
     suspend fun syncPlaylists(playlistIds: List<Long>, onProgress: (Int) -> Unit = {}): EpgSyncResult = withContext(Dispatchers.IO) {
         val playlists = playlistIds.distinct().mapNotNull { db.playlists().get(it) }
         if (playlists.isEmpty()) return@withContext EpgSyncResult(0, 0, 0)
+        val pastMs = pastDays().coerceIn(1, 14) * DAY
         playlists.forEach { ensureAutoSource(it) }
         val sources = playlists.flatMap { db.epg().sourcesFor(it.id) }.distinctBy { it.id }
         val everyPlaylist = (db.playlists().all().filter { it.enabled }.map { it.id } + playlists.map { it.id }).distinct()
@@ -60,7 +62,7 @@ class EpgSyncer(
             val wanted = if (owner != null) wantedFor(listOf(owner.id)) else shared ?: wantedFor(everyPlaylist).also { shared = it }
             try {
                 val base = total
-                total += syncSource(source, owner?.userAgent, wanted) { onProgress(base + it) }
+                total += syncSource(source, owner?.userAgent, wanted, pastMs) { onProgress(base + it) }
                 ok++
             } catch (e: CancellationException) {
                 withContext(NonCancellable) { discardNextGeneration(source.id) }
@@ -95,7 +97,7 @@ class EpgSyncer(
         }
     }
 
-    private suspend fun syncSource(source: EpgSourceEntity, userAgent: String?, wanted: WantedChannels, onProgress: (Int) -> Unit): Int {
+    private suspend fun syncSource(source: EpgSourceEntity, userAgent: String?, wanted: WantedChannels, pastMs: Long, onProgress: (Int) -> Unit): Int {
         val generation = source.activeGeneration + 1
         db.epg().deleteGeneration(source.id, generation)
         val now = clock()
