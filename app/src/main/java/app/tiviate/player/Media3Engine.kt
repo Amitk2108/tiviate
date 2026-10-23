@@ -62,6 +62,9 @@ class Media3Engine(
 
     private var request: Request? = null
 
+    /** The link the next (re)connection will use. */
+    val currentUrl: String? get() = request?.url
+
     /** How many times a stream connection was (re)opened; lets tests prove the guide never re-tunes. */
     var startCount: Int = 0
         private set
@@ -238,6 +241,12 @@ class Media3Engine(
             // Long pauses on live streams: rejoin the live edge with a fresh connection.
             if (SystemClock.elapsedRealtime() - paused > LIVE_REJOIN_MS) startCurrent() else player.play()
         }
+    }
+
+    /** A resync changed the playing channel's link (e.g. a rotated token): later reconnects use it. */
+    fun updateUrl(channelKey: String, url: String) {
+        val r = request ?: return
+        if (r.channelKey == channelKey && r.url != url) request = r.copy(url = url)
     }
 
     override fun retryNow() {

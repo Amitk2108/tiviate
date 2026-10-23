@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -74,6 +75,18 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
             }
             initialRow = graph.player.current.value?.let { repo.positionOf(pid, _category.value, it) } ?: 0
             _ready.value = true
+        }
+    }
+
+    init {
+        // A guide refresh swapped in new programmes: reload what is on screen, in place.
+        viewModelScope.launch {
+            repo.guideVersion().drop(1).collect {
+                for ((window, refs) in loadedFrom.keys.groupBy { loadedFrom.getValue(it) to loadedTo.getValue(it) }) {
+                    val loaded = repo.programmes(refs, window.first, window.second)
+                    for (ref in refs) programmes[ref] = loaded[ref].orEmpty()
+                }
+            }
         }
     }
 

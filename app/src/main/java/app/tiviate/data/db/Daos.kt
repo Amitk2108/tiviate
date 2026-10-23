@@ -96,6 +96,9 @@ interface ChannelDao {
     @Query("SELECT * FROM channel WHERE playlistId = :playlistId AND stableKey = :stableKey")
     suspend fun byKey(playlistId: Long, stableKey: String): ChannelEntity?
 
+    @Query("SELECT * FROM channel WHERE playlistId = :playlistId AND stableKey = :stableKey")
+    fun observeByKey(playlistId: Long, stableKey: String): Flow<ChannelEntity?>
+
     @Query("SELECT * FROM channel WHERE playlistId = :playlistId AND number = :number ORDER BY sortIndex LIMIT 1")
     suspend fun byNumber(playlistId: Long, number: Int): ChannelEntity?
 

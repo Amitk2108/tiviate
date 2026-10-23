@@ -13,6 +13,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -37,6 +38,7 @@ class PlayerController(
     val current: StateFlow<ChannelEntity?> = _current
 
     private var historyJob: Job? = null
+    private var rowJob: Job? = null
 
     /**
      * Created on first use so app start doesn't pay for codec/player setup. ExoPlayer must be
@@ -70,10 +72,24 @@ class PlayerController(
         engine.play(channel.streamUrl, headers, ua, channel.stableKey)
         scope.launch { settingsStore.update { it.copy(lastChannelKey = channel.stableKey) } }
         trackHistory(channel)
+        followRow(channel)
+    }
+
+    /** Keeps [current] in step with the database: a resync or guide link updates the playing channel. */
+    private fun followRow(channel: ChannelEntity) {
+        rowJob?.cancel()
+        rowJob = scope.launch {
+            channels.observe(channel.playlistId, channel.stableKey).filterNotNull().collect { row ->
+                if (_current.value?.stableKey != row.stableKey) return@collect
+                _current.value = row
+                engineOrNull?.updateUrl(row.stableKey, row.streamUrl)
+            }
+        }
     }
 
     fun stop() {
         historyJob?.cancel()
+        rowJob?.cancel()
         engineOrNull?.stop()
         _current.value = null
     }
