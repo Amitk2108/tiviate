@@ -249,6 +249,20 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
         }
     }
 
+    /**
+     * True while the viewer opened the info bar themselves (Info key) or is peeking: only then do
+     * Left/Right look at other channels. The info bar that pops up after a switch leaves Left/Right
+     * to open the groups and the guide.
+     */
+    var canPeek = false
+        private set
+
+    /** Info key: the info bar, with Left/Right peeking at the neighbouring channels. */
+    fun showInfo() {
+        showBanner()
+        if (_overlay.value == Overlay.Banner) canPeek = true
+    }
+
     fun showBanner() {
         if (_overlay.value != Overlay.None && _overlay.value != Overlay.Banner) return
         _overlay.value = Overlay.Banner
@@ -257,16 +271,20 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
             delay(graph.settings.settings.first().bannerTimeoutMs.toLong())
             if (_overlay.value == Overlay.Banner) _overlay.value = Overlay.None
             _pending.value = null
+            peeking = false
+            canPeek = false
         }
     }
 
     fun open(overlay: Overlay) {
         bannerJob?.cancel()
+        canPeek = false
         _overlay.value = overlay
     }
 
     fun close() {
         if (peeking) { peeking = false; _pending.value = null }
+        canPeek = false
         _overlay.value = Overlay.None
     }
 

@@ -185,8 +185,7 @@ class Media3Engine(
                 val sink = super.buildAudioSink(context, enableFloatOutput, enableAudioOutputPlaybackParams) ?: return null
                 return object : ForwardingAudioSink(sink) {
                     override fun getCurrentPositionUs(sourceEnded: Boolean): Long {
-                        val pos = super.getCurrentPositionUs(sourceEnded)
-                        return if (pos == AudioSink.CURRENT_POSITION_NOT_SET) pos else (pos + audioOffsetUs).coerceAtLeast(0)
+                        return shiftAudioClock(super.getCurrentPositionUs(sourceEnded), audioOffsetUs)
                     }
                 }
             }
@@ -475,3 +474,10 @@ class Media3Engine(
         }
     }
 }
+
+/**
+ * Audio sync: the picture follows the audio clock, so reporting the clock [offsetUs] ahead shows
+ * pictures sooner, which makes the sound come later. Unknown positions pass through.
+ */
+internal fun shiftAudioClock(positionUs: Long, offsetUs: Long): Long =
+    if (positionUs == AudioSink.CURRENT_POSITION_NOT_SET) positionUs else (positionUs + offsetUs).coerceAtLeast(0)

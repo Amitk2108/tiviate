@@ -70,7 +70,7 @@ class AddPlaylistFlowTest {
         Remote.ok() // "Xtream Codes"
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("field_server") }
         rule.waitForIdle()
-        Remote.down(4) // server → username → password → name → (buttons)
+        Remote.down(6) // server → username → password → name → User-Agent → HLS → (buttons)
         rule.waitForIdle()
         rule.onNodeWithTag("save_playlist").assertIsFocused()
     }

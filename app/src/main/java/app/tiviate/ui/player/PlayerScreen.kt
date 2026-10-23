@@ -156,18 +156,18 @@ fun PlayerScreen() {
                 if (down && native.repeatCount % 3 == 0) vm.zap(forward = false)
                 return true
             }
-            // Info bar up: Left/Right look at the previous/next channel's programme; OK switches to it.
-            AndroidKeyEvent.KEYCODE_DPAD_LEFT -> { if (down) { if (overlay == Overlay.Banner) vm.peek(forward = false) else openPanel(categories = true) }; return true }
+            // Info bar opened with Info: Left/Right look at the previous/next channel's programme; OK switches to it.
+            AndroidKeyEvent.KEYCODE_DPAD_LEFT -> { if (down) { if (overlay == Overlay.Banner && vm.canPeek) vm.peek(forward = false) else openPanel(categories = true) }; return true }
             AndroidKeyEvent.KEYCODE_LAST_CHANNEL -> { if (down) vm.previousChannel(); return true }
             AndroidKeyEvent.KEYCODE_MEDIA_STOP -> { if (down) { graph.player.stop(); nav.push(Screen.Guide) }; return true }
             AndroidKeyEvent.KEYCODE_DPAD_RIGHT, AndroidKeyEvent.KEYCODE_GUIDE, AndroidKeyEvent.KEYCODE_TV_INPUT -> {
                 if (down) {
-                    if (native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_RIGHT && overlay == Overlay.Banner) vm.peek(forward = true) else nav.push(Screen.Guide)
+                    if (native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_RIGHT && overlay == Overlay.Banner && vm.canPeek) vm.peek(forward = true) else nav.push(Screen.Guide)
                 }
                 return true
             }
             AndroidKeyEvent.KEYCODE_MENU, AndroidKeyEvent.KEYCODE_SETTINGS -> { if (down) vm.open(Overlay.Options); return true }
-            AndroidKeyEvent.KEYCODE_INFO -> { if (down) vm.showBanner(); return true }
+            AndroidKeyEvent.KEYCODE_INFO -> { if (down) vm.showInfo(); return true }
             AndroidKeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, AndroidKeyEvent.KEYCODE_MEDIA_PLAY, AndroidKeyEvent.KEYCODE_MEDIA_PAUSE -> {
                 if (down) {
                     val paused = playback.isPaused
@@ -344,7 +344,7 @@ fun PlayerScreen() {
                         OptionItem("option_search", t("Search"), null) { vm.close(); nav.push(Screen.Search) },
                         OptionItem("option_settings", t("Settings"), null) { vm.close(); nav.push(Screen.Settings) },
                     ).filter { it.tag !in settings.hiddenOptionCards }
-                        .sortedBy { settings.optionCards.indexOf(it.tag).let { i -> if (i < 0) Int.MAX_VALUE else i } },
+                        .sortedBy { optionOrder(settings.optionCards, it.tag) },
                 )
             }
             is Overlay.Picker -> {
@@ -539,4 +539,10 @@ fun audioSyncLabel(ms: Int): String = when {
     ms == 0 -> "0 ms"
     ms > 0 -> tf("Sound %d ms later", ms)
     else -> tf("Sound %d ms earlier", -ms)
+}
+
+/** Position of an option card: the viewer's order; "Back to live" sits right after Pause; unknown cards go last. */
+internal fun optionOrder(order: List<String>, tag: String): Double {
+    val i = order.indexOf(if (tag == "option_live") "option_playpause" else tag)
+    return if (i < 0) Double.MAX_VALUE else i + if (tag == "option_live") 0.5 else 0.0
 }
