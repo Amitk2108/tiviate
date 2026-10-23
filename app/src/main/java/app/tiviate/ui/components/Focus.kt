@@ -40,7 +40,7 @@ fun FocusSurface(
             contentColor = Tokens.Text,
             focusedContentColor = Tokens.Text,
         ),
-        scale = ClickableSurfaceDefaults.scale(focusedScale = scale),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = if (app.tiviate.ui.theme.ThemeState.animations) scale else 1f),
         border = ClickableSurfaceDefaults.border(
             focusedBorder = Border(BorderStroke(Tokens.FocusBorder, Tokens.Cyan), shape = shape),
         ),

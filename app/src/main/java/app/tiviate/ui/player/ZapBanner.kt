@@ -40,6 +40,7 @@ fun ZapBanner(
     showNumber: Boolean,
     requestInfo: (String) -> Unit,
     modifier: Modifier = Modifier,
+    source: String? = null,
 ) {
     LaunchedEffect(channel.epgRef) { channel.epgRef?.let(requestInfo) }
     val now = rememberNow()
@@ -50,16 +51,18 @@ fun ZapBanner(
             .padding(start = Tokens.SafeMargin, end = Tokens.SafeMargin, top = 64.dp, bottom = 36.dp)
             .testTag("zap_banner"),
     ) {
-        ChannelInfo(channel, info, playback, showNumber, now)
+        ChannelInfo(channel, info, playback, showNumber, now, source)
     }
 }
 
 /** Logo, number and name, stream badges, programme on now with progress, next programme and the clock. */
 @Composable
-fun ChannelInfo(channel: ChannelEntity, info: NowNext?, playback: PlaybackState, showNumber: Boolean, now: Long) {
+fun ChannelInfo(channel: ChannelEntity, info: NowNext?, playback: PlaybackState, showNumber: Boolean, now: Long, source: String? = null) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
         ChannelLogo(channel, 88.dp)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            // "Show playlist and group name"
+            source?.let { Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize)) }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (showNumber) Text("${channel.number}", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Bold))
                 Text(channel.name, style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold), maxLines = 1, overflow = TextOverflow.Ellipsis)

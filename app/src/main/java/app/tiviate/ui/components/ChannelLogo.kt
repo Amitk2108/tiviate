@@ -65,7 +65,7 @@ fun ChannelLogo(channel: ChannelEntity, size: Dp, modifier: Modifier = Modifier)
     var index by remember(candidates) { mutableIntStateOf(0) }
     val url = candidates.getOrNull(index)
     var loaded by remember(url) { mutableStateOf(false) }
-    Box(modifier.size(size).clip(Tokens.SmallShape).background(Tokens.Raised), contentAlignment = Alignment.Center) {
+    Box(modifier.size(size).clip(Tokens.LogoShape).background(Tokens.Raised), contentAlignment = Alignment.Center) {
         // The monogram stays visible until a logo has actually loaded, so a tile is never blank.
         if (!loaded) Monogram(channel.name, size)
         if (url != null) {

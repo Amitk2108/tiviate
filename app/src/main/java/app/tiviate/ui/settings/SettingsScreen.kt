@@ -421,6 +421,24 @@ private fun AppearanceSection() {
     fun update(transform: (AppSettings) -> AppSettings) = scope.launch { graph.settings.update(transform) }
     SectionColumn {
         Heading("Appearance")
+        ValueRow("Accent colour", settings.accent.label, "setting_accent") { update { it.copy(accent = app.tiviate.data.AccentColor.entries.after(it.accent)) } }
+        ValueRow("Background", settings.backgroundTheme.label, "setting_background") { update { it.copy(backgroundTheme = app.tiviate.data.BackgroundTheme.entries.after(it.backgroundTheme)) } }
+        ValueRow("Font size", settings.fontSize.label, "setting_font_size") { update { it.copy(fontSize = app.tiviate.data.FontSize.entries.after(it.fontSize)) } }
+        ValueRow("Panel transparency", "${settings.panelTransparency} %", "setting_transparency") { update { it.copy(panelTransparency = listOf(0, 20, 40, 60).after(it.panelTransparency)) } }
+        ValueRow("Logo style", settings.logoStyle.label, "setting_logo_style") { update { it.copy(logoStyle = app.tiviate.data.LogoStyle.entries.after(it.logoStyle)) } }
+        ToggleRow("Two-line channel names", settings.twoLineNames, { update { it.copy(twoLineNames = !it.twoLineNames) } }, tag = "setting_two_line_names")
+        ToggleRow("Two-line programme titles in the guide", settings.twoLineTitles, { update { it.copy(twoLineTitles = !it.twoLineTitles) } }, tag = "setting_two_line_titles")
+        ToggleRow("Show playlist and group name in the info bar", settings.showPlaylistAndGroup, { update { it.copy(showPlaylistAndGroup = !it.showPlaylistAndGroup) } }, tag = "setting_show_source")
+        ToggleRow("Animations", settings.animations, { update { it.copy(animations = !it.animations) } }, tag = "setting_animations")
+        Heading("Clock")
+        ValueRow("Clock size", settings.clockSize.label, "setting_clock_size") { update { it.copy(clockSize = app.tiviate.data.ClockSize.entries.after(it.clockSize)) } }
+        ToggleRow("Show the date", settings.clockShowDate, { update { it.copy(clockShowDate = !it.clockShowDate) } }, tag = "setting_clock_date")
+        ValueRow("Clock on the video", settings.clockCorner.label, "setting_clock_corner") { update { it.copy(clockCorner = app.tiviate.data.ClockCorner.entries.after(it.clockCorner)) } }
+        Heading("Groups list")
+        ToggleRow("Show \"All channels\"", settings.showAllChannels, { update { it.copy(showAllChannels = !it.showAllChannels) } }, tag = "setting_show_all")
+        ToggleRow("Show \"Favorites\"", settings.showFavoritesGroup, { update { it.copy(showFavoritesGroup = !it.showFavoritesGroup) } }, tag = "setting_show_favorites")
+        ToggleRow("Show \"Recent\"", settings.showRecentGroup, { update { it.copy(showRecentGroup = !it.showRecentGroup) } }, tag = "setting_show_recent")
+        Heading("Screens")
         ToggleRow("TV guide over the full-screen video", settings.guideOverlay, { update { it.copy(guideOverlay = !it.guideOverlay) } }, tag = "setting_guide_overlay")
         ToggleRow("Channel list with a small video window", settings.listPreview, { update { it.copy(listPreview = !it.listPreview) } }, tag = "setting_list_preview")
         ToggleRow("Stay on the channel list after switching", settings.stayOnList, { update { it.copy(stayOnList = !it.stayOnList) } }, tag = "setting_stay_on_list")

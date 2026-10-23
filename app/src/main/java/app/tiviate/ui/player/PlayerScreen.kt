@@ -240,7 +240,10 @@ fun PlayerScreen() {
             Overlay.None -> Unit
             Overlay.Banner -> bannerChannel?.let {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-                    ZapBanner(it, it.epgRef?.let(vm.nowNext::get), playback, settings.showChannelNumbers, requestInfo = { ref -> vm.loadNowNext(listOf(ref)) })
+                    ZapBanner(
+                        it, it.epgRef?.let(vm.nowNext::get), playback, settings.showChannelNumbers, requestInfo = { ref -> vm.loadNowNext(listOf(ref)) },
+                        source = if (settings.showPlaylistAndGroup) listOfNotNull(playlist?.name, it.groupName).joinToString("  ·  ") else null,
+                    )
                 }
             }
             is Overlay.Panel -> {
@@ -465,6 +468,21 @@ fun PlayerScreen() {
             )
         }
         sheet?.let { t -> ChannelSheet(t, onClose = { sheet = null }, onMessage = vm::showToast) }
+        // "Clock on the video": always visible in fullscreen at the chosen corner.
+        if (inFullscreen && settings.clockCorner != app.tiviate.data.ClockCorner.OFF && !inPip) {
+            val align = when (settings.clockCorner) {
+                app.tiviate.data.ClockCorner.TOP_LEFT -> Alignment.TopStart
+                app.tiviate.data.ClockCorner.TOP_RIGHT -> Alignment.TopEnd
+                app.tiviate.data.ClockCorner.BOTTOM_LEFT -> Alignment.BottomStart
+                else -> Alignment.BottomEnd
+            }
+            Box(Modifier.fillMaxSize().padding(28.dp), contentAlignment = align) {
+                app.tiviate.ui.components.Clock(
+                    androidx.compose.ui.text.TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium),
+                    Modifier.background(Tokens.Scrim, Tokens.SmallShape).padding(horizontal = 12.dp, vertical = 6.dp),
+                )
+            }
+        }
         if (numberText.isNotEmpty()) NumberBadge(numberText)
         toast?.let { Toast(it) }
     }

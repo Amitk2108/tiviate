@@ -230,7 +230,7 @@ private fun ChannelRow(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     (if (isFavorite) "★ " else "") + channel.name,
-                    maxLines = 1,
+                    maxLines = if (app.tiviate.ui.theme.ThemeState.twoLineNames) 2 else 1,
                     overflow = TextOverflow.Ellipsis,
                     style = TextStyle(color = if (isPlaying) Tokens.Cyan else Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium),
                 )
