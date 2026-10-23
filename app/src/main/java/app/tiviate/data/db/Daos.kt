@@ -24,8 +24,25 @@ interface ChannelDao {
     /** Upsert by (playlistId, stableKey); the old row id is replaced. */
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertAll(rows: List<ChannelEntity>)
 
-    /** Blocking variant for streaming parsers that call back on a worker thread. */
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insertAllBlocking(rows: List<ChannelEntity>)
+    @Query("SELECT id, stableKey, epgRef, logoFallback FROM channel WHERE playlistId = :playlistId AND stableKey IN (:keys)")
+    fun storedBlocking(playlistId: Long, keys: List<String>): List<StoredChannelRow>
+
+    @Update fun updateAllBlocking(rows: List<ChannelEntity>)
+
+    @Insert fun insertNewBlocking(rows: List<ChannelEntity>)
+
+    /**
+     * Writes one sync batch (≤ 900 rows, the SQLite variable limit). Channels already stored are
+     * updated in place: they keep their id (stable list keys) and guide link until the guide relinks,
+     * and the search index stays in step (REPLACE's implicit delete skips the FTS trigger).
+     */
+    @Transaction
+    fun upsertBlocking(playlistId: Long, rows: List<ChannelEntity>) {
+        val stored = storedBlocking(playlistId, rows.map { it.stableKey }).associateBy { it.stableKey }
+        val (known, fresh) = rows.partition { it.stableKey in stored }
+        updateAllBlocking(known.map { r -> stored.getValue(r.stableKey).let { s -> r.copy(id = s.id, epgRef = s.epgRef, logoFallback = s.logoFallback) } })
+        insertNewBlocking(fresh)
+    }
 
     @Query("SELECT id, tvgId, tvgName, name, epgRef, logoFallback FROM channel WHERE playlistId = :playlistId")
     suspend fun matchRows(playlistId: Long): List<ChannelMatchRow>

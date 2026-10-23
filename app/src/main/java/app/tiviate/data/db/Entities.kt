@@ -135,3 +135,6 @@ data class ChannelMatchRow(
     val epgRef: String?,
     val logoFallback: String?,
 )
+
+/** What a resync keeps from a stored channel row. */
+data class StoredChannelRow(val id: Long, val stableKey: String, val epgRef: String?, val logoFallback: String?)
