@@ -319,5 +319,13 @@
 "Playback stopped": "Přehrávání zastaveno",
 "Something went wrong while playing this channel.": "Při přehrávání tohoto kanálu se něco pokazilo.",
 "Your account is busy on another device — waiting for it to free up…": "Váš účet je obsazen na jiném zařízení — čekám na uvolnění…",
-"Pause / Back to live": "Pozastavit / Zpět na živé vysílání"
+"Pause / Back to live": "Pozastavit / Zpět na živé vysílání",
+"Update playlists": "Aktualizace playlistů",
+"When Tiviate starts": "Při spuštění Tiviate",
+"Every day": "Každý den",
+"Every week": "Každý týden",
+"Every month": "Každý měsíc",
+"Update the guide when Tiviate starts": "Aktualizovat program při spuštění Tiviate",
+"Update the guide every": "Aktualizovat program každých",
+"%d hours": "%d hodin"
 }

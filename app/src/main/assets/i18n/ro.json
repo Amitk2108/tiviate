@@ -315,5 +315,13 @@
 "Playback stopped": "Redarea s-a oprit",
 "Something went wrong while playing this channel.": "A apărut o problemă la redarea acestui canal.",
 "Your account is busy on another device — waiting for it to free up…": "Contul dvs. este ocupat pe alt dispozitiv — se așteaptă eliberarea lui…",
-"Pause / Back to live": "Pauză / Înapoi la direct"
+"Pause / Back to live": "Pauză / Înapoi la direct",
+"Update playlists": "Actualizare playlisturi",
+"When Tiviate starts": "La pornirea Tiviate",
+"Every day": "Zilnic",
+"Every week": "Săptămânal",
+"Every month": "Lunar",
+"Update the guide when Tiviate starts": "Actualizează ghidul la pornirea Tiviate",
+"Update the guide every": "Actualizează ghidul la fiecare",
+"%d hours": "%d ore"
 }

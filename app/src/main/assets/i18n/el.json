@@ -325,5 +325,13 @@
 "Playback stopped": "Η αναπαραγωγή σταμάτησε",
 "Something went wrong while playing this channel.": "Παρουσιάστηκε πρόβλημα κατά την αναπαραγωγή αυτού του καναλιού.",
 "Your account is busy on another device — waiting for it to free up…": "Ο λογαριασμός σας είναι απασχολημένος σε άλλη συσκευή — αναμονή μέχρι να ελευθερωθεί…",
-"Pause / Back to live": "Παύση / Επιστροφή στο ζωντανό"
+"Pause / Back to live": "Παύση / Επιστροφή στο ζωντανό",
+"Update playlists": "Ενημέρωση λιστών",
+"When Tiviate starts": "Όταν ξεκινά το Tiviate",
+"Every day": "Κάθε μέρα",
+"Every week": "Κάθε εβδομάδα",
+"Every month": "Κάθε μήνα",
+"Update the guide when Tiviate starts": "Ενημέρωση οδηγού όταν ξεκινά το Tiviate",
+"Update the guide every": "Ενημέρωση οδηγού κάθε",
+"%d hours": "%d ώρες"
 }

@@ -323,5 +323,13 @@
 "Playback stopped": "Đã dừng phát",
 "Something went wrong while playing this channel.": "Đã xảy ra lỗi khi phát kênh này.",
 "Your account is busy on another device — waiting for it to free up…": "Tài khoản của bạn đang bận trên thiết bị khác — đang chờ được giải phóng…",
-"Pause / Back to live": "Tạm dừng / Về trực tiếp"
+"Pause / Back to live": "Tạm dừng / Về trực tiếp",
+"Update playlists": "Cập nhật danh sách phát",
+"When Tiviate starts": "Khi mở Tiviate",
+"Every day": "Hằng ngày",
+"Every week": "Hằng tuần",
+"Every month": "Hằng tháng",
+"Update the guide when Tiviate starts": "Cập nhật lịch phát sóng khi mở Tiviate",
+"Update the guide every": "Cập nhật lịch phát sóng mỗi",
+"%d hours": "%d giờ"
 }

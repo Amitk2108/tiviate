@@ -322,5 +322,13 @@
 "Playback stopped": "Reprodukcija je zaustavljena",
 "Something went wrong while playing this channel.": "Došlo je do pogreške tijekom reprodukcije ovog kanala.",
 "Your account is busy on another device — waiting for it to free up…": "Račun je zauzet na drugom uređaju — čeka se da se oslobodi…",
-"Pause / Back to live": "Pauza / Natrag na uživo"
+"Pause / Back to live": "Pauza / Natrag na uživo",
+"Update playlists": "Ažuriranje popisa",
+"When Tiviate starts": "Pri pokretanju Tiviatea",
+"Every day": "Svaki dan",
+"Every week": "Svaki tjedan",
+"Every month": "Svaki mjesec",
+"Update the guide when Tiviate starts": "Ažuriraj vodič pri pokretanju Tiviatea",
+"Update the guide every": "Ažuriraj vodič svakih",
+"%d hours": "%d sati"
 }

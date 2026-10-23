@@ -10,15 +10,25 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import app.tiviate.TiviateApp
+import app.tiviate.data.PlaylistUpdate
+import kotlinx.coroutines.flow.first
 import java.util.concurrent.TimeUnit
 
-/** Refreshes every enabled playlist and its guide in the background. */
+/**
+ * Background updates: the guide every run, playlists when their schedule says so
+ * (Settings → Playlists → Update playlists). [KEY_AT_START] marks the run made when Tiviate starts.
+ */
 class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
-        (applicationContext as TiviateApp).graph.playlists.syncAll()
+        val graph = (applicationContext as TiviateApp).graph
+        val settings = graph.settings.settings.first()
+        graph.playlists.scheduledUpdate(settings.playlistUpdate, inputData.getBoolean(KEY_AT_START, false), settings.updateOnStart)
         return Result.success()
     }
+
+    companion object { const val KEY_AT_START = "at_start" }
 }
 
 object SyncScheduler {
@@ -32,6 +42,13 @@ object SyncScheduler {
      */
     fun shouldSyncOnStart(enabled: Boolean, lastSyncAt: Long?, nowMs: Long): Boolean =
         lastSyncAt == null || (enabled && nowMs - lastSyncAt >= 3_600_000L)
+
+    /** Is a playlist last updated at [lastSyncAt] due under [mode]? A playlist that never loaded always is. */
+    fun playlistDue(mode: PlaylistUpdate, lastSyncAt: Long?, nowMs: Long, atStart: Boolean): Boolean = when {
+        lastSyncAt == null -> true
+        mode == PlaylistUpdate.ON_START -> atStart && nowMs - lastSyncAt >= 3_600_000L
+        else -> nowMs - lastSyncAt >= mode.days * 24 * 3_600_000L
+    }
 
     private val network = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
@@ -49,8 +66,9 @@ object SyncScheduler {
         wm.enqueueUniquePeriodicWork(PERIODIC, policy, request)
     }
 
-    fun syncNow(context: Context) {
-        val request = OneTimeWorkRequestBuilder<SyncWorker>().setConstraints(network).build()
+    fun syncNow(context: Context, atStart: Boolean = false) {
+        val request = OneTimeWorkRequestBuilder<SyncWorker>().setConstraints(network)
+            .setInputData(workDataOf(SyncWorker.KEY_AT_START to atStart)).build()
         WorkManager.getInstance(context).enqueueUniqueWork(NOW, ExistingWorkPolicy.KEEP, request)
     }
 }

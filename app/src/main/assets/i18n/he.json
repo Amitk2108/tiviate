@@ -325,5 +325,13 @@
 "Playback stopped": "הניגון נעצר",
 "Something went wrong while playing this channel.": "משהו השתבש בזמן הפעלת הערוץ הזה.",
 "Your account is busy on another device — waiting for it to free up…": "החשבון שלך תפוס במכשיר אחר — ממתין שיתפנה…",
-"Pause / Back to live": "השהיה / חזרה לשידור חי"
+"Pause / Back to live": "השהיה / חזרה לשידור חי",
+"Update playlists": "עדכון רשימות השמעה",
+"When Tiviate starts": "כש-Tiviate נפתח",
+"Every day": "כל יום",
+"Every week": "כל שבוע",
+"Every month": "כל חודש",
+"Update the guide when Tiviate starts": "עדכון המדריך כש-Tiviate נפתח",
+"Update the guide every": "עדכון המדריך כל",
+"%d hours": "%d שעות"
 }

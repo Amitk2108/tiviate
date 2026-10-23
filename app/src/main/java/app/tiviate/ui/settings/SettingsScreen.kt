@@ -240,6 +240,9 @@ private fun PlaylistsSection() {
         ValueRow(t("Open a playlist on"), settings.openPlaylistOn.label, "setting_open_on") {
             scope.launch { graph.settings.update { it.copy(openPlaylistOn = OpenOn.entries.after(it.openPlaylistOn)) } }
         }
+        ValueRow(t("Update playlists"), settings.playlistUpdate.label, "setting_playlist_update") {
+            scope.launch { graph.settings.update { it.copy(playlistUpdate = app.tiviate.data.PlaylistUpdate.entries.after(it.playlistUpdate)) } }
+        }
         playlists.forEachIndexed { i, p -> PlaylistCard(i, p, active = p.id == settings.activePlaylistId, onDelete = { confirm = p }) }
         if (playlists.size > 1) {
             var updatingAll by remember { mutableStateOf(false) }
@@ -372,8 +375,8 @@ private fun GuideSection() {
         ValueRow(t("Keep past programmes for"), if (settings.epgPastDays == 1) "1 day" else "${settings.epgPastDays} days", "setting_epg_past_days") {
             scope.launch { graph.settings.update { it.copy(epgPastDays = listOf(1, 2, 3, 7).after(it.epgPastDays)) } }
         }
-        ToggleRow(t("Update when Tiviate starts"), settings.updateOnStart, { scope.launch { graph.settings.update { it.copy(updateOnStart = !it.updateOnStart) } } }, tag = "setting_update_on_start")
-        ValueRow(t("Update playlists and guide every"), "${settings.updateIntervalHours} hours", "setting_update_interval") {
+        ToggleRow(t("Update the guide when Tiviate starts"), settings.updateOnStart, { scope.launch { graph.settings.update { it.copy(updateOnStart = !it.updateOnStart) } } }, tag = "setting_update_on_start")
+        ValueRow(t("Update the guide every"), tf("%d hours", settings.updateIntervalHours), "setting_update_interval") {
             val next = listOf(6, 12, 24).after(settings.updateIntervalHours)
             scope.launch { graph.settings.update { it.copy(updateIntervalHours = next) } }
             graph.appScope.launch(kotlinx.coroutines.Dispatchers.IO) { SyncScheduler.schedulePeriodic(context, next) }

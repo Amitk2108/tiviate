@@ -162,9 +162,35 @@ class PlaylistRepository(
         runCatching { epgSyncer.syncPlaylists(enabled) } // shared guide links download once
     }
 
-    /** "Update when Tiviate starts" (or a playlist that never loaded). */
-    suspend fun needsStartSync(updateOnStart: Boolean): Boolean =
-        db.playlists().all().any { it.enabled && SyncScheduler.shouldSyncOnStart(updateOnStart, it.lastSyncAt, clock()) }
+    /**
+     * The scheduled update (background job, and once when Tiviate starts): playlists that are due
+     * under [mode], then the guide. At start the guide only updates when [guideOnStart] is on and it
+     * is over an hour old, or when a playlist was just reloaded.
+     */
+    suspend fun scheduledUpdate(mode: PlaylistUpdate, atStart: Boolean, guideOnStart: Boolean) = syncLock.withLock {
+        val enabled = db.playlists().all().filter { it.enabled }
+        val now = clock()
+        val due = enabled.filter { SyncScheduler.playlistDue(mode, it.lastSyncAt, now, atStart) }
+        for (p in due) runCatching { playlistSyncer.sync(p.id) }
+        if (!atStart || due.isNotEmpty() || SyncScheduler.shouldSyncOnStart(guideOnStart, oldestGuideUpdate(enabled), now)) {
+            runCatching { epgSyncer.syncPlaylists(enabled.map { it.id }) } // shared guide links download once
+        }
+    }
+
+    /** Is there anything for the start-up update to do? */
+    suspend fun needsStartSync(mode: PlaylistUpdate, guideOnStart: Boolean): Boolean {
+        val enabled = db.playlists().all().filter { it.enabled }
+        val now = clock()
+        return enabled.any { SyncScheduler.playlistDue(mode, it.lastSyncAt, now, atStart = true) } ||
+            (enabled.isNotEmpty() && SyncScheduler.shouldSyncOnStart(guideOnStart, oldestGuideUpdate(enabled), now))
+    }
+
+    /** When the least recently updated guide source of these playlists was updated; null if one never was. */
+    private suspend fun oldestGuideUpdate(playlists: List<PlaylistEntity>): Long? {
+        val sources = playlists.flatMap { db.epg().sourcesFor(it.id) }.filter { it.enabled }
+        if (sources.isEmpty()) return playlists.minOfOrNull { it.lastSyncAt ?: return null }
+        return sources.minOf { it.lastSyncAt ?: return null }
+    }
 
     suspend fun delete(playlistId: Long) = syncLock.withLock {
         db.withTransaction {

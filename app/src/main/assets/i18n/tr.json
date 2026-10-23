@@ -324,5 +324,13 @@
 "Playback stopped": "Oynatma durdu",
 "Something went wrong while playing this channel.": "Bu kanal oynatılırken bir sorun oluştu.",
 "Your account is busy on another device — waiting for it to free up…": "Hesabınız başka bir cihazda meşgul — boşalması bekleniyor…",
-"Pause / Back to live": "Duraklat / Canlıya dön"
+"Pause / Back to live": "Duraklat / Canlıya dön",
+"Update playlists": "Oynatma listelerini güncelle",
+"When Tiviate starts": "Tiviate açıldığında",
+"Every day": "Her gün",
+"Every week": "Her hafta",
+"Every month": "Her ay",
+"Update the guide when Tiviate starts": "Tiviate açıldığında rehberi güncelle",
+"Update the guide every": "Rehberi güncelleme sıklığı",
+"%d hours": "%d saatte bir"
 }

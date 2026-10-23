@@ -323,5 +323,13 @@
 "Playback stopped": "Odtwarzanie zatrzymane",
 "Something went wrong while playing this channel.": "Podczas odtwarzania tego kanału coś poszło nie tak.",
 "Your account is busy on another device — waiting for it to free up…": "Twoje konto jest zajęte na innym urządzeniu — czekam na zwolnienie…",
-"Pause / Back to live": "Wstrzymaj / Wróć na żywo"
+"Pause / Back to live": "Wstrzymaj / Wróć na żywo",
+"Update playlists": "Aktualizacja playlist",
+"When Tiviate starts": "Przy uruchomieniu Tiviate",
+"Every day": "Codziennie",
+"Every week": "Co tydzień",
+"Every month": "Co miesiąc",
+"Update the guide when Tiviate starts": "Aktualizuj przewodnik przy uruchomieniu Tiviate",
+"Update the guide every": "Aktualizuj przewodnik co",
+"%d hours": "%d godz."
 }

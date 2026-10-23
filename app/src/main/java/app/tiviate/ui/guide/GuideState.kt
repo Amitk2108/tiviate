@@ -14,6 +14,8 @@ data class FocusBlock(val startMs: Long, val stopMs: Long, val programme: Progra
  * - Left/Right step to the adjacent programme, or to a [slotMs] empty slot where nothing is scheduled.
  * - The visible window ([windowMs], from [viewStartMs]) follows the focus and never scrolls before the
  *   stored guide data (now − 1 day) or after it (now + 7 days).
+ * - Until the viewer moves in time, the focus follows the clock ([keepUpWith]): a guide left open for an
+ *   hour still sits on what is on now. Coming back to the guide returns to now ([backToNow]).
  */
 class GuideState(
     nowMs: Long,
@@ -21,9 +23,9 @@ class GuideState(
     val windowMs: Long = 2 * 60 * 60_000L,
     private val tzOffsetMs: Long = TimeZone.getDefault().getOffset(nowMs).toLong(),
     pastMs: Long = 24 * 60 * 60_000L,
-    futureMs: Long = 7 * 24 * 60 * 60_000L,
+    private val futureMs: Long = 7 * 24 * 60 * 60_000L,
 ) {
-    private val openedAtMs = nowMs
+    private var clockMs = nowMs
     private var pastWindowMs = pastMs
 
     /** "Days of past programmes to keep": how far back the guide scrolls. */
@@ -31,8 +33,12 @@ class GuideState(
         get() = (pastWindowMs / (24 * 60 * 60_000L)).toInt()
         set(value) { pastWindowMs = value.coerceIn(1, 14) * 24 * 60 * 60_000L }
 
-    val minStartMs: Long get() = floorToSlot(openedAtMs - pastWindowMs)
-    val maxEndMs: Long = nowMs + futureMs
+    val minStartMs: Long get() = floorToSlot(clockMs - pastWindowMs)
+    val maxEndMs: Long get() = clockMs + futureMs
+
+    /** True until the viewer moves left/right in time; the focus then stays where they put it. */
+    var followsNow: Boolean = true
+        private set
 
     var row: Int = 0
         private set
@@ -61,6 +67,7 @@ class GuideState(
 
     /** [direction] > 0 moves right (later), < 0 left (earlier). */
     fun moveTime(direction: Int, programmesInRow: List<ProgrammeEntity>) {
+        followsNow = false
         val current = focused ?: blockAt(programmesInRow, focusTimeMs)
         if (direction > 0) {
             val target = current.stopMs
@@ -88,9 +95,31 @@ class GuideState(
     }
 
     fun jumpHours(hours: Int, programmesInRow: List<ProgrammeEntity>) {
+        followsNow = false
         viewStartMs = clampView(viewStartMs + hours * 3_600_000L)
         focusTimeMs = viewStartMs
         focused = blockAt(programmesInRow, focusTimeMs)
+    }
+
+    /** The clock moved on: while [followsNow], keep the focus and the window on now. True when anything changed. */
+    fun keepUpWith(nowMs: Long, programmesInRow: List<ProgrammeEntity>): Boolean {
+        clockMs = nowMs
+        if (!followsNow) return false
+        focusTimeMs = nowMs
+        val start = clampView(floorToSlot(nowMs))
+        val f = focused
+        val refocus = f == null || nowMs < f.startMs || nowMs >= f.stopMs
+        if (refocus) focused = blockAt(programmesInRow, nowMs)
+        if (start == viewStartMs && !refocus) return false
+        viewStartMs = start
+        return true
+    }
+
+    /** Back on now: the programme on air, the window at the current half-hour. */
+    fun backToNow(nowMs: Long, programmesInRow: List<ProgrammeEntity>) {
+        followsNow = true
+        focused = null
+        keepUpWith(nowMs, programmesInRow)
     }
 
     private fun clampView(start: Long): Long = start.coerceIn(minStartMs, maxOf(minStartMs, maxEndMs - windowMs))

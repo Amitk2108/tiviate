@@ -311,5 +311,13 @@
 "Playback stopped": "Afspelen gestopt",
 "Something went wrong while playing this channel.": "Er ging iets mis bij het afspelen van deze zender.",
 "Your account is busy on another device — waiting for it to free up…": "Je account is bezet op een ander apparaat — wachten tot het vrijkomt…",
-"Pause / Back to live": "Pauze / Terug naar live"
+"Pause / Back to live": "Pauze / Terug naar live",
+"Update playlists": "Afspeellijsten bijwerken",
+"When Tiviate starts": "Als Tiviate start",
+"Every day": "Elke dag",
+"Every week": "Elke week",
+"Every month": "Elke maand",
+"Update the guide when Tiviate starts": "Gids bijwerken als Tiviate start",
+"Update the guide every": "Gids bijwerken elke",
+"%d hours": "%d uur"
 }

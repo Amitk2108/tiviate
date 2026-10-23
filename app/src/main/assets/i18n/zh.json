@@ -325,5 +325,13 @@
 "Playback stopped": "播放已停止",
 "Something went wrong while playing this channel.": "播放此频道时出错。",
 "Your account is busy on another device — waiting for it to free up…": "您的账户正在另一台设备上使用 — 正在等待释放…",
-"Pause / Back to live": "暂停 / 返回直播"
+"Pause / Back to live": "暂停 / 返回直播",
+"Update playlists": "更新播放列表",
+"When Tiviate starts": "Tiviate 启动时",
+"Every day": "每天",
+"Every week": "每周",
+"Every month": "每月",
+"Update the guide when Tiviate starts": "Tiviate 启动时更新节目指南",
+"Update the guide every": "节目指南更新间隔",
+"%d hours": "%d 小时"
 }
