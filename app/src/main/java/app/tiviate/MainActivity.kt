@@ -9,6 +9,8 @@ import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -27,7 +29,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TiviateTheme {
+            val settings by graph.settings.settings.collectAsState(initial = app.tiviate.data.AppSettings())
+            TiviateTheme(settings) {
                 CompositionLocalProvider(LocalGraph provides graph) { AppRoot() }
             }
         }

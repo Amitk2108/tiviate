@@ -57,7 +57,18 @@ fun formatTime(ms: Long): String {
 
 @Composable
 fun Clock(style: TextStyle, modifier: Modifier = Modifier) {
-    Text(formatTime(rememberNow(15_000)), style = style, modifier = modifier)
+    val now = rememberNow(15_000)
+    val scale = when (app.tiviate.ui.theme.ThemeState.clockSize) {
+        app.tiviate.data.ClockSize.SMALL -> 0.85f
+        app.tiviate.data.ClockSize.MEDIUM -> 1f
+        app.tiviate.data.ClockSize.LARGE -> 1.3f
+    }
+    val text = if (app.tiviate.ui.theme.ThemeState.clockShowDate) {
+        java.text.SimpleDateFormat("EEE d MMM", java.util.Locale.getDefault()).format(java.util.Date(now)) + "  " + formatTime(now)
+    } else {
+        formatTime(now)
+    }
+    Text(text, style = style.copy(fontSize = style.fontSize * scale), modifier = modifier)
 }
 
 fun progressOf(startMs: Long, stopMs: Long, nowMs: Long): Float =

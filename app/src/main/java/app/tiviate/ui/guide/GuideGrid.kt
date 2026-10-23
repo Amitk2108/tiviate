@@ -149,7 +149,7 @@ private fun ProgrammeBlock(
     ) {
         Text(
             title,
-            maxLines = 1,
+            maxLines = if (app.tiviate.ui.theme.ThemeState.twoLineTitles) 2 else 1,
             overflow = TextOverflow.Ellipsis,
             style = TextStyle(
                 color = when {
