@@ -2,7 +2,7 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
-## Unreleased
+## 0.2.0 — 2026-10-24
 
 ### Added
 - Updates inside the app from GitHub Releases: daily check (can be turned off), "Check for updates" in About,
