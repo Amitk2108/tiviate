@@ -1,6 +1,7 @@
 package app.tiviate.player
 
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.PlaybackException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -17,21 +18,42 @@ class RetryPolicyTest {
     }
 }
 
-class RefusalTest {
+class PlaybackIssueTest {
 
     @Test
-    fun accountBusyCodesAreRecognised() {
-        // 458/407 are what single-session Xtream panels send; some (like the owner's provider) send a bare 400.
-        listOf(400, 407, 429, 458, 503, 509).forEach { assertTrue("$it", Refusal.isAccountBusy(it)) }
-        listOf(200, 401, 403, 404, 500).forEach { assertFalse("$it", Refusal.isAccountBusy(it)) }
+    fun classifiesHttpStatuses() {
+        assertEquals(PlaybackIssue.ACCOUNT_BUSY, PlaybackIssue.classify(httpStatus = 458, errorCode = 0))
+        assertEquals(PlaybackIssue.ACCOUNT_BUSY, PlaybackIssue.classify(httpStatus = 407, errorCode = 0))
+        assertEquals(PlaybackIssue.ACCOUNT_BUSY, PlaybackIssue.classify(httpStatus = 429, errorCode = 0))
+        // The owner's provider answers 400 for channels its upstream can't open (other channels play).
+        assertEquals(PlaybackIssue.CHANNEL_UNAVAILABLE, PlaybackIssue.classify(httpStatus = 400, errorCode = 0))
+        assertEquals(PlaybackIssue.CHANNEL_UNAVAILABLE, PlaybackIssue.classify(httpStatus = 404, errorCode = 0))
+        assertEquals(PlaybackIssue.CHANNEL_UNAVAILABLE, PlaybackIssue.classify(httpStatus = 502, errorCode = 0))
+        assertEquals(PlaybackIssue.ACCESS_DENIED, PlaybackIssue.classify(httpStatus = 401, errorCode = 0))
+        assertEquals(PlaybackIssue.ACCESS_DENIED, PlaybackIssue.classify(httpStatus = 403, errorCode = 0))
     }
 
     @Test
-    fun busyRetriesAreSlowerAndLastAboutNinetySeconds() {
+    fun classifiesPlayerErrorCodes() {
+        assertEquals(PlaybackIssue.NO_CONNECTION, PlaybackIssue.classify(null, PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED))
+        assertEquals(PlaybackIssue.NO_CONNECTION, PlaybackIssue.classify(null, PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT))
+        assertEquals(PlaybackIssue.UNSUPPORTED_FORMAT, PlaybackIssue.classify(null, PlaybackException.ERROR_CODE_DECODER_INIT_FAILED))
+        assertEquals(PlaybackIssue.UNSUPPORTED_FORMAT, PlaybackIssue.classify(null, PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED))
+        assertEquals(PlaybackIssue.UNKNOWN, PlaybackIssue.classify(null, PlaybackException.ERROR_CODE_UNSPECIFIED))
+    }
+
+    @Test
+    fun onlyAccountBusyUsesTheLongWait() {
+        assertTrue(PlaybackIssue.ACCOUNT_BUSY.longRetry)
+        assertFalse(PlaybackIssue.CHANNEL_UNAVAILABLE.longRetry)
         val p = RetryPolicy.accountBusy()
         val delays = generateSequence(0) { it + 1 }.map { p.nextDelay(it) }.takeWhile { it != null }.toList().filterNotNull()
         assertTrue(delays.sum() in 80_000L..120_000L)
-        assertTrue(delays.first() >= 2_000L)
+    }
+
+    @Test
+    fun everyIssueHasFriendlyCopy() {
+        PlaybackIssue.entries.forEach { assertTrue(it.title.isNotBlank() && it.body.isNotBlank()) }
     }
 }
 

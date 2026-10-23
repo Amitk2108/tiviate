@@ -73,4 +73,16 @@ class AddPlaylistFlowTest {
         rule.waitForIdle()
         rule.onNodeWithTag("save_playlist").assertIsFocused()
     }
+
+    @Test
+    fun backFromTheFormReturnsToWelcome() {
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("welcome_screen") }
+        rule.waitForIdle()
+        Remote.ok()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("field_url") }
+        rule.waitForIdle()
+        Remote.down() // focus inside the form
+        Remote.back()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("welcome_screen") }
+    }
 }
