@@ -140,4 +140,17 @@ class PlayerExtrasTest {
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("settings_screen") }
         rule.waitUntil(3_000) { rule.textExists("Allgemein") && rule.textExists("Darstellung") }
     }
+
+    @Test
+    fun aChannelOnlyServedAsHlsStillPlaysFromItsTsLink() {
+        launch()
+        val engine = graph.player.engine
+        val starts = engine.startCount
+        // The test server has no master.ts (404): the player must try master.m3u8 by itself.
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            engine.play(fixtures.url("/hls/master.ts"), emptyMap(), "Tiviate-test", "fallback-test")
+        }
+        rule.waitUntil(15_000) { engine.state.value.isPlaying && engine.startCount >= starts + 2 }
+        assertEquals("the other format plays, no error shown", null, engine.state.value.issue)
+    }
 }
