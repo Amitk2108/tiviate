@@ -8,7 +8,8 @@ import app.tiviate.data.db.PlaylistType
 sealed interface Screen {
     data object Loading : Screen
     data object Welcome : Screen
-    data class AddPlaylist(val type: PlaylistType) : Screen
+    /** Adds a playlist, or edits the one with [editId]. */
+    data class AddPlaylist(val type: PlaylistType, val editId: Long? = null) : Screen
     data class Syncing(val playlistId: Long) : Screen
     data object Player : Screen
     data object Guide : Screen

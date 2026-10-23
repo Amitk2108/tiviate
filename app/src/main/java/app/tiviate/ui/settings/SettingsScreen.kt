@@ -160,6 +160,7 @@ private fun PlaylistsSection() {
 @Composable
 private fun PlaylistCard(index: Int, p: PlaylistEntity, active: Boolean, onDelete: () -> Unit) {
     val graph = LocalGraph.current
+    val nav = LocalNavigator.current
     val scope = rememberCoroutineScope()
     var channels by remember(p.id) { mutableStateOf<Int?>(null) }
     var account by remember(p.id) { mutableStateOf<XtreamAccount?>(null) }
@@ -200,6 +201,7 @@ private fun PlaylistCard(index: Int, p: PlaylistEntity, active: Boolean, onDelet
                     }
                 }
             }, tag = "playlist_refresh_$index")
+            ActionButton("Edit", { nav.push(Screen.AddPlaylist(p.type, editId = p.id)) }, tag = "playlist_edit_$index")
             ActionButton("Delete", onDelete, tag = "playlist_delete_$index")
         }
     }
