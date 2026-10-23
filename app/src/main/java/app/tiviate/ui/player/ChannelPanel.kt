@@ -52,7 +52,8 @@ import app.tiviate.ui.components.formatTime
 import app.tiviate.ui.components.progressOf
 import app.tiviate.ui.components.rememberNow
 import app.tiviate.ui.theme.Tokens
-import coil3.compose.AsyncImage
+import app.tiviate.ui.components.RemoteImage
+import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
@@ -211,7 +212,7 @@ private fun DetailsCard(channel: ChannelEntity, info: NowNext?, now: Long, modif
         ) {
             val p = info?.now
             p?.iconUrl?.let { url ->
-                AsyncImage(model = url, contentDescription = null, modifier = Modifier.fillMaxWidth().height(200.dp).background(Tokens.Raised, Tokens.SmallShape))
+                RemoteImage(url, modifier = Modifier.fillMaxWidth().height(200.dp).background(Tokens.Raised, Tokens.SmallShape))
             }
             Text(channel.name, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
             if (p != null) {

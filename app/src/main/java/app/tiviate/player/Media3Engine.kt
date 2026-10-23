@@ -61,6 +61,10 @@ class Media3Engine(
     override val state: StateFlow<PlaybackState> = _state
 
     private var request: Request? = null
+
+    /** How many times a stream connection was (re)opened; lets tests prove the guide never re-tunes. */
+    var startCount: Int = 0
+        private set
     private var attempt = 0
     private var pausedAtMs: Long? = null
     private var boundView: PlayerView? = null
@@ -172,6 +176,7 @@ class Media3Engine(
 
     private fun startCurrent() {
         val r = request ?: return
+        startCount++
         main.removeCallbacks(retryRunnable)
         watchdog.reset()
         val dataSource = OkHttpDataSource.Factory(http)

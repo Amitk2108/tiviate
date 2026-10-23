@@ -40,6 +40,8 @@ fun VideoSurface(engine: PlaybackEngine, aspect: AspectMode, modifier: Modifier 
             }
         },
         update = { it.resizeMode = aspect.resizeMode },
+        // Detach from the shared player when this view goes away (guide ⇄ fullscreen hand-over).
+        onRelease = { it.player = null },
     )
 }
 

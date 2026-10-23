@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import app.tiviate.data.sync.SyncScheduler
+import app.tiviate.ui.guide.GuideScreen
 import app.tiviate.ui.player.PlayerScreen
 import app.tiviate.ui.theme.Tokens
 import app.tiviate.ui.welcome.AddPlaylistScreen
@@ -47,7 +48,8 @@ fun AppRoot() {
                 is Screen.AddPlaylist -> AddPlaylistScreen(screen.type)
                 is Screen.Syncing -> SyncingScreen(screen.playlistId)
                 Screen.Player -> PlayerScreen()
-                Screen.Guide, Screen.Search, Screen.Settings -> PlayerScreen()
+                Screen.Guide -> GuideScreen()
+                Screen.Search, Screen.Settings -> PlayerScreen()
             }
         }
     }

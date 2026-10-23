@@ -1,0 +1,81 @@
+package app.tiviate
+
+import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.test.core.app.ActivityScenario
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.tiviate.data.SyncProgress
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+class GuideTest {
+
+    @get:Rule
+    val rule = createEmptyComposeRule()
+
+    private lateinit var fixtures: FixtureServer
+    private lateinit var scenario: ActivityScenario<MainActivity>
+    private val graph get() = ApplicationProvider.getApplicationContext<TiviateApp>().graph
+
+    @Before
+    fun setUp() {
+        fixtures = FixtureServer().start()
+        runBlocking {
+            val id = graph.playlists.addM3uUrl("Fixture", fixtures.url("/list.m3u"), null, null)
+            graph.playlists.sync(id).first { it is SyncProgress.Done || it is SyncProgress.Failed }
+            graph.settings.update { it.copy(activePlaylistId = id) }
+        }
+        scenario = ActivityScenario.launch(MainActivity::class.java)
+        rule.waitUntil(15_000) { graph.player.engine.state.value.isPlaying }
+        rule.waitForIdle()
+    }
+
+    @After
+    fun tearDown() {
+        scenario.close()
+        fixtures.shutdown()
+    }
+
+    private fun current() = graph.player.current.value?.name
+
+    @Test
+    fun guideOpensOnNowAndOkPreviewsThenGoesFullscreen() {
+        Remote.right()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }
+        // The guide opens on the playing channel with the programme on air focused.
+        rule.waitUntil(5_000) { rule.textExists("Aurora News Show 3") }
+        Remote.down()
+        Remote.ok() // preview Beacon Sports in the guide
+        rule.waitUntil(5_000) { current() == "Beacon Sports" }
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("guide_screen") }
+        Remote.ok() // second OK on the previewed channel: fullscreen
+        rule.waitUntil(5_000) { !rule.onAllNodesWithTagExists("guide_screen") && rule.onAllNodesWithTagExists("player_screen") }
+    }
+
+    @Test
+    fun okOnThePlayingChannelDoesNotReconnect() {
+        val before = graph.player.engine.state.value.channelKey
+        val starts = graph.player.engine.startCount
+        Remote.right()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }
+        rule.waitForIdle()
+        Remote.ok()
+        rule.waitUntil(5_000) { !rule.onAllNodesWithTagExists("guide_screen") }
+        org.junit.Assert.assertEquals(before, graph.player.engine.state.value.channelKey)
+        org.junit.Assert.assertEquals("the stream must not be reopened", starts, graph.player.engine.startCount)
+    }
+
+    @Test
+    fun backReturnsToFullscreen() {
+        Remote.right()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }
+        Remote.back()
+        rule.waitUntil(5_000) { !rule.onAllNodesWithTagExists("guide_screen") && rule.onAllNodesWithTagExists("player_screen") }
+    }
+}
