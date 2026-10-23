@@ -1,6 +1,7 @@
 package app.tiviate
 
 import android.view.KeyEvent
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -156,6 +157,24 @@ class PlayerNavigationTest {
         rule.waitUntil(5_000) { scenario.state == androidx.lifecycle.Lifecycle.State.DESTROYED }
         assertNotEquals(null, graph)
     }
+
+    @Test
+    fun errorCardButtonsAreReachableWithTheRemote() {
+        fixtures.failStreams = true
+        Remote.up() // tune the next channel: its stream now fails
+        rule.waitUntil(20_000) { rule.onAllNodesWithTagExists("error_card") }
+        rule.waitForIdle()
+        Remote.right()
+        rule.waitForIdle()
+        assertTrue("Right must not leave for the guide", !rule.onAllNodesWithTagExists("guide_screen"))
+        rule.onNodeWithTag("error_next").assertIsFocused()
+        Remote.right()
+        rule.onNodeWithTag("error_external").assertIsFocused()
+        Remote.left()
+        Remote.left()
+        rule.onNodeWithTag("error_retry").assertIsFocused()
+    }
+
 }
 
 private fun androidx.compose.ui.test.SemanticsNodeInteraction.assertExistsCompat() = assertExists()
