@@ -40,6 +40,15 @@ class SettingsTest {
     }
 
     @Test
+    fun highestQualityIsTheDefaultAndAutomaticIsKept() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val store = SettingsStore.forFile(File(context.filesDir, "settings-q-${System.nanoTime()}.preferences_pb"))
+        assertTrue("best quality unless the viewer picks automatic", store.settings.first().highestQuality)
+        store.update { it.copy(highestQuality = false) }
+        assertTrue("automatic is remembered", !store.settings.first().highestQuality)
+    }
+
+    @Test
     fun b1SettingsHaveDefaultsAndPersist() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val store = SettingsStore.forFile(File(context.filesDir, "settings-b1-${System.nanoTime()}.preferences_pb"))

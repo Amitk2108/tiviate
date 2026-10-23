@@ -2,6 +2,18 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.2.2 — 2026-10-24
+
+### Added
+- Settings → Playback → Always highest quality (on by default): the best stream quality the TV supports.
+  Turn it off for automatic quality that follows your connection.
+
+### Faster
+- Moving through the guide on a Fire TV: about 46 ms → 14 ms per frame (libraries compiled ahead of time).
+- Logos already saved on the TV are not loaded again at start; missing ones load later, a few at a time.
+- No more stutter 5 s after each channel change (watch history no longer reloads the channel lists).
+- Zapping and browsing groups no longer redraw every screen; the start-up guide refresh waits 45 s.
+
 ## 0.2.1 — 2026-10-24
 
 ### Changed
