@@ -130,3 +130,56 @@ object StreamType {
     fun looksLikeHls(firstBytes: ByteArray): Boolean =
         firstBytes.toString(Charsets.UTF_8).trimStart('﻿', ' ', '\t', '\r', '\n').startsWith("#EXTM3U")
 }
+
+/**
+ * Decides when to reconnect and when to give up, for stream errors and stalls alike. A stream that
+ * stays open but never delivers data raises no error, so stalls spend the same retry budget —
+ * otherwise the spinner would turn forever instead of showing the error card.
+ */
+class Reconnector(
+    private val watchdog: StallWatchdog,
+    private val schedule: (delayMs: Long, issue: PlaybackIssue) -> Unit,
+    private val giveUp: (PlaybackIssue, detail: String?) -> Unit,
+) {
+    /** Reconnects spent on the current channel since it last played. */
+    var attempt = 0
+        private set
+    private var waiting = false
+
+    /** A (re)connection was opened. */
+    fun onStarted() {
+        waiting = false
+        watchdog.reset()
+    }
+
+    fun onPlaying() {
+        attempt = 0
+    }
+
+    /** New channel or "Try again": full budget. */
+    fun reset() {
+        attempt = 0
+        waiting = false
+        watchdog.reset()
+    }
+
+    fun onSample(nowMs: Long, isPlaying: Boolean, isBuffering: Boolean, positionMs: Long) {
+        if (!waiting && watchdog.onSample(nowMs, isPlaying, isBuffering, positionMs)) onIssue(PlaybackIssue.NO_CONNECTION, STALL_DETAIL)
+    }
+
+    fun onIssue(issue: PlaybackIssue, detail: String?) {
+        val delay = issue.retry.nextDelay(attempt)
+        if (delay == null) {
+            waiting = false
+            giveUp(issue, detail)
+            return
+        }
+        attempt++
+        waiting = true
+        schedule(delay, issue)
+    }
+
+    companion object {
+        const val STALL_DETAIL = "No data from the stream"
+    }
+}
