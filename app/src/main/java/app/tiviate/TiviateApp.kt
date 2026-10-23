@@ -1,8 +1,12 @@
 package app.tiviate
 
 import android.app.Application
+import app.tiviate.ui.images.buildImageLoader
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
 
-class TiviateApp : Application() {
+class TiviateApp : Application(), SingletonImageLoader.Factory {
     lateinit var graph: AppGraph
         private set
 
@@ -10,4 +14,6 @@ class TiviateApp : Application() {
         super.onCreate()
         graph = AppGraph(this)
     }
+
+    override fun newImageLoader(context: PlatformContext): ImageLoader = buildImageLoader(this, graph.http)
 }
