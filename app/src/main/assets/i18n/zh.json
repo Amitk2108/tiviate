@@ -137,7 +137,7 @@
 "Language": "语言",
 "TV's language": "电视语言",
 "Open last channel fullscreen on start": "启动时全屏打开上次观看的频道",
-"When off, Tiviate starts on the TV guide with the channel playing in the preview.": "关闭时，Tiviate 启动后显示电视节目指南，并在预览窗口中播放频道。",
+"When off, Tiviate starts on the TV guide; OK on a channel plays it.": "关闭时，Tiviate 打开节目指南；在频道上按 OK 即可播放。",
 "Confirm exit with a second Back": "再按一次返回键确认退出",
 "Start Tiviate when the TV turns on": "电视开机时启动 Tiviate",
 "On Android 10 and newer, allow \"Display over other apps\" for Tiviate when asked — the TV needs it to open Tiviate at start-up.": "在 Android 10 及更高版本上，出现提示时请允许 Tiviate“显示在其他应用的上层” — 电视需要此权限才能在开机时打开 Tiviate。",

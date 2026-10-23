@@ -1,5 +1,6 @@
 package app.tiviate.ui.player
 
+import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.Settings
@@ -132,7 +133,8 @@ fun OptionsPanel(
 
 /** The icon for an options tile, by its tag. */
 fun optionIcon(tag: String): ImageVector = when (tag) {
-    "option_guide" -> Icons.Rounded.ViewList
+    "option_channels" -> Icons.Rounded.ViewList
+    "option_guide" -> Icons.Rounded.CalendarMonth
     "option_playpause" -> Icons.Rounded.Pause
     "option_live" -> Icons.Rounded.LiveTv
     "option_previous" -> Icons.Rounded.SkipPrevious

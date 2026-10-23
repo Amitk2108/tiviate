@@ -36,7 +36,7 @@ class GuideLateDataTest {
             graph.settings.update { it.copy(activePlaylistId = playlistId, startFullscreen = false) } // start on the guide
         }
         scenario = ActivityScenario.launch(MainActivity::class.java)
-        rule.waitUntil(15_000) { rule.onAllNodesWithTagExists("guide_screen") && graph.player.engine.state.value.isPlaying }
+        rule.waitUntil(15_000) { rule.onAllNodesWithTagExists("guide_screen") }
         rule.waitForIdle()
     }
 

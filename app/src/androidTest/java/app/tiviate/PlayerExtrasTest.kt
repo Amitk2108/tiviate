@@ -1,5 +1,6 @@
 package app.tiviate
 
+import androidx.compose.ui.test.assertIsFocused
 import android.os.SystemClock
 import android.view.InputDevice
 import android.view.KeyEvent
@@ -96,9 +97,10 @@ class PlayerExtrasTest {
     @Test
     fun longOkOnAListRowOpensTheChannelMenuAndHideWorks() {
         launch()
-        Remote.ok() // control panel; "Channels" has focus
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        Remote.ok() // options; "Channels" is the first tile
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
         rule.waitForIdle()
+        repeat(20) { if (runCatching { rule.onNodeWithTag("option_channels").assertIsFocused() }.isFailure) { Remote.left(); rule.waitForIdle() } }
         Remote.ok()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
         rule.waitForIdle()

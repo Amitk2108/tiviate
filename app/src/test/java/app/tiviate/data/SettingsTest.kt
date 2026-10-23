@@ -124,4 +124,11 @@ class SettingsTest {
         assertEquals("a channel's own mode wins", DisplayMode.RATIO_4_3, s.displayModeFor("1:x:9"))
         assertEquals("others use the all-channels mode", DisplayMode.FIT, s.displayModeFor("1:x:10"))
     }
+
+    @Test
+    fun cardsAddedInAnUpdateKeepTheirDefaultPlace() {
+        val defaults = listOf("channels", "guide", "pause", "audio")
+        assertEquals(listOf("channels", "pause", "guide", "audio"), mergeCardOrder(listOf("pause", "guide", "audio"), defaults))
+        assertEquals("unknown cards are dropped", listOf("channels", "guide", "pause", "audio"), mergeCardOrder(listOf("audio", "old"), defaults))
+    }
 }

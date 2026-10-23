@@ -110,7 +110,7 @@ fun PlayerScreen() {
     // "Close the channel list and options after N s": an idle panel closes by itself.
     LaunchedEffect(overlay, settings.panelTimeoutSec, lastInputAt) {
         val seconds = settings.panelTimeoutSec
-        if (seconds > 0 && (overlay is Overlay.Panel || overlay == Overlay.Options || overlay == Overlay.Control)) {
+        if (seconds > 0 && (overlay is Overlay.Panel || overlay == Overlay.Options)) {
             delay(seconds * 1_000L)
             vm.close()
         }
@@ -135,7 +135,7 @@ fun PlayerScreen() {
         when (native.keyCode) {
             AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER, AndroidKeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 when (okPress.onKey(native)) {
-                    KeyAction.Short -> if (!vm.commitPeek()) vm.open(Overlay.Control)
+                    KeyAction.Short -> if (!vm.commitPeek()) vm.open(Overlay.Options)
                     KeyAction.Long -> vm.open(Overlay.Options)
                     KeyAction.None -> Unit
                 }
@@ -294,23 +294,6 @@ fun PlayerScreen() {
                     onCloseRail = { vm.open(Overlay.Panel(categoriesFocused = false)) },
                 )
             }
-            Overlay.Control -> {
-                val ch = current
-                val recent by androidx.compose.runtime.produceState(emptyList<app.tiviate.data.db.ChannelEntity>(), ch?.stableKey) { value = vm.recentChannels() }
-                ControlPanel(
-                    channel = ch,
-                    info = ch?.epgRef?.let(vm.nowNext::get),
-                    playback = playback,
-                    showNumber = settings.showChannelNumbers,
-                    requestInfo = { ref -> vm.loadNowNext(listOf(ref)) },
-                    recent = recent,
-                    nowNext = vm.nowNext,
-                    onChannels = { openPanel(categories = false) },
-                    onGuide = { vm.close(); nav.push(Screen.Guide) },
-                    onOptions = { vm.open(Overlay.Options) },
-                    onRecent = { vm.tune(it); vm.close() },
-                )
-            }
             Overlay.Options -> {
                 fun pick(tag: String, kind: PickerKind) { vm.lastOptionTag = tag; vm.open(Overlay.Picker(kind)) }
                 val ch = current
@@ -323,6 +306,7 @@ fun PlayerScreen() {
                     requestInfo = { ref -> vm.loadNowNext(listOf(ref)) },
                     focusTag = vm.lastOptionTag,
                     options = listOfNotNull(
+                        OptionItem("option_channels", t("Channels"), null) { vm.lastOptionTag = "option_channels"; openPanel(categories = false) },
                         OptionItem("option_guide", t("TV guide"), null) { vm.close(); nav.push(Screen.Guide) },
                         OptionItem("option_playpause", if (playback.isPaused) t("Play") else t("Pause"), if (playback.isPaused) t("Paused") else t("Live")) {
                             vm.lastOptionTag = "option_playpause"

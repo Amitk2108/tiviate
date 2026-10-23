@@ -64,7 +64,9 @@ fun AppRoot() {
     CompositionLocalProvider(LocalNavigator provides nav, app.tiviate.ui.player.LocalVideoLayout provides videoLayout) {
         Box(Modifier.fillMaxSize().background(Tokens.Background)) {
             app.tiviate.ui.player.VideoHost(graph.player.engine)
-            Box(Modifier.fillMaxSize().graphicsLayer { alpha = fade.value }) {
+            // Only the player and the guide let the video show through; every other screen is opaque.
+            val opaque = nav.current != Screen.Player && nav.current != Screen.Guide
+            Box(Modifier.fillMaxSize().then(if (opaque) Modifier.background(Tokens.Background) else Modifier).graphicsLayer { alpha = fade.value }) {
             when (val screen = nav.current) {
                 Screen.Loading -> Unit
                 Screen.Welcome -> WelcomeScreen()

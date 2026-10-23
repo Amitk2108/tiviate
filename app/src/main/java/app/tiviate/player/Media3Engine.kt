@@ -344,6 +344,8 @@ class Media3Engine(
     }
 
     override fun stop() {
+        // Callers may arrive from a background coroutine (e.g. after a playlist sync): the player only runs on its own thread.
+        if (Looper.myLooper() != player.applicationLooper) { main.post { stop() }; return }
         main.removeCallbacks(retryRunnable)
         request = null
         pausedAtMs = null

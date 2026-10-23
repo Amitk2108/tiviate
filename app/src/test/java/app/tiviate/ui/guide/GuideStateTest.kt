@@ -158,6 +158,10 @@ class GuideStateTest {
         assertFalse("past → keep moving", s.leftOpensGroups(now))
         val empty = state(now).apply { focusRow(0, emptyList()) }
         assertTrue("no guide data → groups", empty.leftOpensGroups(now))
+        val gap = state(now).apply { focusRow(0, row.take(2)) }
+        gap.moveTime(+1, row.take(2)) // onto the empty slot after the programme on air
+        assertEquals(null, gap.focused?.programme)
+        assertFalse("empty future slot → move left, not the groups", gap.leftOpensGroups(now))
     }
 
     @Test

@@ -1,5 +1,7 @@
 package app.tiviate
 
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -46,9 +48,10 @@ class DeepListTest {
 
     @Test
     fun listOpensOnThePlayingChannelDeepInTheCategory() {
-        Remote.ok() // control panel; "Channels" has focus
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        Remote.ok() // options; "Channels" is the first tile
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
         rule.waitForIdle()
+        repeat(20) { if (runCatching { rule.onNodeWithTag("option_channels").assertIsFocused() }.isFailure) { Remote.left(); rule.waitForIdle() } }
         Remote.ok()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("channel_panel") }
         rule.waitUntil(5_000) { rule.textExists("Big 350") }
@@ -60,9 +63,10 @@ class DeepListTest {
 
     @Test
     fun pageDownJumpsAScreenOfChannels() {
-        Remote.ok() // control panel; "Channels" has focus
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        Remote.ok() // options; "Channels" is the first tile
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
         rule.waitForIdle()
+        repeat(20) { if (runCatching { rule.onNodeWithTag("option_channels").assertIsFocused() }.isFailure) { Remote.left(); rule.waitForIdle() } }
         Remote.ok()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("channel_panel") }
         rule.waitUntil(5_000) { rule.textExists("Big 350") }

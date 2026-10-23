@@ -75,12 +75,11 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
             val p = graph.playlists.get(pid) ?: return@launch
             _category.value = Category.restore(settings.lastGroup)
             _playlist.value = p
-            // Nothing playing yet (fresh start): put the last watched, or first, channel in the preview.
-            if (graph.player.current.value == null || graph.player.engine.state.value.channelKey == null) {
-                val channel = settings.lastChannelKey?.let { repo.byKey(pid, it) } ?: repo.first(pid, _category.value) ?: repo.first(pid, Category.All)
-                channel?.let { graph.player.tune(it, p.userAgent) }
-            }
-            initialRow = graph.player.current.value?.let { repo.positionOf(pid, _category.value, it) } ?: 0
+            // Nothing starts by itself: the guide opens on the playing channel, or the last watched one; OK plays it.
+            val focusOn = graph.player.current.value ?: settings.lastChannelKey?.let { repo.byKey(pid, it) }
+            initialRow = focusOn?.let { repo.positionOf(pid, _category.value, it) } ?: 0
+            // Guide about to run out (provider publishes day by day): fetch it again in the background.
+            graph.appScope.launch(kotlinx.coroutines.Dispatchers.IO) { graph.playlists.refreshGuideIfRunningOut(pid) }
             _ready.value = true
         }
     }

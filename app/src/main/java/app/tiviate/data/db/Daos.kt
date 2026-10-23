@@ -278,6 +278,9 @@ interface HistoryDao {
 
 @Dao
 interface EpgDao {
+    /** When the last stored programme ends (null with no guide data). */
+    @Query("SELECT MAX(stopMs) FROM programme") suspend fun latestStop(): Long?
+
     @Insert suspend fun insertSource(s: EpgSourceEntity): Long
     @Update suspend fun updateSource(s: EpgSourceEntity)
     @Query("DELETE FROM epg_source WHERE id = :id") suspend fun deleteSource(id: Long)

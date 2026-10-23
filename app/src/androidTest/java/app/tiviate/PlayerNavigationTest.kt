@@ -82,21 +82,22 @@ class PlayerNavigationTest {
     }
 
     @Test
-    fun okOpensTheControlPanelWithShortcutsAndRecentChannels() {
+    fun okOpensThePlayerOptions() {
         Remote.ok()
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
         rule.waitForIdle()
-        rule.onNodeWithTag("control_channels").assertIsFocused()
-        rule.onNodeWithTag("control_guide").assertExistsCompat()
+        rule.onNodeWithTag("option_playpause").assertIsFocused()
+        rule.onNodeWithTag("option_channels").assertExistsCompat()
         Remote.back()
-        rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("control_panel") }
+        rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("options_panel") }
     }
 
     @Test
     fun okOpensPanelAndOkTunesFocused() {
-        Remote.ok() // control panel; "Channels" has focus
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        Remote.ok() // options; "Channels" is the first tile
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
         rule.waitForIdle()
+        repeat(20) { if (runCatching { rule.onNodeWithTag("option_channels").assertIsFocused() }.isFailure) { Remote.left(); rule.waitForIdle() } }
         Remote.ok()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
         Remote.down(2)
@@ -212,9 +213,10 @@ class PlayerNavigationTest {
     @Test
     fun idlePanelClosesAfterTheChosenTime() {
         runBlocking { graph.settings.update { it.copy(panelTimeoutSec = 10) } }
-        Remote.ok() // control panel; "Channels" has focus
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        Remote.ok() // options; "Channels" is the first tile
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
         rule.waitForIdle()
+        repeat(20) { if (runCatching { rule.onNodeWithTag("option_channels").assertIsFocused() }.isFailure) { Remote.left(); rule.waitForIdle() } }
         Remote.ok()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
         rule.waitUntil(15_000) { !rule.onAllNodesWithTagExists("channel_panel") }

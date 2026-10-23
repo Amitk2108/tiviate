@@ -102,6 +102,27 @@ class PlaylistRepositoryTest {
         assertFalse("updated just now: nothing to do at start", repo.needsStartSync(PlaylistUpdate.ON_START, guideOnStart = true))
     }
 
+    @Test
+    fun guideThatIsAboutToRunOutIsFetchedAgain() = runBlocking {
+        val guideHits = AtomicInteger()
+        val hour = 3_600_000L
+        h.routes["/list.m3u"] = { text("#EXTM3U url-tvg=\"${h.url("/epg.xml")}\"\n#EXTINF:-1 tvg-id=\"a\",A\nhttp://h/a.m3u8\n") }
+        // The provider's guide ends one hour from now (10:00Z + 1 h).
+        h.routes["/epg.xml"] = {
+            guideHits.incrementAndGet()
+            text("<tv><channel id=\"a\"><display-name>A</display-name></channel><programme start=\"20261023100000 +0000\" stop=\"20261023110000 +0000\" channel=\"a\"><title>Last</title></programme></tv>")
+        }
+        val id = h.db.playlists().insert(PlaylistEntity(name = "P", type = PlaylistType.M3U_URL, url = h.url("/list.m3u")))
+        val repo = repo()
+        repo.sync(id).collect {}
+        assertEquals(1, guideHits.get())
+
+        assertFalse("just updated: wait at least an hour", repo.refreshGuideIfRunningOut(id))
+        h.now += 2 * hour
+        assertTrue(repo.refreshGuideIfRunningOut(id))
+        assertEquals(2, guideHits.get())
+    }
+
     private fun repo() = PlaylistRepository(h.db, h.http, h.playlistSyncer(), h.epgSyncer(), clock = { h.now })
 
     @Test

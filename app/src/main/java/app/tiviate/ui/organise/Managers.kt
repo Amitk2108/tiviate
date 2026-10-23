@@ -226,7 +226,7 @@ fun ReorderList(items: SnapshotStateList<Pair<String, String>>, onDrop: (List<Pa
 
 /** Names of the fullscreen option cards, for the "Option cards" setting. */
 val OPTION_CARD_TITLES = mapOf(
-    "option_guide" to "TV guide", "option_playpause" to "Pause / Back to live", "option_previous" to "Previous channel",
+    "option_channels" to "Channels", "option_guide" to "TV guide", "option_playpause" to "Pause / Back to live", "option_previous" to "Previous channel",
     "option_audio" to "Audio", "option_subtitles" to "Subtitles", "option_display" to "Display", "option_zoom" to "Zoom",
     "option_quality" to "Quality", "option_audio_sync" to "Audio sync", "option_stats" to "Stats", "option_sleep" to "Sleep timer",
     "option_favorite" to "Favorite", "option_channel" to "Channel options", "option_pip" to "Picture-in-picture",

@@ -137,7 +137,7 @@
 "Language": "Kalba",
 "TV's language": "Televizoriaus kalba",
 "Open last channel fullscreen on start": "Paleidus atidaryti paskutinį kanalą visame ekrane",
-"When off, Tiviate starts on the TV guide with the channel playing in the preview.": "Kai išjungta, Tiviate atsidaro TV programoje, o kanalas rodomas peržiūroje.",
+"When off, Tiviate starts on the TV guide; OK on a channel plays it.": "Išjungus, Tiviate atsidaro TV gide; OK ant kanalo jį paleidžia.",
 "Confirm exit with a second Back": "Patvirtinti išėjimą antru Atgal paspaudimu",
 "Start Tiviate when the TV turns on": "Paleisti Tiviate įjungus televizorių",
 "On Android 10 and newer, allow \"Display over other apps\" for Tiviate when asked — the TV needs it to open Tiviate at start-up.": "„Android 10“ ir naujesnėse versijose paprašyti leiskite Tiviate „Rodyti virš kitų programų“ — televizoriui to reikia, kad paleidžiant atidarytų Tiviate.",

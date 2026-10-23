@@ -1,5 +1,7 @@
 package app.tiviate.ui.guide
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.rounded.PlayCircle
 import app.tiviate.ui.player.backgroundWithHole
 import app.tiviate.ui.player.VideoSlot
 import android.text.format.DateUtils
@@ -273,6 +275,11 @@ fun GuideScreen() {
                 val playback by graph.player.engine.state.collectAsStateWithLifecycle()
                 VideoSlot(DisplayMode.FIT, 100, Modifier.fillMaxSize(), onBounds = { previewRect = it })
                 when {
+                    // Nothing playing yet: a play sign until the viewer picks a channel.
+                    playback.channelKey == null -> androidx.tv.material3.Icon(
+                        androidx.compose.material.icons.Icons.Rounded.PlayCircle, contentDescription = null,
+                        tint = Tokens.TextSecondary, modifier = Modifier.size(56.dp),
+                    )
                     playback.issue != null -> Text(t(playback.issue!!.title), modifier = Modifier.padding(16.dp), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
                     playback.isBuffering -> app.tiviate.ui.components.Spinner(32.dp)
                 }
