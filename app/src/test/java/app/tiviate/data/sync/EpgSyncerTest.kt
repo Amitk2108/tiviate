@@ -1,6 +1,8 @@
 package app.tiviate.data.sync
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.tiviate.data.db.EpgOrigin
+import app.tiviate.data.db.EpgSourceEntity
 import app.tiviate.data.db.PlaylistEntity
 import app.tiviate.data.db.PlaylistType
 import java.util.concurrent.CountDownLatch
@@ -115,5 +117,49 @@ class EpgSyncerTest {
         h.playlistSyncer().sync(id) // channels rows are replaced
         val news = h.db.channels().allInPlaylist(id).first { it.name == "News One HD" }
         assertTrue(news.epgRef!!.endsWith(":news.one"))
+    }
+
+    private suspend fun playlistWith(name: String, tvgId: String): Long {
+        h.routes["/$name.m3u"] = { text("#EXTM3U\n#EXTINF:-1 tvg-id=\"$tvgId\",$name\nhttp://h/$name.m3u8\n") }
+        val id = h.db.playlists().insert(PlaylistEntity(name = name, type = PlaylistType.M3U_URL, url = h.url("/$name.m3u")))
+        h.playlistSyncer().sync(id)
+        return id
+    }
+
+    private suspend fun addManualSource(): Long =
+        h.db.epg().insertSource(EpgSourceEntity(url = h.url("/manual.xml"), name = "Manual", origin = EpgOrigin.MANUAL))
+
+    private suspend fun titlesFor(playlistId: Long): List<String> {
+        val ref = h.db.channels().allInPlaylist(playlistId).single().epgRef ?: return emptyList()
+        return h.db.epg().programmesFor(listOf(ref), 0, Long.MAX_VALUE).map { it.title }
+    }
+
+    @Test
+    fun sharedManualSourceKeepsProgrammesForEveryPlaylist() = runBlocking {
+        h.routes["/manual.xml"] = { text(epg("M")) }
+        val a = playlistWith("A", "news.one")
+        val b = playlistWith("B", "9001")
+        addManualSource()
+
+        h.epgSyncer().syncForPlaylist(a)
+        h.epgSyncer().syncForPlaylist(b) // must not drop the programmes only playlist A uses
+
+        assertEquals(listOf("M A", "M B"), titlesFor(a))
+        assertEquals(listOf("M S"), titlesFor(b))
+    }
+
+    @Test
+    fun syncAllDownloadsASharedSourceOnce() = runBlocking {
+        var downloads = 0
+        h.routes["/manual.xml"] = { downloads++; text(epg("M")) }
+        val a = playlistWith("A", "news.one")
+        val b = playlistWith("B", "9001")
+        addManualSource()
+
+        h.epgSyncer().syncPlaylists(listOf(a, b))
+
+        assertEquals(1, downloads)
+        assertEquals(listOf("M A", "M B"), titlesFor(a))
+        assertEquals(listOf("M S"), titlesFor(b))
     }
 }
