@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.tiviate.data.AppSettings
@@ -85,10 +86,17 @@ object Tokens {
 
     val BrandGradient: Brush get() = Brush.horizontalGradient(listOf(Blue, Cyan))
 
-    val SafeMargin = 48.dp
-    val Radius = 10.dp
+    /** TVs draw Tiviate at 960 × 540 dp (2× on a 1080p panel), so margins stay small: 24 dp = 48 px. */
+    val SafeMargin = 24.dp
+    val Radius = 14.dp
     val Shape = RoundedCornerShape(Radius)
-    val SmallShape = RoundedCornerShape(6.dp)
+    val SmallShape = RoundedCornerShape(10.dp)
+    val PillShape = RoundedCornerShape(50)
+
+    /** Focused rows and cards: a glow of the accent over the raised surface (white text stays readable). */
+    val Focused: Color get() = Cyan.copy(alpha = 0.38f).compositeOver(Raised)
+    /** The selected (current) item when not focused: a faint accent tint. */
+    val Selected: Color get() = Cyan.copy(alpha = 0.12f).compositeOver(Surface)
 
     val LogoShape: Shape get() = when (ThemeState.logoStyle) {
         LogoStyle.ROUNDED -> SmallShape
@@ -97,15 +105,15 @@ object Tokens {
     }
 
     /** Focused items grow slightly; "Animations" off keeps them still. */
-    val FocusScale: Float get() = if (ThemeState.animations) 1.04f else 1f
+    val FocusScale: Float get() = if (ThemeState.animations) 1.03f else 1f
     val FocusBorder = 2.dp
 
     /** All UI motion stays short and simple so TV GPUs never drop frames. */
     const val MotionMs = 140
     fun <T> motion(): FiniteAnimationSpec<T> = if (ThemeState.animations) tween(durationMillis = MotionMs, easing = FastOutSlowInEasing) else snap()
 
-    val TitleSize = 26.sp
-    val HeadingSize = 20.sp
-    val BodySize = 16.sp
-    val CaptionSize = 13.sp
+    val TitleSize = 24.sp
+    val HeadingSize = 18.sp
+    val BodySize = 15.sp
+    val CaptionSize = 12.sp
 }

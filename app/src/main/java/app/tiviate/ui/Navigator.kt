@@ -26,6 +26,8 @@ class Navigator(initial: Screen) {
 
     val current: Screen get() = stack.last()
     val canGoBack: Boolean get() = stack.size > 1
+    /** The screen under the current one, if any. */
+    val previous: Screen? get() = stack.getOrNull(stack.lastIndex - 1)
 
     fun push(screen: Screen) {
         if (stack.last() != screen) stack.add(screen)
@@ -45,3 +47,6 @@ class Navigator(initial: Screen) {
 
 val LocalGraph = staticCompositionLocalOf<AppGraph> { error("AppGraph not provided") }
 val LocalNavigator = staticCompositionLocalOf<Navigator> { error("Navigator not provided") }
+
+/** False for a screen drawn underneath another (Settings over the guide): it must not take Back or focus. */
+val LocalScreenActive = androidx.compose.runtime.compositionLocalOf { true }

@@ -69,6 +69,7 @@ fun GuideRow(
     showNumber: Boolean,
     focused: FocusBlock?,
     highlight: GuideHighlight = GuideHighlight.ON_AIR,
+    emptyBlocks: List<FocusBlock> = emptyList(),
 ) {
     Row(Modifier.fillMaxWidth().height(GUIDE_ROW_HEIGHT).padding(vertical = 2.dp)) {
         ChannelCell(channel, isPlaying, showNumber, rowFocused = focused != null)
@@ -78,6 +79,11 @@ fun GuideRow(
                 if (p.stopMs <= viewStartMs || p.startMs >= viewEnd) continue
                 val isFocused = focused?.programme?.id == p.id && focused.programme != null
                 ProgrammeBlock(p.title, p.startMs, p.stopMs, viewStartMs, windowMs, stripWidth, nowMs, isFocused, highlight = highlight)
+            }
+            // Nothing scheduled: "No information" blocks, so the row never ends in a gap.
+            for (e in emptyBlocks) {
+                if (focused != null && focused.programme == null && focused.startMs == e.startMs) continue
+                ProgrammeBlock(t("No information"), e.startMs, e.stopMs, viewStartMs, windowMs, stripWidth, nowMs, focused = false, empty = true)
             }
             if (focused != null && focused.programme == null && focused.stopMs > viewStartMs && focused.startMs < viewEnd) {
                 ProgrammeBlock(t("No information"), focused.startMs, focused.stopMs, viewStartMs, windowMs, stripWidth, nowMs, focused = true, empty = true)

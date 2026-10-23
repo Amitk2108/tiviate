@@ -1,5 +1,33 @@
 package app.tiviate.ui.settings
 
+import androidx.compose.foundation.shape.CircleShape
+import app.tiviate.ui.components.InfoChip
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Devices
+import androidx.compose.material.icons.rounded.Event
+import androidx.compose.material.icons.rounded.VerifiedUser
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.Dns
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.foundation.layout.size
+import androidx.tv.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.SettingsRemote
+import androidx.compose.material.icons.rounded.PlayCircle
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.PlaylistPlay
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,15 +91,18 @@ import kotlinx.coroutines.launch
 import app.tiviate.ui.t
 import app.tiviate.ui.tf
 
-private enum class Section(val tag: String, val label: String) {
-    GENERAL("section_general", t("General")),
-    PLAYLISTS("section_playlists", t("Playlists")),
-    GUIDE("section_guide", t("TV guide")),
-    APPEARANCE("section_appearance", t("Appearance")),
-    PLAYER("section_player", t("Playback")),
-    REMOTE("section_remote", t("Remote control")),
-    OTHER("section_other", t("Other")),
-    ABOUT("section_about", t("About")),
+private enum class Section(val tag: String, val english: String, val icon: ImageVector) {
+    GENERAL("section_general", "General", Icons.Rounded.Tune),
+    PLAYLISTS("section_playlists", "Playlists", Icons.Rounded.PlaylistPlay),
+    GUIDE("section_guide", "TV guide", Icons.Rounded.CalendarMonth),
+    APPEARANCE("section_appearance", "Appearance", Icons.Rounded.Palette),
+    PLAYER("section_player", "Playback", Icons.Rounded.PlayCircle),
+    REMOTE("section_remote", "Remote control", Icons.Rounded.SettingsRemote),
+    OTHER("section_other", "Other", Icons.Rounded.MoreHoriz),
+    ABOUT("section_about", "About", Icons.Rounded.Info);
+
+    /** Looked up each time, so a language change shows at once. */
+    val label: String get() = t(english)
 }
 
 /** Two-pane settings: sections on the left drive the content on the right. */
@@ -81,17 +112,22 @@ fun SettingsScreen() {
     val first = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusSoon(first) }
 
-    Row(Modifier.fillMaxSize().padding(Tokens.SafeMargin).testTag("settings_screen"), horizontalArrangement = Arrangement.spacedBy(32.dp)) {
-        Column(Modifier.width(260.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(t("Settings"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold), modifier = Modifier.padding(bottom = 16.dp))
+    Row(Modifier.fillMaxSize().padding(horizontal = Tokens.SafeMargin, vertical = 20.dp).testTag("settings_screen"), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+        Column(Modifier.width(210.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(t("Settings"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.Bold), modifier = Modifier.padding(start = 12.dp, bottom = 14.dp))
             Section.entries.forEachIndexed { i, s ->
+                val selected = s == section
                 FocusSurface(
                     onClick = { section = s },
                     modifier = (if (i == 0) Modifier.focusRequester(first) else Modifier).fillMaxWidth().testTag(s.tag),
-                    container = if (s == section) Tokens.Raised else Color.Transparent,
+                    container = if (selected) Tokens.Selected else Color.Transparent,
+                    shape = Tokens.SmallShape,
                     scale = 1.02f,
                 ) {
-                    Text(s.label, modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp), style = TextStyle(color = if (s == section) Tokens.Cyan else Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium))
+                    Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Icon(s.icon, contentDescription = null, tint = if (selected) Tokens.Cyan else Tokens.TextSecondary, modifier = Modifier.size(20.dp))
+                        Text(s.label, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = if (selected) Tokens.Cyan else Tokens.Text, fontSize = Tokens.BodySize, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium))
+                    }
                 }
             }
         }
@@ -112,7 +148,8 @@ fun SettingsScreen() {
 
 @Composable
 private fun SectionColumn(content: @Composable () -> Unit) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) { content() }
+    // Bottom room so the last row is never cut off by the screen edge.
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 48.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) { content() }
 }
 
 @Composable
@@ -121,8 +158,8 @@ private fun Caption(text: String) = Text(text, style = TextStyle(color = Tokens.
 /** A setting showing its current value; OK moves to the next choice. */
 @Composable
 private fun ValueRow(label: String, value: String, tag: String, onClick: () -> Unit) {
-    FocusSurface(onClick = onClick, modifier = Modifier.fillMaxWidth().testTag(tag)) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+    FocusSurface(onClick = onClick, modifier = Modifier.fillMaxWidth().testTag(tag), shape = Tokens.SmallShape, scale = 1.01f) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(label, modifier = Modifier.weight(1f), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
             Text(value, style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
         }
@@ -277,26 +314,40 @@ private fun PlaylistCard(index: Int, p: PlaylistEntity, active: Boolean, onDelet
         channels = graph.playlists.channelCount(p.id)
         if (p.type == PlaylistType.XTREAM) account = graph.playlists.xtreamAccount(p.id)
     }
-    Column(Modifier.fillMaxWidth().background(Tokens.Surface, Tokens.Shape).padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(p.name, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
-            if (active) Text(t("Active"), style = TextStyle(color = Tokens.Background, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Bold), modifier = Modifier.background(Tokens.Cyan, Tokens.SmallShape).padding(horizontal = 8.dp, vertical = 2.dp))
+    val typeIcon = when (p.type) { PlaylistType.M3U_URL -> Icons.Rounded.Link; PlaylistType.M3U_FILE -> Icons.Rounded.FolderOpen; PlaylistType.XTREAM -> Icons.Rounded.Dns }
+    Column(
+        Modifier.fillMaxWidth()
+            .background(if (active) Tokens.Selected else Tokens.Surface, Tokens.Shape)
+            .then(if (active) Modifier.border(1.dp, Tokens.Cyan.copy(alpha = 0.45f), Tokens.Shape) else Modifier)
+            .padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Box(Modifier.size(44.dp).background(Tokens.BrandGradient, CircleShape), contentAlignment = Alignment.Center) {
+                Icon(typeIcon, contentDescription = null, tint = Tokens.Text, modifier = Modifier.size(22.dp))
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(p.name, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
+                    if (active) Text(t("Active"), style = TextStyle(color = Tokens.Background, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Bold), modifier = Modifier.background(Tokens.Cyan, Tokens.PillShape).padding(horizontal = 10.dp, vertical = 2.dp))
+                }
+                Text(
+                    when (p.type) { PlaylistType.M3U_URL -> t("M3U link"); PlaylistType.M3U_FILE -> t("Local file"); PlaylistType.XTREAM -> t("Xtream Codes") },
+                    style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize),
+                )
+            }
         }
-        Caption(
-            listOfNotNull(
-                when (p.type) { PlaylistType.M3U_URL -> t("M3U link"); PlaylistType.M3U_FILE -> t("Local file"); PlaylistType.XTREAM -> t("Xtream Codes") },
-                channels?.let { "$it channels" },
-                p.lastSyncAt?.let { "updated ${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it))}" },
-            ).joinToString("  ·  "),
-        )
-        account?.let { a ->
-            Caption(
-                listOfNotNull(
-                    a.status?.let { tf("Account: %s", it) },
-                    a.expiresAtMs?.let { tf("Expires %s", DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(it))) },
-                    a.maxConnections?.let { tf("Connections: %d/%d", a.activeConnections ?: 0, it) },
-                ).joinToString("  ·  "),
-            )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            channels?.let { InfoChip(Icons.Rounded.LiveTv, "$it") }
+            p.lastSyncAt?.let { InfoChip(Icons.Rounded.Sync, DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(it))) }
+            account?.let { a ->
+                a.status?.let { InfoChip(Icons.Rounded.VerifiedUser, it, if (it.equals("Active", ignoreCase = true)) Tokens.Cyan else Tokens.Danger) }
+                a.expiresAtMs?.let { exp ->
+                    val days = ((exp - System.currentTimeMillis()) / 86_400_000L).coerceAtLeast(0)
+                    InfoChip(Icons.Rounded.Event, tf("Expires %s", DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(exp))) + "  ·  $days d", if (days < 7) Tokens.Danger else Tokens.TextSecondary)
+                }
+                a.maxConnections?.let { InfoChip(Icons.Rounded.Devices, "${a.activeConnections ?: 0}/$it") }
+            }
         }
         p.lastError?.let { Text(it, style = TextStyle(color = Tokens.Danger, fontSize = Tokens.CaptionSize)) }
         if (namesEditor) {
@@ -308,8 +359,9 @@ private fun PlaylistCard(index: Int, p: PlaylistEntity, active: Boolean, onDelet
                 scope.launch { graph.playlists.setNameEditor(p.id, prefixes, suffixes) }
             }, primary = true, tag = "names_apply_$index")
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 6.dp)) {
-            ActionButton(if (syncing) t("Updating…") else t("Update now"), {
+        // Wraps onto a second line when the buttons do not fit (long translations, narrow screens).
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            ActionButton(if (syncing) t("Updating…") else t("Update now"), icon = Icons.Rounded.Refresh, onClick = {
                 if (!syncing) {
                     syncing = true
                     graph.appScope.launch {
@@ -318,9 +370,9 @@ private fun PlaylistCard(index: Int, p: PlaylistEntity, active: Boolean, onDelet
                     }
                 }
             }, tag = "playlist_refresh_$index")
-            ActionButton(t("Edit"), { nav.push(Screen.AddPlaylist(p.type, editId = p.id)) }, tag = "playlist_edit_$index")
-            ActionButton(t("Names editor"), { namesEditor = !namesEditor }, tag = "playlist_names_$index")
-            ActionButton(t("Delete"), onDelete, tag = "playlist_delete_$index")
+            ActionButton(t("Edit"), { nav.push(Screen.AddPlaylist(p.type, editId = p.id)) }, tag = "playlist_edit_$index", icon = Icons.Rounded.Edit)
+            ActionButton(t("Names editor"), { namesEditor = !namesEditor }, tag = "playlist_names_$index", icon = Icons.Rounded.TextFields)
+            ActionButton(t("Delete"), onDelete, tag = "playlist_delete_$index", icon = Icons.Rounded.Delete, danger = true)
         }
     }
 }

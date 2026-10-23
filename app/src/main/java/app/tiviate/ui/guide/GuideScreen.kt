@@ -50,6 +50,7 @@ import app.tiviate.data.Category
 import app.tiviate.data.DisplayMode
 import app.tiviate.ui.LocalGraph
 import app.tiviate.ui.LocalNavigator
+import app.tiviate.ui.LocalScreenActive
 import app.tiviate.ui.Screen
 import app.tiviate.ui.components.KeyAction
 import app.tiviate.ui.organise.ChannelSheet
@@ -235,7 +236,7 @@ fun GuideScreen() {
     var lastBackAt by remember { mutableStateOf(0L) }
     var toast by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(toast) { if (toast != null) { kotlinx.coroutines.delay(2_000); toast = null } }
-    BackHandler {
+    BackHandler(enabled = LocalScreenActive.current) {
         when {
             sheet != null -> sheet = null
             details != null -> details = null
@@ -274,7 +275,7 @@ fun GuideScreen() {
             Clock(TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Medium))
         }
 
-        BoxWithConstraints(Modifier.fillMaxWidth().weight(0.6f).padding(horizontal = 24.dp)) {
+        BoxWithConstraints(Modifier.fillMaxWidth().weight(0.6f).padding(horizontal = 12.dp)) {
             val stripWidth = maxWidth - GUIDE_CHANNEL_WIDTH
             val viewStart = withTick(tick) { state.viewStartMs }
             Column(Modifier.fillMaxSize()) {
@@ -292,9 +293,11 @@ fun GuideScreen() {
                         items(count = items.itemCount, key = { i -> channelAt(i)?.id ?: -i.toLong() - 1 }, contentType = { "row" }) { i ->
                             val channel = items[i]
                             val isFocusedRow = withTick(tick) { i == state.row }
+                            val rowList = channel?.epgRef?.let { vm.programmes[it] }.orEmpty()
                             GuideRow(
                                 channel = channel,
-                                programmes = channel?.epgRef?.let { vm.programmes[it] }.orEmpty(),
+                                programmes = rowList,
+                                emptyBlocks = state.emptyBlocks(rowList, viewStart, viewStart + state.windowMs),
                                 viewStartMs = viewStart,
                                 windowMs = state.windowMs,
                                 nowMs = now,

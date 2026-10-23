@@ -31,6 +31,29 @@ sealed interface Category {
     data class Group(val name: String) : Category
     /** A group the viewer made. */
     data class Custom(val id: Long, val name: String) : Category
+
+    companion object {
+        private const val TAG = "tiviate:"
+
+        /** How the last opened category is saved (provider groups by name, as before). */
+        fun remember(c: Category): String? = when (c) {
+            All -> null
+            Favorites -> "${TAG}favorites"
+            Recent -> "${TAG}recent"
+            is Group -> c.name
+            is Custom -> "${TAG}custom:${c.id}:${c.name}"
+        }
+
+        fun restore(saved: String?): Category = when {
+            saved == null -> All
+            saved == "${TAG}favorites" -> Favorites
+            saved == "${TAG}recent" -> Recent
+            saved.startsWith("${TAG}custom:") -> saved.removePrefix("${TAG}custom:").let { rest ->
+                rest.substringBefore(':').toLongOrNull()?.let { Custom(it, rest.substringAfter(':')) } ?: All
+            }
+            else -> Group(saved)
+        }
+    }
 }
 
 data class NowNext(val now: ProgrammeEntity?, val next: ProgrammeEntity?) {

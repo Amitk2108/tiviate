@@ -57,6 +57,19 @@ class GuideStateTest {
     }
 
     @Test
+    fun gapsInTheWindowBecomeEmptySlotBlocks() {
+        val s = state()
+        val row = listOf(p(t10 + 30 * min, t10 + 90 * min, "A"))
+        val empty = s.emptyBlocks(row, t10, t10 + 3 * hour)
+        assertEquals(
+            listOf(t10 to t10 + 30 * min, t10 + 90 * min to t10 + 2 * hour, t10 + 2 * hour to t10 + 150 * min, t10 + 150 * min to t10 + 3 * hour),
+            empty.map { it.startMs to it.stopMs },
+        )
+        assertTrue(empty.all { it.programme == null })
+        assertEquals(6, s.emptyBlocks(emptyList(), t10, t10 + 3 * hour).size)
+    }
+
+    @Test
     fun upDownKeepsTime() {
         val s = state()
         val row0 = listOf(p(t10, t10 + hour, "A"))

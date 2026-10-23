@@ -107,6 +107,7 @@ data class AppSettings(
     val showClock: Boolean = true,
     val bannerTimeoutMs: Int = 4_000,
     val lastChannelKey: String? = null,
+    /** Last opened category (group, Favorites, Recent or a custom group), see [Category.remember]. */
     val lastGroup: String? = null,
     /** Open straight into the last channel fullscreen; off = start on the TV guide with the preview. */
     val startFullscreen: Boolean = false,

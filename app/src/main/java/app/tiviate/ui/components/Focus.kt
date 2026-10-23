@@ -24,7 +24,7 @@ fun FocusSurface(
     onLongClick: (() -> Unit)? = null,
     shape: Shape = Tokens.Shape,
     container: Color = Tokens.Surface,
-    focusedContainer: Color = Tokens.Raised,
+    focusedContainer: Color = Tokens.Focused,
     scale: Float = Tokens.FocusScale,
     content: @Composable BoxScope.() -> Unit,
 ) {

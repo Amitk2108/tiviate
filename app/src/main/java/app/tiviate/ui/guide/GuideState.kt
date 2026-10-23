@@ -124,6 +124,18 @@ class GuideState(
 
     private fun clampView(start: Long): Long = start.coerceIn(minStartMs, maxOf(minStartMs, maxEndMs - windowMs))
 
+    /** The stretches of [fromMs, toMs) with nothing scheduled, as the same empty slots the focus lands on. */
+    fun emptyBlocks(programmes: List<ProgrammeEntity>, fromMs: Long, toMs: Long): List<FocusBlock> {
+        val out = ArrayList<FocusBlock>()
+        var t = fromMs
+        while (t < toMs) {
+            val b = blockAt(programmes, t)
+            if (b.programme == null) out += b
+            t = maxOf(b.stopMs, t + 1)
+        }
+        return out
+    }
+
     /** The programme covering [t], or the empty slot around [t] bounded by its neighbours. */
     fun blockAt(programmes: List<ProgrammeEntity>, t: Long): FocusBlock {
         programmes.firstOrNull { it.startMs <= t && t < it.stopMs }?.let { return FocusBlock(it.startMs, it.stopMs, it) }
