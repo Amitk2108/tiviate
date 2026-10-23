@@ -173,3 +173,26 @@ class ReconnectorTest {
         assertEquals(1_000L, scheduled.last())
     }
 }
+
+class FormatFallbackTest {
+
+    @Test
+    fun tsAndHlsLinksSwapKeepingTheQuery() {
+        assertEquals("http://h/live/u/p/42.m3u8", StreamFallback.otherFormat("http://h/live/u/p/42.ts"))
+        assertEquals("http://h/live/u/p/42.ts", StreamFallback.otherFormat("http://h/live/u/p/42.m3u8"))
+        assertEquals("http://h/a/42.m3u8?token=x", StreamFallback.otherFormat("http://h/a/42.ts?token=x"))
+        assertNull("no known extension", StreamFallback.otherFormat("http://h/play/42"))
+        assertNull(StreamFallback.otherFormat("http://h/movie.mp4"))
+    }
+
+    @Test
+    fun onlyFormatProblemsTryTheOtherFormatAndOnlyOnce() {
+        assertTrue(StreamFallback.worthTrying(PlaybackIssue.CHANNEL_UNAVAILABLE, alreadyTried = false))
+        assertTrue(StreamFallback.worthTrying(PlaybackIssue.UNSUPPORTED_FORMAT, alreadyTried = false))
+        assertTrue(StreamFallback.worthTrying(PlaybackIssue.UNKNOWN, alreadyTried = false))
+        assertFalse("once per channel", StreamFallback.worthTrying(PlaybackIssue.CHANNEL_UNAVAILABLE, alreadyTried = true))
+        assertFalse(StreamFallback.worthTrying(PlaybackIssue.ACCOUNT_BUSY, alreadyTried = false))
+        assertFalse(StreamFallback.worthTrying(PlaybackIssue.ACCESS_DENIED, alreadyTried = false))
+        assertFalse(StreamFallback.worthTrying(PlaybackIssue.NO_CONNECTION, alreadyTried = false))
+    }
+}

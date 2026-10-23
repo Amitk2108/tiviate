@@ -56,7 +56,12 @@ class Media3Engine(
         val userAgent: String,
         val channelKey: String,
         val forcedMime: String? = null,
+        /** The other format (.ts <-> .m3u8) was already tried for this channel. */
+        val triedOtherFormat: Boolean = false,
     )
+
+    /** Channels that only played in the other format: later tunes go straight to it (this run of the app). */
+    private val workingUrl = HashMap<String, String>()
 
     private val main = Handler(Looper.getMainLooper())
     private val _state = MutableStateFlow(PlaybackState())
@@ -259,7 +264,7 @@ class Media3Engine(
 
     override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String) {
         main.removeCallbacks(retryRunnable)
-        request = Request(url, headers, userAgent, channelKey)
+        request = Request(workingUrl[channelKey]?.takeIf { StreamFallback.otherFormat(it) == url } ?: url, headers, userAgent, channelKey)
         reconnector.reset()
         pausedAtMs = null
         applyPreferences(settings) // a new channel starts from the "for all channels" choices
@@ -305,6 +310,14 @@ class Media3Engine(
         }
         val status = httpStatus(error)
         val issue = PlaybackIssue.classify(status, error.errorCode)
+        val other = StreamFallback.otherFormat(r.url)
+        if (other != null && StreamFallback.worthTrying(issue, r.triedOtherFormat)) {
+            request = r.copy(url = other, forcedMime = null, triedOtherFormat = true)
+            workingUrl[r.channelKey] = other // kept only if it plays (cleared below on a second failure)
+            startCurrent()
+            return
+        }
+        if (r.triedOtherFormat) workingUrl.remove(r.channelKey)
         reconnector.onIssue(issue, status?.let { "HTTP $it" } ?: error.errorCodeName)
     }
 

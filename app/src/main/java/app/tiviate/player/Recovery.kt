@@ -183,3 +183,25 @@ class Reconnector(
         const val STALL_DETAIL = "No data from the stream"
     }
 }
+
+/**
+ * Some providers serve a channel in only one format. When a channel fails with a format or "not found"
+ * kind of error, the same link in the other format (.ts <-> .m3u8) is tried once before the error shows.
+ */
+object StreamFallback {
+    fun otherFormat(url: String): String? {
+        val q = url.indexOf('?').let { if (it < 0) url.length else it }
+        val path = url.substring(0, q)
+        val rest = url.substring(q)
+        return when {
+            path.endsWith(".ts", ignoreCase = true) -> path.dropLast(3) + ".m3u8" + rest
+            path.endsWith(".m3u8", ignoreCase = true) -> path.dropLast(5) + ".ts" + rest
+            else -> null
+        }
+    }
+
+    /** Busy accounts, denied access and a lost connection are not format problems: another format won't help. */
+    fun worthTrying(issue: PlaybackIssue, alreadyTried: Boolean): Boolean = !alreadyTried && issue in setOf(
+        PlaybackIssue.CHANNEL_UNAVAILABLE, PlaybackIssue.UNSUPPORTED_FORMAT, PlaybackIssue.UNKNOWN,
+    )
+}
