@@ -57,6 +57,8 @@ import app.tiviate.ui.components.KeyAction
 import app.tiviate.ui.components.LongPressDetector
 import app.tiviate.ui.theme.Tokens
 import kotlin.math.abs
+import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 @Composable
 fun PlayerScreen() {
@@ -268,7 +270,7 @@ fun PlayerScreen() {
                     onTune = { ch ->
                         when {
                             ch.stableKey == current?.stableKey -> vm.close()
-                            settings.alwaysExternalPlayer -> { if (!ExternalPlayer.open(context, ch.streamUrl, ch.name)) vm.showToast("No other video player is installed") }
+                            settings.alwaysExternalPlayer -> { if (!ExternalPlayer.open(context, ch.streamUrl, ch.name)) vm.showToast(t("No other video player is installed")) }
                             else -> { vm.tune(ch); if (!settings.stayOnList) vm.close() }
                         }
                     },
@@ -293,7 +295,7 @@ fun PlayerScreen() {
             Overlay.Options -> {
                 fun pick(tag: String, kind: PickerKind) { vm.lastOptionTag = tag; vm.open(Overlay.Picker(kind)) }
                 val ch = current
-                val subtitle = remember(playback.channelKey, overlay) { engine.textTracks().firstOrNull { it.selected }?.label ?: "Off" }
+                val subtitle = remember(playback.channelKey, overlay) { engine.textTracks().firstOrNull { it.selected }?.label ?: t("Off") }
                 OptionsPanel(
                     channel = ch,
                     info = ch?.epgRef?.let(vm.nowNext::get),
@@ -302,45 +304,45 @@ fun PlayerScreen() {
                     requestInfo = { ref -> vm.loadNowNext(listOf(ref)) },
                     focusTag = vm.lastOptionTag,
                     options = listOfNotNull(
-                        OptionItem("option_guide", "TV guide", null) { vm.close(); nav.push(Screen.Guide) },
-                        OptionItem("option_playpause", if (playback.isPaused) "Play" else "Pause", if (playback.isPaused) "Paused" else "Live") {
+                        OptionItem("option_guide", t("TV guide"), null) { vm.close(); nav.push(Screen.Guide) },
+                        OptionItem("option_playpause", if (playback.isPaused) t("Play") else t("Pause"), if (playback.isPaused) t("Paused") else t("Live")) {
                             vm.lastOptionTag = "option_playpause"
                             vm.togglePause()
                         },
-                        if (playback.isPaused) OptionItem("option_live", "Back to live", null) { vm.lastOptionTag = "option_playpause"; engine.goLive() } else null,
-                        OptionItem("option_audio", "Audio", playback.audioLabel ?: "Default") { pick("option_audio", PickerKind.AUDIO) },
+                        if (playback.isPaused) OptionItem("option_live", t("Back to live"), null) { vm.lastOptionTag = "option_playpause"; engine.goLive() } else null,
+                        OptionItem("option_audio", t("Audio"), playback.audioLabel ?: t("Default")) { pick("option_audio", PickerKind.AUDIO) },
                         graph.player.previous.value?.let { prev ->
-                            OptionItem("option_previous", "Previous channel", prev.name) { vm.lastOptionTag = "option_previous"; vm.close(); vm.previousChannel() }
+                            OptionItem("option_previous", t("Previous channel"), prev.name) { vm.lastOptionTag = "option_previous"; vm.close(); vm.previousChannel() }
                         },
-                        OptionItem("option_subtitles", "Subtitles", subtitle) { pick("option_subtitles", PickerKind.SUBTITLES) },
-                        OptionItem("option_audio_sync", "Audio sync", audioSyncLabel(settings.audioOffsetMs)) { pick("option_audio_sync", PickerKind.AUDIO_SYNC) },
-                        OptionItem("option_pip", "Picture-in-picture", null) {
+                        OptionItem("option_subtitles", t("Subtitles"), subtitle) { pick("option_subtitles", PickerKind.SUBTITLES) },
+                        OptionItem("option_audio_sync", t("Audio sync"), audioSyncLabel(settings.audioOffsetMs)) { pick("option_audio_sync", PickerKind.AUDIO_SYNC) },
+                        OptionItem("option_pip", t("Picture-in-picture"), null) {
                             vm.lastOptionTag = "option_pip"
                             vm.close()
-                            if ((context as? app.tiviate.MainActivity)?.enterPip() != true) vm.showToast("This TV doesn't support picture-in-picture")
+                            if ((context as? app.tiviate.MainActivity)?.enterPip() != true) vm.showToast(t("This TV doesn't support picture-in-picture"))
                         },
-                        OptionItem("option_display", "Display", settings.displayModeFor(ch?.let { "${it.playlistId}:${it.stableKey}" }).label) { pick("option_display", PickerKind.DISPLAY) },
-                        OptionItem("option_zoom", "Zoom", "${settings.zoomPercent}%") { pick("option_zoom", PickerKind.ZOOM) },
+                        OptionItem("option_display", t("Display"), settings.displayModeFor(ch?.let { "${it.playlistId}:${it.stableKey}" }).label) { pick("option_display", PickerKind.DISPLAY) },
+                        OptionItem("option_zoom", t("Zoom"), "${settings.zoomPercent}%") { pick("option_zoom", PickerKind.ZOOM) },
                         OptionItem(
-                            "option_quality", "Quality",
-                            if (playback.videoHeight > 0) "${playback.videoWidth} × ${playback.videoHeight}" else "Automatic",
+                            "option_quality", t("Quality"),
+                            if (playback.videoHeight > 0) "${playback.videoWidth} × ${playback.videoHeight}" else t("Automatic"),
                         ) { pick("option_quality", PickerKind.QUALITY) },
-                        OptionItem("option_stats", "Stats", if (showStats) "On" else "Off") { vm.lastOptionTag = "option_stats"; vm.toggleStats() },
-                        OptionItem("option_sleep", "Sleep timer", sleepMinutes?.let { "$it min left" } ?: "Off") { pick("option_sleep", PickerKind.SLEEP) },
+                        OptionItem("option_stats", t("Stats"), if (showStats) t("On") else t("Off")) { vm.lastOptionTag = "option_stats"; vm.toggleStats() },
+                        OptionItem("option_sleep", t("Sleep timer"), sleepMinutes?.let { tf("%d min left", it) } ?: t("Off")) { pick("option_sleep", PickerKind.SLEEP) },
                         ch?.let {
-                            OptionItem("option_favorite", "Favorite", if (it.stableKey in favorites) "Added" else "Not added") {
+                            OptionItem("option_favorite", t("Favorite"), if (it.stableKey in favorites) t("Added") else t("Not added")) {
                                 vm.lastOptionTag = "option_favorite"
                                 vm.toggleFavorite(it)
                             }
                         },
                         ch?.let {
-                            OptionItem("option_external", "Other player", null) {
-                                if (!ExternalPlayer.open(context, it.streamUrl, it.name)) vm.showToast("No other video player is installed")
+                            OptionItem("option_external", t("Other player"), null) {
+                                if (!ExternalPlayer.open(context, it.streamUrl, it.name)) vm.showToast(t("No other video player is installed"))
                             }
                         },
-                        ch?.let { OptionItem("option_channel", "Channel options", null) { vm.lastOptionTag = "option_channel"; vm.close(); sheet = SheetTarget(it.playlistId, it, category, vm.nowNext[it.epgRef]?.now?.title) } },
-                        OptionItem("option_search", "Search", null) { vm.close(); nav.push(Screen.Search) },
-                        OptionItem("option_settings", "Settings", null) { vm.close(); nav.push(Screen.Settings) },
+                        ch?.let { OptionItem("option_channel", t("Channel options"), null) { vm.lastOptionTag = "option_channel"; vm.close(); sheet = SheetTarget(it.playlistId, it, category, vm.nowNext[it.epgRef]?.now?.title) } },
+                        OptionItem("option_search", t("Search"), null) { vm.close(); nav.push(Screen.Search) },
+                        OptionItem("option_settings", t("Settings"), null) { vm.close(); nav.push(Screen.Settings) },
                     ).filter { it.tag !in settings.hiddenOptionCards }
                         .sortedBy { settings.optionCards.indexOf(it.tag).let { i -> if (i < 0) Int.MAX_VALUE else i } },
                 )
@@ -353,7 +355,7 @@ fun PlayerScreen() {
                         val tracks = remember(o, playback.channelKey) { engine.audioTracks() }
                         val forAll = settings.preferredAudioLanguage != null
                         ChoiceDialog(
-                            title = "Audio",
+                            title = t("Audio"),
                             choices = tracks.map { t ->
                                 Choice(t.label, t.selected) {
                                     engine.selectAudio(t)
@@ -361,24 +363,24 @@ fun PlayerScreen() {
                                     done()
                                 }
                             },
-                            toggle = ToggleChoice("Use this language for all channels", forAll) { on ->
+                            toggle = ToggleChoice(t("Use this language for all channels"), forAll) { on ->
                                 val lang = tracks.firstOrNull { it.selected }?.language
                                 when {
                                     !on -> save { it.copy(preferredAudioLanguage = null) }
                                     lang != null -> save { it.copy(preferredAudioLanguage = lang) }
-                                    else -> vm.showToast("This track has no language set")
+                                    else -> vm.showToast(t("This track has no language set"))
                                 }
                             },
-                            empty = "This channel has only one audio track.",
+                            empty = t("This channel has only one audio track."),
                             tag = "track_dialog",
                         )
                     }
                     PickerKind.SUBTITLES -> {
                         val tracks = remember(o, playback.channelKey) { engine.textTracks() }
                         ChoiceDialog(
-                            title = "Subtitles",
+                            title = t("Subtitles"),
                             choices = listOf(
-                                Choice("Off", tracks.none { it.selected }) {
+                                Choice(t("Off"), tracks.none { it.selected }) {
                                     engine.selectText(null)
                                     if (settings.subtitlesForAll) save { it.copy(subtitlesForAll = false) }
                                     done()
@@ -390,7 +392,7 @@ fun PlayerScreen() {
                                     done()
                                 }
                             },
-                            toggle = ToggleChoice("Turn on for all channels", settings.subtitlesForAll) { on ->
+                            toggle = ToggleChoice(t("Turn on for all channels"), settings.subtitlesForAll) { on ->
                                 val lang = tracks.firstOrNull { it.selected }?.language
                                 save { it.copy(subtitlesForAll = on, preferredTextLanguage = if (on) lang ?: it.preferredTextLanguage else it.preferredTextLanguage) }
                             },
@@ -402,7 +404,7 @@ fun PlayerScreen() {
                         var applyAll by remember(o) { mutableStateOf(key == null || key !in settings.channelDisplayModes) }
                         val effective = settings.displayModeFor(key)
                         ChoiceDialog(
-                            title = "Display",
+                            title = t("Display"),
                             choices = DisplayMode.entries.map { m ->
                                 Choice(m.label, m == effective) {
                                     save { s ->
@@ -413,7 +415,7 @@ fun PlayerScreen() {
                                 }
                             },
                             toggle = key?.let {
-                                ToggleChoice("Apply to all channels", applyAll) { on ->
+                                ToggleChoice(t("Apply to all channels"), applyAll) { on ->
                                     applyAll = on
                                     if (on) save { s -> s.copy(channelDisplayModes = s.channelDisplayModes - it) }
                                 }
@@ -422,7 +424,7 @@ fun PlayerScreen() {
                         )
                     }
                     PickerKind.ZOOM -> ChoiceDialog(
-                        title = "Zoom (all channels)",
+                        title = t("Zoom (all channels)"),
                         choices = ZOOM_STEPS.map { z -> Choice("$z%", z == settings.zoomPercent) { save { it.copy(zoomPercent = z) }; done() } },
                         tag = "zoom_dialog",
                     )
@@ -430,21 +432,21 @@ fun PlayerScreen() {
                         val tracks = remember(o, playback.channelKey) { engine.videoTracks() }
                         val auto = remember(o) { engine.isAutoQuality() }
                         ChoiceDialog(
-                            title = "Quality",
-                            choices = listOf(Choice("Automatic", auto) { engine.selectVideo(null); done() }) +
+                            title = t("Quality"),
+                            choices = listOf(Choice(t("Automatic"), auto) { engine.selectVideo(null); done() }) +
                                 tracks.map { t -> Choice(t.label, !auto && t.selected) { engine.selectVideo(t); done() } },
                             tag = "quality_dialog",
                         )
                     }
                     PickerKind.AUDIO_SYNC -> ChoiceDialog(
-                        title = "Audio sync (all channels)",
+                        title = t("Audio sync (all channels)"),
                         choices = AUDIO_SYNC_STEPS.map { ms -> Choice(audioSyncLabel(ms), ms == settings.audioOffsetMs) { save { it.copy(audioOffsetMs = ms) }; done() } },
                         tag = "audio_sync_dialog",
                     )
                     PickerKind.SLEEP -> ChoiceDialog(
-                        title = "Sleep timer",
-                        choices = listOf(Choice("Off", sleepMinutes == null) { graph.player.setSleepTimer(null); done() }) +
-                            SLEEP_STEPS.map { m -> Choice("$m min", false) { graph.player.setSleepTimer(m); vm.showToast("Tiviate will stop in $m min"); done() } },
+                        title = t("Sleep timer"),
+                        choices = listOf(Choice(t("Off"), sleepMinutes == null) { graph.player.setSleepTimer(null); done() }) +
+                            SLEEP_STEPS.map { m -> Choice(tf("%d min", m), false) { graph.player.setSleepTimer(m); vm.showToast(tf("Tiviate will stop in %d min", m)); done() } },
                         tag = "sleep_dialog",
                     )
                 }
@@ -464,7 +466,7 @@ fun PlayerScreen() {
                 channel = current,
                 onRetry = { engine.retryNow() },
                 onNext = { vm.zap(forward = true) },
-                onExternal = { current?.let { if (!ExternalPlayer.open(context, it.streamUrl, it.name)) vm.showToast("No other video player is installed") } },
+                onExternal = { current?.let { if (!ExternalPlayer.open(context, it.streamUrl, it.name)) vm.showToast(t("No other video player is installed")) } },
             )
         }
         sheet?.let { t -> ChannelSheet(t, onClose = { sheet = null }, onMessage = vm::showToast) }
@@ -492,10 +494,10 @@ fun PlayerScreen() {
 private fun TouchControls(onChannels: () -> Unit, onGuide: () -> Unit, onMenu: () -> Unit, onPlayPause: () -> Unit) {
     Box(Modifier.fillMaxSize().padding(Tokens.SafeMargin), contentAlignment = Alignment.BottomCenter) {
         Row(Modifier.background(Tokens.Scrim, Tokens.Shape).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ActionButton("Channels", onChannels)
-            ActionButton("Guide", onGuide)
+            ActionButton(t("Channels"), onChannels)
+            ActionButton(t("Guide"), onGuide)
             ActionButton("⏯", onPlayPause)
-            ActionButton("Menu", onMenu)
+            ActionButton(t("Menu"), onMenu)
         }
     }
 }
@@ -535,6 +537,6 @@ private val AUDIO_SYNC_STEPS = listOf(-500, -400, -300, -200, -150, -100, -50, 0
 /** "0 ms", "Sound 100 ms later", "Sound 200 ms earlier". */
 fun audioSyncLabel(ms: Int): String = when {
     ms == 0 -> "0 ms"
-    ms > 0 -> "Sound $ms ms later"
-    else -> "Sound ${-ms} ms earlier"
+    ms > 0 -> tf("Sound %d ms later", ms)
+    else -> tf("Sound %d ms earlier", -ms)
 }

@@ -60,6 +60,8 @@ import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
+import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 sealed interface RailEntry {
     data object Search : RailEntry
@@ -78,9 +80,9 @@ fun railEntries(
     showRecent: Boolean = true,
 ): List<RailEntry> = buildList {
     add(RailEntry.Search)
-    if (showAll) add(RailEntry.Pick(Category.All, "All channels", groups.sumOf { it.count }.takeIf { it > 0 }))
-    if (showFavorites) add(RailEntry.Pick(Category.Favorites, "Favorites", null))
-    if (showRecent) add(RailEntry.Pick(Category.Recent, "Recent", null))
+    if (showAll) add(RailEntry.Pick(Category.All, t("All channels"), groups.sumOf { it.count }.takeIf { it > 0 }))
+    if (showFavorites) add(RailEntry.Pick(Category.Favorites, t("Favorites"), null))
+    if (showRecent) add(RailEntry.Pick(Category.Recent, t("Recent"), null))
     custom.forEach { add(RailEntry.Pick(Category.Custom(it.id, it.name), it.name, null)) }
     groups.forEach { g -> g.name?.let { add(RailEntry.Pick(Category.Group(it), g.shownName ?: it, g.count)) } }
     playlists.filter { it.id != activeId }.forEach { add(RailEntry.SwitchPlaylist(it)) }
@@ -88,9 +90,9 @@ fun railEntries(
 }
 
 fun categoryLabel(c: Category) = when (c) {
-    Category.All -> "All channels"
-    Category.Favorites -> "Favorites"
-    Category.Recent -> "Recent"
+    Category.All -> t("All channels")
+    Category.Favorites -> t("Favorites")
+    Category.Recent -> t("Recent")
     is Category.Group -> c.name
     is Category.Custom -> c.name
 }
@@ -167,7 +169,7 @@ fun ChannelPanel(
         ) {
             Text(categoryLabel(category), style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold), modifier = Modifier.padding(start = 8.dp, bottom = 12.dp))
             if (channels.itemCount == 0) {
-                Text("No channels here yet", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize), modifier = Modifier.padding(8.dp))
+                Text(t("No channels here yet"), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize), modifier = Modifier.padding(8.dp))
             }
             LazyColumn(
                 state = listState,
@@ -261,9 +263,9 @@ private fun DetailsCard(channel: ChannelEntity, info: NowNext?, now: Long, showD
                 Text("${formatTime(p.startMs)} – ${formatTime(p.stopMs)}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
                 ProgressLine(progressOf(p.startMs, p.stopMs, now))
                 if (showDescription) p.description?.let { Text(it, style = TextStyle(color = Tokens.Text, fontSize = Tokens.CaptionSize), maxLines = 4, overflow = TextOverflow.Ellipsis) }
-                info.next?.let { Text("Next  ${formatTime(it.startMs)}  ${it.title}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                info.next?.let { Text(tf("Next  %s  %s", formatTime(it.startMs), it.title), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize), maxLines = 1, overflow = TextOverflow.Ellipsis) }
             } else {
-                Text("No programme information", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
+                Text(t("No programme information"), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
             }
         }
     }

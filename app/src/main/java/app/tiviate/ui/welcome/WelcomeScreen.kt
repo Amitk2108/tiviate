@@ -30,6 +30,7 @@ import app.tiviate.ui.LocalNavigator
 import app.tiviate.ui.Screen
 import app.tiviate.ui.components.FocusSurface
 import app.tiviate.ui.theme.Tokens
+import app.tiviate.ui.t
 
 @Composable
 fun WelcomeScreen() {
@@ -42,18 +43,18 @@ fun WelcomeScreen() {
     ) {
         Image(painterResource(R.mipmap.ic_launcher), contentDescription = null, modifier = Modifier.size(88.dp))
         Spacer(Modifier.height(16.dp))
-        Text("Welcome to Tiviate", style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+        Text(t("Welcome to Tiviate"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
         Spacer(Modifier.height(8.dp))
         Text(
-            "Add the playlist from your TV provider to start watching. Tiviate is a player only and includes no channels.",
+            t("Add the playlist from your TV provider to start watching. Tiviate is a player only and includes no channels."),
             style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize, textAlign = TextAlign.Center),
             modifier = Modifier.width(560.dp),
         )
         Spacer(Modifier.height(32.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            SourceCard("M3U link", "Paste a playlist web address", Modifier.focusRequester(first)) { nav.push(Screen.AddPlaylist(PlaylistType.M3U_URL)) }
-            SourceCard("Xtream Codes", "Server, username and password") { nav.push(Screen.AddPlaylist(PlaylistType.XTREAM)) }
-            SourceCard("Local file", "An .m3u file on this device") { nav.push(Screen.AddPlaylist(PlaylistType.M3U_FILE)) }
+            SourceCard(t("M3U link"), t("Paste a playlist web address"), Modifier.focusRequester(first)) { nav.push(Screen.AddPlaylist(PlaylistType.M3U_URL)) }
+            SourceCard(t("Xtream Codes"), t("Server, username and password")) { nav.push(Screen.AddPlaylist(PlaylistType.XTREAM)) }
+            SourceCard(t("Local file"), t("An .m3u file on this device")) { nav.push(Screen.AddPlaylist(PlaylistType.M3U_FILE)) }
         }
     }
     LaunchedEffect(Unit) { runCatching { first.requestFocus() } }

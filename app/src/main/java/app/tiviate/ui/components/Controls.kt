@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import app.tiviate.ui.theme.Tokens
+import app.tiviate.ui.t
 
 /**
  * Remote-friendly text input using the TV "click to edit" pattern: the field is an ordinary focusable
@@ -140,7 +141,7 @@ fun ToggleRow(label: String, checked: Boolean, onToggle: () -> Unit, modifier: M
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(label, modifier = Modifier.weight(1f), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
             Text(
-                if (checked) "On" else "Off",
+                if (checked) t("On") else t("Off"),
                 modifier = Modifier.width(48.dp),
                 style = TextStyle(color = if (checked) Tokens.Cyan else Tokens.TextSecondary, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold),
             )

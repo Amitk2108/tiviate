@@ -32,6 +32,7 @@ import app.tiviate.player.PlaybackStats
 import app.tiviate.ui.components.FocusSurface
 import app.tiviate.ui.theme.Tokens
 import kotlinx.coroutines.delay
+import app.tiviate.ui.t
 
 data class Choice(val label: String, val selected: Boolean, val onClick: () -> Unit)
 
@@ -63,7 +64,7 @@ fun ChoiceDialog(title: String, choices: List<Choice>, toggle: ToggleChoice? = n
                 ) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(t.label, modifier = Modifier.weight(1f), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
-                        Text(if (checked) "On" else "Off", style = TextStyle(color = if (checked) Tokens.Cyan else Tokens.TextSecondary, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+                        Text(if (checked) t("On") else t("Off"), style = TextStyle(color = if (checked) Tokens.Cyan else Tokens.TextSecondary, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
                     }
                 }
             }
@@ -104,18 +105,18 @@ fun StatsOverlay(engine: PlaybackEngine) {
 }
 
 fun statsLines(s: PlaybackStats): List<Pair<String, String>> = buildList {
-    add("Video" to listOfNotNull(
+    add(t("Video") to listOfNotNull(
         s.videoCodec,
         "${s.width} × ${s.height}".takeIf { s.width > 0 },
         s.frameRate?.let { "%.2f fps".format(it) },
         s.videoBitrate?.let { "%.1f Mbps".format(it / 1_000_000f) },
     ).joinToString(" · ").ifEmpty { "—" })
-    add("Audio" to listOfNotNull(
+    add(t("Audio") to listOfNotNull(
         s.audioCodec,
         when (s.audioChannels) { 0 -> null; 1 -> "mono"; 2 -> "stereo"; 6 -> "5.1"; 8 -> "7.1"; else -> "${s.audioChannels} ch" },
         s.sampleRate.takeIf { it > 0 }?.let { "${it / 1000} kHz" },
     ).joinToString(" · ").ifEmpty { "—" })
-    add("Buffer" to "%.1f s".format(s.bufferedMs / 1000f))
-    add("Dropped" to "${s.droppedFrames} frames")
-    add("Connection" to if (s.bandwidthKbps > 0) "%.1f Mbps".format(s.bandwidthKbps / 1000f) else "—")
+    add(t("Buffer") to "%.1f s".format(s.bufferedMs / 1000f))
+    add(t("Dropped") to "${s.droppedFrames} frames")
+    add(t("Connection") to if (s.bandwidthKbps > 0) "%.1f Mbps".format(s.bandwidthKbps / 1000f) else "—")
 }

@@ -27,6 +27,7 @@ import app.tiviate.ui.components.ActionButton
 import app.tiviate.ui.theme.Tokens
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import app.tiviate.ui.t
 
 /**
  * Loads the channels, then opens the player straight away; the TV guide keeps loading in the
@@ -68,14 +69,14 @@ fun SyncingScreen(playlistId: Long) {
     ) {
         val f = failure
         if (f == null) {
-            Text("Loading your channels…", style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
-            Text(if (channels > 0) "$channels channels so far" else "Connecting to your provider", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize), modifier = Modifier.padding(top = 10.dp))
+            Text(t("Loading your channels…"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+            Text(if (channels > 0) "$channels channels so far" else t("Connecting to your provider"), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize), modifier = Modifier.padding(top = 10.dp))
         } else {
-            Text("Couldn't load the playlist", style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+            Text(t("Couldn't load the playlist"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
             Text(f, style = TextStyle(color = Tokens.Danger, fontSize = Tokens.BodySize), modifier = Modifier.padding(top = 10.dp, bottom = 24.dp).testTag("sync_error"))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                ActionButton("Try again", onClick = { attempt++ }, primary = true)
-                ActionButton("Change details", onClick = {
+                ActionButton(t("Try again"), onClick = { attempt++ }, primary = true)
+                ActionButton(t("Change details"), onClick = {
                     graph.appScope.launch { graph.playlists.delete(playlistId) }
                     nav.back()
                 })

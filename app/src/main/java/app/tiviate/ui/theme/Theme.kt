@@ -25,6 +25,8 @@ private val typography = Typography(
 @Composable
 fun TiviateTheme(settings: AppSettings = AppSettings(), content: @Composable () -> Unit) {
     SideEffect { ThemeState.apply(settings) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    androidx.compose.runtime.LaunchedEffect(settings.language) { app.tiviate.ui.I18n.use(context, settings.language) }
     val colors = darkColorScheme(
         primary = Tokens.Cyan,
         onPrimary = Tokens.Background,

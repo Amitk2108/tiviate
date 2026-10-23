@@ -41,6 +41,8 @@ import app.tiviate.ui.player.categoryLabel
 import app.tiviate.ui.player.focusSoon
 import app.tiviate.ui.theme.Tokens
 import kotlinx.coroutines.launch
+import app.tiviate.ui.t
+import app.tiviate.ui.tf
 
 /** What the long-OK menu is about: a channel (and its programme) seen inside [category]. */
 data class SheetTarget(
@@ -77,22 +79,22 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
 
     when (dialog) {
         SheetDialog.RenameChannel -> if (ch != null) {
-            TextInputDialog("Rename channel", "Channel name", ch.name, onSave = { name ->
-                scope.launch { graph.channels.renameChannel(ch, name); onMessage("Channel renamed"); onClose() }
+            TextInputDialog(t("Rename channel"), t("Channel name"), ch.name, onSave = { name ->
+                scope.launch { graph.channels.renameChannel(ch, name); onMessage(t("Channel renamed")); onClose() }
             }, onCancel = { dialog = null }, tag = "rename_channel_dialog")
             return
         }
         SheetDialog.AssignGuide -> if (ch != null) {
-            AssignGuideDialog(ch) { onMessage("Guide updated"); onClose() }
+            AssignGuideDialog(ch) { onMessage(t("Guide updated")); onClose() }
             return
         }
         SheetDialog.AddToGroup -> if (ch != null) {
-            AddToGroupDialog(target.playlistId, listOf(ch.stableKey)) { name -> name?.let { onMessage("Added to $it") }; onClose() }
+            AddToGroupDialog(target.playlistId, listOf(ch.stableKey)) { name -> name?.let { onMessage(tf("Added to %s", it)) }; onClose() }
             return
         }
         SheetDialog.RenameGroup -> {
             val current = when (cat) { is Category.Group -> cat.name; is Category.Custom -> cat.name; else -> "" }
-            TextInputDialog("Rename group", "Group name", current, onSave = { name ->
+            TextInputDialog(t("Rename group"), t("Group name"), current, onSave = { name ->
                 scope.launch {
                     when (cat) {
                         is Category.Group -> graph.channels.renameGroup(target.playlistId, cat.name, name)
@@ -105,12 +107,12 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
             return
         }
         SheetDialog.CreateGroup -> {
-            TextInputDialog("New group", "Group name", "", onSave = { name ->
+            TextInputDialog(t("New group"), t("Group name"), "", onSave = { name ->
                 scope.launch {
                     graph.channels.createCustomGroup(target.playlistId, name)?.let { id ->
                         ch?.let { graph.channels.addToCustomGroup(id, listOf(it.stableKey)) }
                     }
-                    onMessage("Group created")
+                    onMessage(t("Group created"))
                     onClose()
                 }
             }, onCancel = { dialog = null }, tag = "new_group_dialog")
@@ -120,53 +122,53 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
     }
 
     val rows = buildList<SheetItem> {
-        add(SheetItem.Row("sheet_search", "Search") { onClose(); nav.push(Screen.Search) })
-        add(SheetItem.Row("sheet_settings", "Settings") { onClose(); nav.push(Screen.Settings) })
+        add(SheetItem.Row("sheet_search", t("Search")) { onClose(); nav.push(Screen.Search) })
+        add(SheetItem.Row("sheet_settings", t("Settings")) { onClose(); nav.push(Screen.Settings) })
         if (target.programmeTitle != null && onDescription != null) {
             add(SheetItem.Header(target.programmeTitle))
-            add(SheetItem.Row("sheet_description", "Programme description") { onClose(); onDescription() })
+            add(SheetItem.Row("sheet_description", t("Programme description")) { onClose(); onDescription() })
         }
         if (ch != null) {
             add(SheetItem.Header(ch.name))
             val fav = ch.stableKey in favorites
-            add(SheetItem.Row("sheet_favorite", if (fav) "Remove from Favorites" else "Add to Favorites") {
-                scope.launch { val added = graph.channels.toggleFavorite(target.playlistId, ch.stableKey); onMessage(if (added) "Added to Favorites" else "Removed from Favorites"); onClose() }
+            add(SheetItem.Row("sheet_favorite", if (fav) t("Remove from Favorites") else t("Add to Favorites")) {
+                scope.launch { val added = graph.channels.toggleFavorite(target.playlistId, ch.stableKey); onMessage(if (added) t("Added to Favorites") else t("Removed from Favorites")); onClose() }
             })
-            add(SheetItem.Row("sheet_hide", "Hide channel") {
-                scope.launch { graph.channels.setHidden(target.playlistId, listOf(ch.stableKey), true); onMessage("Hidden — show it again in Manage visibility"); onClose() }
+            add(SheetItem.Row("sheet_hide", t("Hide channel")) {
+                scope.launch { graph.channels.setHidden(target.playlistId, listOf(ch.stableKey), true); onMessage(t("Hidden — show it again in Manage visibility")); onClose() }
             })
-            add(SheetItem.Row("sheet_rename", "Rename channel") { dialog = SheetDialog.RenameChannel })
-            if (ch.renamed) add(SheetItem.Row("sheet_restore_name", "Restore channel name") { scope.launch { graph.channels.restoreChannelName(ch); onClose() } })
-            add(SheetItem.Row("sheet_assign_guide", "Assign guide") { dialog = SheetDialog.AssignGuide })
-            add(SheetItem.Row("sheet_add_to_group", "Add to group") { dialog = SheetDialog.AddToGroup })
+            add(SheetItem.Row("sheet_rename", t("Rename channel")) { dialog = SheetDialog.RenameChannel })
+            if (ch.renamed) add(SheetItem.Row("sheet_restore_name", t("Restore channel name")) { scope.launch { graph.channels.restoreChannelName(ch); onClose() } })
+            add(SheetItem.Row("sheet_assign_guide", t("Assign guide")) { dialog = SheetDialog.AssignGuide })
+            add(SheetItem.Row("sheet_add_to_group", t("Add to group")) { dialog = SheetDialog.AddToGroup })
             if (cat is Category.Custom) {
-                add(SheetItem.Row("sheet_remove_from_group", "Remove from ${cat.name}") {
+                add(SheetItem.Row("sheet_remove_from_group", tf("Remove from %s", cat.name)) {
                     scope.launch { graph.channels.removeFromCustomGroup(cat.id, listOf(ch.stableKey)); onClose() }
                 })
             }
         }
         add(SheetItem.Header(categoryLabel(cat)))
-        if (cat == Category.Favorites) add(SheetItem.Row("sheet_manage_favorites", "Manage Favorites") { onClose(); nav.push(Screen.ManageChannels(target.playlistId, cat, reorder = true)) })
-        add(SheetItem.Row("sheet_visibility", "Manage visibility") { onClose(); nav.push(Screen.ManageChannels(target.playlistId, cat, reorder = false)) })
+        if (cat == Category.Favorites) add(SheetItem.Row("sheet_manage_favorites", t("Manage Favorites")) { onClose(); nav.push(Screen.ManageChannels(target.playlistId, cat, reorder = true)) })
+        add(SheetItem.Row("sheet_visibility", t("Manage visibility")) { onClose(); nav.push(Screen.ManageChannels(target.playlistId, cat, reorder = false)) })
         if (cat != Category.Recent && cat != Category.Favorites) {
-            add(SheetItem.Row("sheet_reorder", "Reorder channels") { onClose(); nav.push(Screen.ManageChannels(target.playlistId, cat, reorder = true)) })
+            add(SheetItem.Row("sheet_reorder", t("Reorder channels")) { onClose(); nav.push(Screen.ManageChannels(target.playlistId, cat, reorder = true)) })
         }
         if (cat == Category.All || cat is Category.Group) {
-            add(SheetItem.Row("sheet_sort", "Sort channels: ${settings.channelSort.label}") {
+            add(SheetItem.Row("sheet_sort", tf("Sort channels: %s", settings.channelSort.label)) {
                 scope.launch { graph.settings.update { it.copy(channelSort = ChannelSort.entries[(it.channelSort.ordinal + 1) % ChannelSort.entries.size]) } }
             })
         }
-        if (cat is Category.Group || cat is Category.Custom) add(SheetItem.Row("sheet_rename_group", "Rename group") { dialog = SheetDialog.RenameGroup })
+        if (cat is Category.Group || cat is Category.Custom) add(SheetItem.Row("sheet_rename_group", t("Rename group")) { dialog = SheetDialog.RenameGroup })
         if (cat is Category.Group) {
-            add(SheetItem.Row("sheet_hide_group", "Hide group") {
-                scope.launch { graph.channels.setGroupHidden(target.playlistId, cat.name, true); onMessage("Group hidden — show it again in Manage groups"); onClose() }
+            add(SheetItem.Row("sheet_hide_group", t("Hide group")) {
+                scope.launch { graph.channels.setGroupHidden(target.playlistId, cat.name, true); onMessage(t("Group hidden — show it again in Manage groups")); onClose() }
             })
         }
         if (cat is Category.Custom) {
-            add(SheetItem.Row("sheet_delete_group", "Delete group") { scope.launch { graph.channels.deleteCustomGroup(cat.id); onMessage("Group deleted"); onClose() } })
+            add(SheetItem.Row("sheet_delete_group", t("Delete group")) { scope.launch { graph.channels.deleteCustomGroup(cat.id); onMessage(t("Group deleted")); onClose() } })
         }
-        add(SheetItem.Row("sheet_create_group", "Create group") { dialog = SheetDialog.CreateGroup })
-        add(SheetItem.Row("sheet_manage_groups", "Manage groups") { onClose(); nav.push(Screen.ManageGroups(target.playlistId)) })
+        add(SheetItem.Row("sheet_create_group", t("Create group")) { dialog = SheetDialog.CreateGroup })
+        add(SheetItem.Row("sheet_manage_groups", t("Manage groups")) { onClose(); nav.push(Screen.ManageGroups(target.playlistId)) })
     }
 
     Box(Modifier.fillMaxSize().background(Tokens.ScrimSoft).testTag("channel_sheet"), contentAlignment = Alignment.CenterEnd) {

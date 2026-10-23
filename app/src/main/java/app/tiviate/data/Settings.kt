@@ -15,8 +15,14 @@ import java.io.File
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+/** Enum names shown on screen, in the viewer's language. */
+interface Labelled {
+    val english: String
+    val label: String get() = app.tiviate.ui.t(english)
+}
+
 /** Buffer size: minimum/maximum buffer and how much must be buffered to start / restart after a stall. */
-enum class BufferPreset(val label: String, val minMs: Int, val maxMs: Int, val startMs: Int, val restartMs: Int) {
+enum class BufferPreset(override val english: String, val minMs: Int, val maxMs: Int, val startMs: Int, val restartMs: Int) : Labelled {
     SMALL("Small (fastest start)", 5_000, 20_000, 750, 2_000),
     MEDIUM("Medium", 15_000, 40_000, 1_500, 3_000),
     LARGE("Large", 30_000, 90_000, 2_500, 5_000),
@@ -36,29 +42,29 @@ enum class BufferPreset(val label: String, val minMs: Int, val maxMs: Int, val s
 }
 
 /** Order of channels inside a group. */
-enum class ChannelSort(val label: String) {
+enum class ChannelSort(override val english: String) : Labelled {
     PLAYLIST("Playlist order"), NAME("Name"), NUMBER("Number"), NEWEST("Newest first"), MOST_WATCHED("Most watched"), MANUAL("My order"),
 }
 
 /** What a playlist opens on when you switch to it. */
-enum class OpenOn(val label: String) { ALL("All channels"), FAVORITES("Favorites") }
+enum class OpenOn(override val english: String) : Labelled { ALL("All channels"), FAVORITES("Favorites") }
 
-enum class AccentColor(val label: String, val argb: Long) {
+enum class AccentColor(override val english: String, val argb: Long) : Labelled {
     CYAN("Cyan", 0xFF2EC5E8), BLUE("Blue", 0xFF3B8BFF), INDIGO("Indigo", 0xFF6C7BFF), PURPLE("Purple", 0xFFB06CFF),
     PINK("Pink", 0xFFFF5FA2), RED("Red", 0xFFFF5A5A), ORANGE("Orange", 0xFFFF9A3C), AMBER("Amber", 0xFFFFC23D),
     YELLOW("Yellow", 0xFFE8E04A), LIME("Lime", 0xFFA6E04A), GREEN("Green", 0xFF45D483), TEAL("Teal", 0xFF2BC2A8),
 }
 
-enum class BackgroundTheme(val label: String) { DARK("Dark"), BLACK("Black"), BLUE_GREY("Blue grey") }
+enum class BackgroundTheme(override val english: String) : Labelled { DARK("Dark"), BLACK("Black"), BLUE_GREY("Blue grey") }
 
-enum class FontSize(val label: String, val scale: Float) { SMALL("Small", 0.9f), MEDIUM("Medium", 1.0f), LARGE("Large", 1.15f) }
+enum class FontSize(override val english: String, val scale: Float) : Labelled { SMALL("Small", 0.9f), MEDIUM("Medium", 1.0f), LARGE("Large", 1.15f) }
 
-enum class ClockSize(val label: String) { SMALL("Small"), MEDIUM("Medium"), LARGE("Large") }
+enum class ClockSize(override val english: String) : Labelled { SMALL("Small"), MEDIUM("Medium"), LARGE("Large") }
 
 /** A clock shown over the video in fullscreen. */
-enum class ClockCorner(val label: String) { OFF("Off"), TOP_LEFT("Top left"), TOP_RIGHT("Top right"), BOTTOM_LEFT("Bottom left"), BOTTOM_RIGHT("Bottom right") }
+enum class ClockCorner(override val english: String) : Labelled { OFF("Off"), TOP_LEFT("Top left"), TOP_RIGHT("Top right"), BOTTOM_LEFT("Bottom left"), BOTTOM_RIGHT("Bottom right") }
 
-enum class LogoStyle(val label: String) { ROUNDED("Rounded"), SQUARE("Square"), CIRCLE("Circle") }
+enum class LogoStyle(override val english: String) : Labelled { ROUNDED("Rounded"), SQUARE("Square"), CIRCLE("Circle") }
 
 /** The fullscreen options cards, in their default order. */
 val DEFAULT_OPTION_CARDS = listOf(
@@ -68,13 +74,13 @@ val DEFAULT_OPTION_CARDS = listOf(
 )
 
 /** How the TV guide marks programmes on air. */
-enum class GuideHighlight(val label: String) { ON_AIR("On-air programmes"), PROGRESS("Progress only"), NONE("None") }
+enum class GuideHighlight(override val english: String) : Labelled { ON_AIR("On-air programmes"), PROGRESS("Progress only"), NONE("None") }
 
 /** What D-pad Up/Down do while a channel plays fullscreen. */
 enum class UpDownMode { UP_NEXT_DOWN_OPTIONS, ZAP }
 
 /** How the picture fills the screen; applies to all channels. */
-enum class DisplayMode(val label: String) {
+enum class DisplayMode(override val english: String) : Labelled {
     FIT("Fit"),
     FILL("Stretch"),
     ZOOM("Fill screen"),

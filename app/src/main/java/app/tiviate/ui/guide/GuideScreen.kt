@@ -68,6 +68,7 @@ import app.tiviate.ui.player.focusSoon
 import app.tiviate.ui.theme.Tokens
 import app.tiviate.ui.components.RemoteImage
 import kotlinx.coroutines.launch
+import app.tiviate.ui.t
 
 @Composable
 fun GuideScreen() {
@@ -229,7 +230,7 @@ fun GuideScreen() {
             !settings.confirmExit || System.currentTimeMillis() - lastBackAt < 2_000 -> activity?.finish()
             else -> {
                 lastBackAt = System.currentTimeMillis()
-                toast = "Press Back again to exit"
+                toast = t("Press Back again to exit")
             }
         }
     }
@@ -248,7 +249,7 @@ fun GuideScreen() {
                 val playback by graph.player.engine.state.collectAsStateWithLifecycle()
                 VideoSurface(graph.player.engine, DisplayMode.FIT, 100, playback.videoWidth, playback.videoHeight, Modifier.fillMaxSize())
                 when {
-                    playback.issue != null -> Text(playback.issue!!.title, modifier = Modifier.padding(16.dp), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
+                    playback.issue != null -> Text(t(playback.issue!!.title), modifier = Modifier.padding(16.dp), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
                     playback.isBuffering -> app.tiviate.ui.components.Spinner(32.dp)
                 }
             }
@@ -337,9 +338,9 @@ fun GuideScreen() {
 private inline fun <T> withTick(@Suppress("UNUSED_PARAMETER") tick: Int, block: () -> T): T = block()
 
 private fun dayLabel(ms: Long, now: Long): String = when {
-    DateUtils.isToday(ms) -> "Today"
-    DateUtils.isToday(ms - DateUtils.DAY_IN_MILLIS) -> "Tomorrow"
-    DateUtils.isToday(ms + DateUtils.DAY_IN_MILLIS) -> "Yesterday"
+    DateUtils.isToday(ms) -> t("Today")
+    DateUtils.isToday(ms - DateUtils.DAY_IN_MILLIS) -> t("Tomorrow")
+    DateUtils.isToday(ms + DateUtils.DAY_IN_MILLIS) -> t("Yesterday")
     else -> java.text.SimpleDateFormat("EEE d MMM", java.util.Locale.getDefault()).format(java.util.Date(ms))
 }
 
@@ -349,7 +350,7 @@ private fun FocusDetails(block: FocusBlock?, channelName: String?, now: Long, mo
     Row(modifier.fillMaxHeight(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
         Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             channelName?.let { Text(it, style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.SemiBold)) }
-            Text(p?.title ?: "No programme information", maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
+            Text(p?.title ?: t("No programme information"), maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
             if (block != null) {
                 Text("${formatTime(block.startMs)} – ${formatTime(block.stopMs)}" + (p?.episode?.let { "  ·  $it" } ?: ""), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
                 if (block.startMs <= now && now < block.stopMs) ProgressLine(progressOf(block.startMs, block.stopMs, now), Modifier.width(320.dp))
@@ -370,11 +371,11 @@ private fun ProgrammeDetailsDialog(block: FocusBlock, onClose: () -> Unit) {
         Column(Modifier.width(620.dp).background(Tokens.Surface, Tokens.Shape).padding(28.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             val p = block.programme
             p?.iconUrl?.let { RemoteImage(it, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(240.dp).background(Tokens.Raised, Tokens.SmallShape)) }
-            Text(p?.title ?: "No programme information", style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+            Text(p?.title ?: t("No programme information"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
             Text("${formatTime(block.startMs)} – ${formatTime(block.stopMs)}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
             p?.description?.let { Text(it, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize)) }
             FocusSurface(onClick = onClose, modifier = Modifier.focusRequester(first), container = Tokens.Raised) {
-                Text("Close", modifier = Modifier.padding(horizontal = 22.dp, vertical = 12.dp), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+                Text(t("Close"), modifier = Modifier.padding(horizontal = 22.dp, vertical = 12.dp), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
             }
         }
     }
