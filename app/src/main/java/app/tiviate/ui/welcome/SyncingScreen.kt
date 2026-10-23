@@ -25,6 +25,7 @@ import app.tiviate.ui.LocalNavigator
 import app.tiviate.ui.Screen
 import app.tiviate.ui.components.ActionButton
 import app.tiviate.ui.theme.Tokens
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -56,6 +57,7 @@ fun SyncingScreen(playlistId: Long) {
             graph.settings.update { it.copy(activePlaylistId = playlistId, lastChannelKey = null, lastGroup = null) }
             graph.player.stop()
             nav.replaceAll(Screen.Player)
+            if (!graph.settings.settings.first().startFullscreen) nav.push(Screen.Guide)
         }
     }
 

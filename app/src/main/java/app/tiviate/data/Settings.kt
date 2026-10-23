@@ -33,6 +33,8 @@ data class AppSettings(
     val bannerTimeoutMs: Int = 4_000,
     val lastChannelKey: String? = null,
     val lastGroup: String? = null,
+    /** Open straight into the last channel fullscreen; off = start on the TV guide with the preview. */
+    val startFullscreen: Boolean = false,
 )
 
 class SettingsStore private constructor(private val store: DataStore<Preferences>) {
@@ -54,6 +56,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p[BANNER_TIMEOUT] = next.bannerTimeoutMs
             p.setOrRemove(LAST_CHANNEL, next.lastChannelKey)
             p.setOrRemove(LAST_GROUP, next.lastGroup)
+            p[START_FULLSCREEN] = next.startFullscreen
         }
     }
 
@@ -69,6 +72,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         bannerTimeoutMs = p[BANNER_TIMEOUT] ?: 4_000,
         lastChannelKey = p[LAST_CHANNEL],
         lastGroup = p[LAST_GROUP],
+        startFullscreen = p[START_FULLSCREEN] ?: false,
     )
 
     private fun <T> androidx.datastore.preferences.core.MutablePreferences.setOrRemove(key: Preferences.Key<T>, value: T?) {
@@ -87,6 +91,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val BANNER_TIMEOUT = intPreferencesKey("banner_timeout_ms")
         private val LAST_CHANNEL = stringPreferencesKey("last_channel_key")
         private val LAST_GROUP = stringPreferencesKey("last_group")
+        private val START_FULLSCREEN = booleanPreferencesKey("start_fullscreen")
 
         fun create(context: Context): SettingsStore = forFile(context.preferencesDataStoreFile("settings"))
 

@@ -40,6 +40,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -81,11 +82,16 @@ fun GuideScreen() {
     val state = remember { GuideState(System.currentTimeMillis()) }
     var tick by remember { mutableIntStateOf(0) } // bumps after every GuideState change
     var initialised by remember(category) { mutableStateOf(false) }
+    LaunchedEffect(ready) { if (!ready) initialised = false }
     var details by remember { mutableStateOf<FocusBlock?>(null) }
     var picker by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val gridFocus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { vm.open() }
+    // Every start (first open, or back from the TV home screen) refreshes the guide and its preview.
+    LifecycleStartEffect(Unit) {
+        vm.open()
+        onStopOrDispose { }
+    }
     val visibleRows = listState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
 
     fun channelAt(row: Int) = if (row in 0 until items.itemCount) items.peek(row) else null
