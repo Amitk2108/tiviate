@@ -26,6 +26,37 @@ class GuideStateTest {
     }
 
     @Test
+    fun focusFollowsTheClockWhileTheViewerStaysOnNow() {
+        val s = state()
+        val row = listOf(p(t10, t10 + hour, "A"), p(t10 + hour, t10 + 2 * hour, "B"))
+        s.focusRow(0, row)
+        assertEquals("A", s.focused?.programme?.title)
+        assertFalse("nothing changes inside the same programme", s.keepUpWith(t10 + 50 * min, row))
+        assertTrue(s.keepUpWith(t10 + 70 * min, row))
+        assertEquals("B", s.focused?.programme?.title)
+        assertEquals(t10 + 70 * min, s.focusTimeMs)
+        assertEquals(t10 + hour, s.viewStartMs)
+        assertEquals(t10 + 70 * min + 7 * 24 * hour, s.maxEndMs)
+    }
+
+    @Test
+    fun aViewerWhoMovedInTimeKeepsTheirPlaceUntilBackToNow() {
+        val s = state()
+        val row = listOf(p(t10, t10 + hour, "A"), p(t10 + hour, t10 + 2 * hour, "B"), p(t10 + 2 * hour, t10 + 3 * hour, "C"))
+        s.focusRow(0, row)
+        s.moveTime(+1, row)
+        s.moveTime(+1, row)
+        assertEquals("C", s.focused?.programme?.title)
+        assertFalse(s.keepUpWith(t10 + 70 * min, row))
+        assertEquals("C", s.focused?.programme?.title)
+        s.backToNow(t10 + 70 * min, row)
+        assertEquals("B", s.focused?.programme?.title)
+        assertEquals(t10 + hour, s.viewStartMs)
+        assertTrue(s.keepUpWith(t10 + 2 * hour + min, row))
+        assertEquals("C", s.focused?.programme?.title)
+    }
+
+    @Test
     fun upDownKeepsTime() {
         val s = state()
         val row0 = listOf(p(t10, t10 + hour, "A"))

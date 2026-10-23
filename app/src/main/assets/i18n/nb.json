@@ -314,5 +314,13 @@
 "Playback stopped": "Avspillingen er stoppet",
 "Something went wrong while playing this channel.": "Noe gikk galt under avspilling av denne kanalen.",
 "Your account is busy on another device — waiting for it to free up…": "Kontoen din er opptatt på en annen enhet — venter på at den blir ledig…",
-"Pause / Back to live": "Pause / Tilbake til direkte"
+"Pause / Back to live": "Pause / Tilbake til direkte",
+"Update playlists": "Oppdater spillelister",
+"When Tiviate starts": "Når Tiviate starter",
+"Every day": "Hver dag",
+"Every week": "Hver uke",
+"Every month": "Hver måned",
+"Update the guide when Tiviate starts": "Oppdater guiden når Tiviate starter",
+"Update the guide every": "Oppdater guiden hver",
+"%d hours": "%d timer"
 }

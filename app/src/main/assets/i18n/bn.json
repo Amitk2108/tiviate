@@ -325,5 +325,13 @@
 "Playback stopped": "প্লেব্যাক থেমে গেছে",
 "Something went wrong while playing this channel.": "এই চ্যানেলটি চালানোর সময় কিছু সমস্যা হয়েছে।",
 "Your account is busy on another device — waiting for it to free up…": "আপনার অ্যাকাউন্ট অন্য ডিভাইসে ব্যস্ত — খালি হওয়ার অপেক্ষা…",
-"Pause / Back to live": "থামান / লাইভে ফিরুন"
+"Pause / Back to live": "থামান / লাইভে ফিরুন",
+"Update playlists": "প্লেলিস্ট আপডেট",
+"When Tiviate starts": "Tiviate চালু হলে",
+"Every day": "প্রতিদিন",
+"Every week": "প্রতি সপ্তাহে",
+"Every month": "প্রতি মাসে",
+"Update the guide when Tiviate starts": "Tiviate চালু হলে গাইড আপডেট",
+"Update the guide every": "গাইড আপডেট হবে প্রতি",
+"%d hours": "%d ঘণ্টা"
 }

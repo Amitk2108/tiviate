@@ -325,5 +325,13 @@
 "Playback stopped": "Възпроизвеждането спря",
 "Something went wrong while playing this channel.": "Нещо се обърка при възпроизвеждането на този канал.",
 "Your account is busy on another device — waiting for it to free up…": "Акаунтът ви е зает на друго устройство — изчаква се да се освободи…",
-"Pause / Back to live": "Пауза / Обратно на живо"
+"Pause / Back to live": "Пауза / Обратно на живо",
+"Update playlists": "Обновяване на плейлистите",
+"When Tiviate starts": "При стартиране на Tiviate",
+"Every day": "Всеки ден",
+"Every week": "Всяка седмица",
+"Every month": "Всеки месец",
+"Update the guide when Tiviate starts": "Обновяване на програмата при стартиране на Tiviate",
+"Update the guide every": "Обновяване на програмата на всеки",
+"%d hours": "%d часа"
 }

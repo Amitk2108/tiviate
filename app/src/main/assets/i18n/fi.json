@@ -322,5 +322,13 @@
 "Playback stopped": "Toisto pysähtyi",
 "Something went wrong while playing this channel.": "Tämän kanavan toistossa tapahtui virhe.",
 "Your account is busy on another device — waiting for it to free up…": "Tilisi on varattu toisella laitteella — odotetaan sen vapautumista…",
-"Pause / Back to live": "Tauko / Takaisin suoraan lähetykseen"
+"Pause / Back to live": "Tauko / Takaisin suoraan lähetykseen",
+"Update playlists": "Soittolistojen päivitys",
+"When Tiviate starts": "Kun Tiviate käynnistyy",
+"Every day": "Joka päivä",
+"Every week": "Joka viikko",
+"Every month": "Joka kuukausi",
+"Update the guide when Tiviate starts": "Päivitä opas, kun Tiviate käynnistyy",
+"Update the guide every": "Päivitä opas joka",
+"%d hours": "%d tunti"
 }

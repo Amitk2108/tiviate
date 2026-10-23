@@ -83,6 +83,18 @@ class GuideTest {
         rule.waitUntil(5_000) { scenario.state == androidx.lifecycle.Lifecycle.State.DESTROYED }
     }
 
+    @Test
+    fun okOnAnEarlierProgrammePlaysTheChannelAndReturnsToNow() {
+        openGuide()
+        Remote.down() // Beacon Sports
+        Remote.press(android.view.KeyEvent.KEYCODE_MEDIA_REWIND) // two hours back
+        rule.waitForIdle()
+        Remote.ok()
+        rule.waitUntil(5_000) { current() == "Beacon Sports" }
+        assert(!rule.onAllNodesWithTagExists("programme_details")) { "OK plays the channel, no details dialog" }
+        rule.waitUntil(3_000) { rule.textExists("Beacon Sports Show 3") } // focus back on the programme on air
+    }
+
     private fun openGuide() {
         Remote.right()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }

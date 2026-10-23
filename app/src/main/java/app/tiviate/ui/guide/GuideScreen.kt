@@ -104,6 +104,8 @@ fun GuideScreen() {
     // Every start (first open, or back from the TV home screen) refreshes the guide and its preview.
     LifecycleStartEffect(Unit) {
         vm.open()
+        state.backToNow(System.currentTimeMillis(), (if (state.row < items.itemCount) items.peek(state.row) else null)?.epgRef?.let { vm.programmes[it] }.orEmpty())
+        tick++
         onStopOrDispose { }
     }
     val visibleRows = listState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
@@ -151,6 +153,11 @@ fun GuideScreen() {
         }
     }
 
+    // A guide left open keeps up with the clock (until the viewer moves in time).
+    LaunchedEffect(now) {
+        if (initialised && state.keepUpWith(System.currentTimeMillis(), rowProgrammes(state.row))) tick++
+    }
+
     fun openSheet() {
         val pid = playlist?.id ?: return
         sheet = SheetTarget(pid, channelAt(state.row), category, state.focused?.programme?.title)
@@ -161,11 +168,15 @@ fun GuideScreen() {
         val block = state.focused
         val nowMs = System.currentTimeMillis()
         val live = block == null || (block.startMs <= nowMs && nowMs < block.stopMs)
+        // Any programme of a channel plays that channel live (no catch-up); its description is in the long-OK menu.
         when {
-            channel.stableKey == current?.stableKey && live -> nav.back() // already playing: go fullscreen, no reconnect
-            live && settings.alwaysExternalPlayer -> app.tiviate.player.ExternalPlayer.open(activity ?: return, channel.streamUrl, channel.name)
-            live -> vm.tune(channel) // preview it here; a second OK goes fullscreen
-            else -> details = block
+            channel.stableKey == current?.stableKey -> nav.back() // already playing: go fullscreen, no reconnect
+            settings.alwaysExternalPlayer -> app.tiviate.player.ExternalPlayer.open(activity ?: return, channel.streamUrl, channel.name)
+            else -> vm.tune(channel) // preview it here; a second OK goes fullscreen
+        }
+        if (!live) {
+            state.backToNow(nowMs, rowProgrammes(state.row))
+            tick++
         }
     }
 
@@ -198,6 +209,7 @@ fun GuideScreen() {
         }
         if (native.action != AndroidKeyEvent.ACTION_DOWN) return false
         val rows = items.itemCount
+        state.keepUpWith(System.currentTimeMillis(), rowProgrammes(state.row)) // Up/Down land on what is on now
         when (native.keyCode) {
             AndroidKeyEvent.KEYCODE_DPAD_UP -> state.moveRow(-1, rows, rowProgrammes((state.row - 1).coerceAtLeast(0)))
             AndroidKeyEvent.KEYCODE_DPAD_DOWN -> state.moveRow(+1, rows, rowProgrammes((state.row + 1).coerceAtMost(rows - 1)))

@@ -320,5 +320,13 @@
 "Playback stopped": "Atskaņošana apturēta",
 "Something went wrong while playing this channel.": "Atskaņojot šo kanālu, radās kļūda.",
 "Your account is busy on another device — waiting for it to free up…": "Jūsu konts ir aizņemts citā ierīcē — gaida, līdz tas atbrīvosies…",
-"Pause / Back to live": "Pauze / Atpakaļ uz tiešraidi"
+"Pause / Back to live": "Pauze / Atpakaļ uz tiešraidi",
+"Update playlists": "Atskaņošanas sarakstu atjaunināšana",
+"When Tiviate starts": "Kad Tiviate tiek palaists",
+"Every day": "Katru dienu",
+"Every week": "Katru nedēļu",
+"Every month": "Katru mēnesi",
+"Update the guide when Tiviate starts": "Atjaunināt ceļvedi, palaižot Tiviate",
+"Update the guide every": "Atjaunināt ceļvedi ik pēc",
+"%d hours": "%d stundām"
 }

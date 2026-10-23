@@ -324,5 +324,13 @@
 "Playback stopped": "Atkūrimas sustabdytas",
 "Something went wrong while playing this channel.": "Leidžiant šį kanalą įvyko klaida.",
 "Your account is busy on another device — waiting for it to free up…": "Jūsų paskyra užimta kitame įrenginyje — laukiama, kol atsilaisvins…",
-"Pause / Back to live": "Pristabdyti / Grįžti į tiesioginę transliaciją"
+"Pause / Back to live": "Pristabdyti / Grįžti į tiesioginę transliaciją",
+"Update playlists": "Grojaraščių atnaujinimas",
+"When Tiviate starts": "Paleidus Tiviate",
+"Every day": "Kasdien",
+"Every week": "Kas savaitę",
+"Every month": "Kas mėnesį",
+"Update the guide when Tiviate starts": "Atnaujinti gidą paleidus Tiviate",
+"Update the guide every": "Atnaujinti gidą kas",
+"%d hours": "%d val."
 }

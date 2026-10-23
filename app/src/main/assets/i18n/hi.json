@@ -325,5 +325,13 @@
 "Playback stopped": "प्लेबैक रुक गया",
 "Something went wrong while playing this channel.": "यह चैनल चलाते समय कुछ गड़बड़ हो गई।",
 "Your account is busy on another device — waiting for it to free up…": "आपका अकाउंट दूसरे डिवाइस पर व्यस्त है — उसके खाली होने का इंतज़ार…",
-"Pause / Back to live": "रोकें / लाइव पर वापस"
+"Pause / Back to live": "रोकें / लाइव पर वापस",
+"Update playlists": "प्लेलिस्ट अपडेट",
+"When Tiviate starts": "Tiviate शुरू होने पर",
+"Every day": "हर दिन",
+"Every week": "हर हफ़्ते",
+"Every month": "हर महीने",
+"Update the guide when Tiviate starts": "Tiviate शुरू होने पर गाइड अपडेट करें",
+"Update the guide every": "गाइड अपडेट करें हर",
+"%d hours": "%d घंटे"
 }

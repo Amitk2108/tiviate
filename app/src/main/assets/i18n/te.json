@@ -325,5 +325,13 @@
 "Playback stopped": "ప్లేబ్యాక్ ఆగిపోయింది",
 "Something went wrong while playing this channel.": "ఈ ఛానెల్‌ను ప్లే చేస్తున్నప్పుడు ఏదో పొరపాటు జరిగింది.",
 "Your account is busy on another device — waiting for it to free up…": "మీ ఖాతా వేరే పరికరంలో బిజీగా ఉంది — అది ఖాళీ అయ్యే వరకు వేచి ఉంది…",
-"Pause / Back to live": "పాజ్ / లైవ్‌కి తిరిగి వెళ్లు"
+"Pause / Back to live": "పాజ్ / లైవ్‌కి తిరిగి వెళ్లు",
+"Update playlists": "ప్లేలిస్ట్ అప్‌డేట్",
+"When Tiviate starts": "Tiviate ప్రారంభమైనప్పుడు",
+"Every day": "ప్రతిరోజూ",
+"Every week": "ప్రతి వారం",
+"Every month": "ప్రతి నెల",
+"Update the guide when Tiviate starts": "Tiviate ప్రారంభమైనప్పుడు గైడ్ అప్‌డేట్ చేయి",
+"Update the guide every": "గైడ్ అప్‌డేట్ ప్రతి",
+"%d hours": "%d గంటలు"
 }

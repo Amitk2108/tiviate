@@ -79,6 +79,14 @@ enum class GuideHighlight(override val english: String) : Labelled { ON_AIR("On-
 /** What D-pad Up/Down do while a channel plays fullscreen. */
 enum class UpDownMode { UP_NEXT_DOWN_OPTIONS, ZAP }
 
+/** When playlists (channels and groups) update; "Update now" always works. The guide has its own interval. */
+enum class PlaylistUpdate(override val english: String, val days: Int) : Labelled {
+    ON_START("When Tiviate starts", 0),
+    DAILY("Every day", 1),
+    WEEKLY("Every week", 7),
+    MONTHLY("Every month", 30),
+}
+
 /** How the picture fills the screen; applies to all channels. */
 enum class DisplayMode(override val english: String) : Labelled {
     FIT("Fit"),
@@ -128,6 +136,7 @@ data class AppSettings(
     val channelDisplayModes: Map<String, DisplayMode> = emptyMap(),
     // --- B2: organising
     val channelSort: ChannelSort = ChannelSort.PLAYLIST,
+    val playlistUpdate: PlaylistUpdate = PlaylistUpdate.DAILY,
     val openPlaylistOn: OpenOn = OpenOn.ALL,
     // --- B2: screens
     /** TV guide drawn over the full-screen video (instead of the preview window). */
@@ -208,6 +217,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p[PANEL_TIMEOUT] = next.panelTimeoutSec
             p[CHANNEL_DISPLAY] = next.channelDisplayModes.map { (k, v) -> "${v.name}=$k" }.toSet()
             p[CHANNEL_SORT] = next.channelSort.name
+            p[PLAYLIST_UPDATE] = next.playlistUpdate.name
             p[OPEN_ON] = next.openPlaylistOn.name
             p[GUIDE_OVERLAY] = next.guideOverlay
             p[LIST_PREVIEW] = next.listPreview
@@ -274,6 +284,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             entry.substringAfter('=') to mode
         }.toMap(),
         channelSort = enumOr(p[CHANNEL_SORT], ChannelSort.PLAYLIST),
+        playlistUpdate = enumOr(p[PLAYLIST_UPDATE], PlaylistUpdate.DAILY),
         openPlaylistOn = enumOr(p[OPEN_ON], OpenOn.ALL),
         guideOverlay = p[GUIDE_OVERLAY] ?: false,
         listPreview = p[LIST_PREVIEW] ?: false,
@@ -345,6 +356,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val PANEL_TIMEOUT = intPreferencesKey("panel_timeout_sec")
         private val CHANNEL_DISPLAY = stringSetPreferencesKey("channel_display_modes")
         private val CHANNEL_SORT = stringPreferencesKey("channel_sort")
+        private val PLAYLIST_UPDATE = stringPreferencesKey("playlist_update")
         private val OPEN_ON = stringPreferencesKey("open_playlist_on")
         private val GUIDE_OVERLAY = booleanPreferencesKey("guide_overlay")
         private val LIST_PREVIEW = booleanPreferencesKey("list_preview")

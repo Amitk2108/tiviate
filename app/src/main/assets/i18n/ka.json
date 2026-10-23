@@ -325,5 +325,13 @@
 "Playback stopped": "დაკვრა შეწყდა",
 "Something went wrong while playing this channel.": "ამ არხის დაკვრისას რაღაც შეცდომა მოხდა.",
 "Your account is busy on another device — waiting for it to free up…": "თქვენი ანგარიში სხვა მოწყობილობაზეა დაკავებული — ველოდებით განთავისუფლებას…",
-"Pause / Back to live": "პაუზა / პირდაპირ ეთერში დაბრუნება"
+"Pause / Back to live": "პაუზა / პირდაპირ ეთერში დაბრუნება",
+"Update playlists": "დასაკრავი სიების განახლება",
+"When Tiviate starts": "Tiviate-ის გაშვებისას",
+"Every day": "ყოველდღე",
+"Every week": "ყოველ კვირას",
+"Every month": "ყოველ თვეს",
+"Update the guide when Tiviate starts": "გიდის განახლება Tiviate-ის გაშვებისას",
+"Update the guide every": "გიდის განახლება ყოველ",
+"%d hours": "%d საათში"
 }

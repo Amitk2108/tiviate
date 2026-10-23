@@ -322,5 +322,13 @@
 "Playback stopped": "Predvajanje je ustavljeno",
 "Something went wrong while playing this channel.": "Med predvajanjem tega kanala je prišlo do napake.",
 "Your account is busy on another device — waiting for it to free up…": "Vaš račun je zaseden v drugi napravi — čakanje, da se sprosti…",
-"Pause / Back to live": "Premor / Nazaj v živo"
+"Pause / Back to live": "Premor / Nazaj v živo",
+"Update playlists": "Posodabljanje seznamov",
+"When Tiviate starts": "Ob zagonu Tiviate",
+"Every day": "Vsak dan",
+"Every week": "Vsak teden",
+"Every month": "Vsak mesec",
+"Update the guide when Tiviate starts": "Posodobi vodnik ob zagonu Tiviate",
+"Update the guide every": "Posodobi vodnik vsakih",
+"%d hours": "%d ur"
 }

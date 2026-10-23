@@ -325,5 +325,13 @@
 "Playback stopped": "Відтворення зупинено",
 "Something went wrong while playing this channel.": "Під час відтворення каналу щось пішло не так.",
 "Your account is busy on another device — waiting for it to free up…": "Обліковий запис зайнятий на іншому пристрої — чекаємо, поки звільниться…",
-"Pause / Back to live": "Пауза / Повернутися до ефіру"
+"Pause / Back to live": "Пауза / Повернутися до ефіру",
+"Update playlists": "Оновлення плейлистів",
+"When Tiviate starts": "Під час запуску Tiviate",
+"Every day": "Щодня",
+"Every week": "Щотижня",
+"Every month": "Щомісяця",
+"Update the guide when Tiviate starts": "Оновлювати телегід під час запуску Tiviate",
+"Update the guide every": "Оновлювати телегід кожні",
+"%d hours": "%d год"
 }

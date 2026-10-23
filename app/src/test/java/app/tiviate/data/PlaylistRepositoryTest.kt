@@ -2,6 +2,7 @@ package app.tiviate.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import kotlinx.coroutines.flow.first
 import app.tiviate.core.xtream.XtreamCredentials
 import app.tiviate.data.db.PlaylistEntity
@@ -72,6 +73,33 @@ class PlaylistRepositoryTest {
         assertEquals(2, h.db.channels().count(id))
         val ref = h.db.channels().allInPlaylist(id).first { it.name == "A" }.epgRef!!
         assertEquals(listOf("Now"), h.db.epg().programmesFor(listOf(ref), 0, Long.MAX_VALUE).map { it.title })
+    }
+
+    @Test
+    fun scheduledUpdateReloadsOnlyThePlaylistsThatAreDue() = runBlocking {
+        val playlistHits = AtomicInteger()
+        val guideHits = AtomicInteger()
+        h.routes["/list.m3u"] = {
+            playlistHits.incrementAndGet()
+            text("#EXTM3U url-tvg=\"${h.url("/epg.xml")}\"\n#EXTINF:-1 tvg-id=\"a\",A\nhttp://h/a.m3u8\n")
+        }
+        h.routes["/epg.xml"] = { guideHits.incrementAndGet(); text("<tv><channel id=\"a\"><display-name>A</display-name></channel></tv>") }
+        val day = 24 * 3_600_000L
+        val id = h.db.playlists().insert(
+            PlaylistEntity(name = "P", type = PlaylistType.M3U_URL, url = h.url("/list.m3u"), epgUrl = h.url("/epg.xml"), lastSyncAt = h.now - 2 * day),
+        )
+        val repo = repo()
+
+        repo.scheduledUpdate(PlaylistUpdate.WEEKLY, atStart = false, guideOnStart = true)
+        assertEquals("a weekly playlist updated 2 days ago stays", 0, playlistHits.get())
+        assertEquals("the guide still updates on its own interval", 1, guideHits.get())
+        assertEquals(h.now - 2 * day, h.db.playlists().get(id)!!.lastSyncAt)
+
+        repo.scheduledUpdate(PlaylistUpdate.DAILY, atStart = false, guideOnStart = true)
+        assertEquals(1, playlistHits.get())
+        assertEquals(1, h.db.channels().count(id))
+
+        assertFalse("updated just now: nothing to do at start", repo.needsStartSync(PlaylistUpdate.ON_START, guideOnStart = true))
     }
 
     private fun repo() = PlaylistRepository(h.db, h.http, h.playlistSyncer(), h.epgSyncer(), clock = { h.now })
