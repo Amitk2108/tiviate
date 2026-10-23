@@ -113,8 +113,7 @@ fun GroupsColumn(
         Modifier
             .width(280.dp)
             .fillMaxHeight()
-            // A floating card: rounded at the top and bottom, a small gap from the screen edges.
-            .padding(vertical = 12.dp)
+            // Full height, with the right-hand corners rounded at the top and bottom.
             .background(Tokens.Surface, RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp))
             .padding(top = 22.dp, start = 12.dp, end = 12.dp)
             .leftRight(onLeft, onRight)
@@ -200,7 +199,6 @@ fun NavRail(onSearch: () -> Unit, onTv: () -> Unit, onSettings: () -> Unit) {
         Modifier
             .width(200.dp)
             .fillMaxHeight()
-            .padding(vertical = 12.dp)
             .background(Tokens.Background, RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp))
             .padding(vertical = 20.dp, horizontal = 10.dp)
             .leftRight(onLeft = {}, onRight = onTv)
