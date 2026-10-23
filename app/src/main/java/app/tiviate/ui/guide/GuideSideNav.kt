@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import app.tiviate.data.Category
 import app.tiviate.data.db.CategoryRow
+import app.tiviate.data.db.CustomGroupEntity
 import app.tiviate.data.db.PlaylistEntity
 import app.tiviate.ui.components.FocusSurface
 import app.tiviate.ui.player.focusSoon
@@ -45,12 +46,21 @@ sealed interface GroupEntry {
     data class SwitchPlaylist(val playlist: PlaylistEntity) : GroupEntry
 }
 
-/** Favorites, All channels, Recent, the provider's groups, then the other playlists (if any). */
-fun groupEntries(groups: List<CategoryRow>, playlists: List<PlaylistEntity>, activeId: Long?): List<GroupEntry> = buildList {
-    add(GroupEntry.Pick(Category.Favorites, "Favorites", null))
-    add(GroupEntry.Pick(Category.All, "All channels", groups.sumOf { it.count }.takeIf { it > 0 }))
-    add(GroupEntry.Pick(Category.Recent, "Recent", null))
-    groups.forEach { g -> g.name?.let { add(GroupEntry.Pick(Category.Group(it), it, g.count)) } }
+/** Favorites, All channels, Recent, your own groups, the provider's groups, then the other playlists (if any). */
+fun groupEntries(
+    groups: List<CategoryRow>,
+    playlists: List<PlaylistEntity>,
+    activeId: Long?,
+    custom: List<CustomGroupEntity> = emptyList(),
+    showAll: Boolean = true,
+    showFavorites: Boolean = true,
+    showRecent: Boolean = true,
+): List<GroupEntry> = buildList {
+    if (showFavorites) add(GroupEntry.Pick(Category.Favorites, "Favorites", null))
+    if (showAll) add(GroupEntry.Pick(Category.All, "All channels", groups.sumOf { it.count }.takeIf { it > 0 }))
+    if (showRecent) add(GroupEntry.Pick(Category.Recent, "Recent", null))
+    custom.forEach { add(GroupEntry.Pick(Category.Custom(it.id, it.name), it.name, null)) }
+    groups.forEach { g -> g.name?.let { add(GroupEntry.Pick(Category.Group(it), g.shownName ?: it, g.count)) } }
     playlists.filter { it.id != activeId }.forEach { add(GroupEntry.SwitchPlaylist(it)) }
 }
 

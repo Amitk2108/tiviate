@@ -52,6 +52,8 @@ import app.tiviate.ui.LocalGraph
 import app.tiviate.ui.LocalNavigator
 import app.tiviate.ui.Screen
 import app.tiviate.ui.components.KeyAction
+import app.tiviate.ui.organise.ChannelSheet
+import app.tiviate.ui.organise.SheetTarget
 import app.tiviate.ui.components.LongPressDetector
 import app.tiviate.ui.components.Clock
 import app.tiviate.ui.components.FocusSurface
@@ -92,6 +94,9 @@ fun GuideScreen() {
     val playlists by vm.playlists.collectAsStateWithLifecycle()
     val playlist by vm.playlist.collectAsStateWithLifecycle()
     val leftPress = remember { LongPressDetector() }
+    val okPress = remember { LongPressDetector() }
+    var sheet by remember { mutableStateOf<SheetTarget?>(null) }
+    val customGroups by vm.customGroups.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val gridFocus = remember { FocusRequester() }
     // Every start (first open, or back from the TV home screen) refreshes the guide and its preview.
@@ -144,6 +149,11 @@ fun GuideScreen() {
         }
     }
 
+    fun openSheet() {
+        val pid = playlist?.id ?: return
+        sheet = SheetTarget(pid, channelAt(state.row), category, state.focused?.programme?.title)
+    }
+
     fun onOk() {
         val channel = channelAt(state.row) ?: return
         val block = state.focused
@@ -174,9 +184,16 @@ fun GuideScreen() {
             }
             return true
         }
-        if (native.action != AndroidKeyEvent.ACTION_DOWN) {
-            return native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_CENTER || native.keyCode == AndroidKeyEvent.KEYCODE_ENTER
+        // OK: preview / fullscreen / details; long OK: the channel and programme menu.
+        if (native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_CENTER || native.keyCode == AndroidKeyEvent.KEYCODE_ENTER) {
+            when (okPress.onKey(native)) {
+                KeyAction.Short -> onOk()
+                KeyAction.Long -> openSheet()
+                KeyAction.None -> Unit
+            }
+            return true
         }
+        if (native.action != AndroidKeyEvent.ACTION_DOWN) return false
         val rows = items.itemCount
         when (native.keyCode) {
             AndroidKeyEvent.KEYCODE_DPAD_UP -> state.moveRow(-1, rows, rowProgrammes((state.row - 1).coerceAtLeast(0)))
@@ -188,8 +205,7 @@ fun GuideScreen() {
             AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> state.moveTime(+1, rowProgrammes(state.row))
             AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD, AndroidKeyEvent.KEYCODE_MEDIA_NEXT -> state.jumpHours(2, rowProgrammes(state.row))
             AndroidKeyEvent.KEYCODE_MEDIA_REWIND, AndroidKeyEvent.KEYCODE_MEDIA_PREVIOUS -> state.jumpHours(-2, rowProgrammes(state.row))
-            AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER -> { if (native.repeatCount == 0) onOk(); return true }
-            AndroidKeyEvent.KEYCODE_MENU -> { side = SideNav.GROUPS; return true }
+            AndroidKeyEvent.KEYCODE_MENU -> { openSheet(); return true }
             AndroidKeyEvent.KEYCODE_GUIDE -> { nav.back(); return true }
             else -> return false
         }
@@ -205,6 +221,7 @@ fun GuideScreen() {
     LaunchedEffect(toast) { if (toast != null) { kotlinx.coroutines.delay(2_000); toast = null } }
     BackHandler {
         when {
+            sheet != null -> sheet = null
             details != null -> details = null
             side == SideNav.RAIL -> side = SideNav.GROUPS
             side == SideNav.GROUPS -> side = SideNav.GRID
@@ -215,7 +232,7 @@ fun GuideScreen() {
             }
         }
     }
-    LaunchedEffect(details, side) { if (details == null && side == SideNav.GRID && initialised) focusSoon(gridFocus) }
+    LaunchedEffect(details, side, sheet) { if (details == null && sheet == null && side == SideNav.GRID && initialised) focusSoon(gridFocus) }
     KeepScreenOn()
 
     Column(Modifier.fillMaxSize().background(Tokens.Background).testTag("guide_screen")) {
@@ -285,7 +302,7 @@ fun GuideScreen() {
             }
             GroupsColumn(
                 playlistName = playlist?.name?.takeIf { playlists.size > 1 },
-                entries = groupEntries(groups, playlists, playlist?.id),
+                entries = groupEntries(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup),
                 selected = category,
                 onPick = { picked ->
                     side = SideNav.GRID
@@ -303,6 +320,9 @@ fun GuideScreen() {
         }
     }
     details?.let { ProgrammeDetailsDialog(it) { details = null } }
+    sheet?.let { t ->
+        ChannelSheet(t, onClose = { sheet = null }, onDescription = state.focused?.let { b -> { details = b } }, onMessage = { toast = it })
+    }
     toast?.let { app.tiviate.ui.player.Toast(it) }
 }
 

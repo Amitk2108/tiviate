@@ -53,6 +53,8 @@ fun AppRoot() {
                 Screen.Player -> PlayerScreen()
                 Screen.Guide -> GuideScreen()
                 Screen.Search -> SearchScreen()
+                is Screen.ManageChannels -> app.tiviate.ui.organise.ManageChannelsScreen(screen.playlistId, screen.category, screen.reorder)
+                is Screen.ManageGroups -> app.tiviate.ui.organise.ManageGroupsScreen(screen.playlistId)
                 Screen.Settings -> SettingsScreen()
             }
         }

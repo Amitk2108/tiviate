@@ -38,7 +38,9 @@ import app.tiviate.core.xtream.XtreamAccount
 import app.tiviate.core.xtream.XtreamUrls
 import app.tiviate.data.AppSettings
 import app.tiviate.data.BufferPreset
+import app.tiviate.data.ChannelSort
 import app.tiviate.data.DisplayMode
+import app.tiviate.data.OpenOn
 import app.tiviate.data.GuideHighlight
 import app.tiviate.AutoStart
 import app.tiviate.data.UpDownMode
@@ -215,6 +217,12 @@ private fun PlaylistsSection() {
 
     SectionColumn {
         Heading("Playlists")
+        ValueRow("Sort channels", settings.channelSort.label, "setting_channel_sort") {
+            scope.launch { graph.settings.update { it.copy(channelSort = ChannelSort.entries.after(it.channelSort)) } }
+        }
+        ValueRow("Open a playlist on", settings.openPlaylistOn.label, "setting_open_on") {
+            scope.launch { graph.settings.update { it.copy(openPlaylistOn = OpenOn.entries.after(it.openPlaylistOn)) } }
+        }
         playlists.forEachIndexed { i, p -> PlaylistCard(i, p, active = p.id == settings.activePlaylistId, onDelete = { confirm = p }) }
         if (playlists.size > 1) {
             var updatingAll by remember { mutableStateOf(false) }
@@ -242,6 +250,9 @@ private fun PlaylistCard(index: Int, p: PlaylistEntity, active: Boolean, onDelet
     var channels by remember(p.id) { mutableStateOf<Int?>(null) }
     var account by remember(p.id) { mutableStateOf<XtreamAccount?>(null) }
     var syncing by remember(p.id) { mutableStateOf(false) }
+    var namesEditor by remember(p.id) { mutableStateOf(false) }
+    var prefixes by remember(p.id, p.namePrefixes) { mutableStateOf(p.namePrefixes.orEmpty()) }
+    var suffixes by remember(p.id, p.nameSuffixes) { mutableStateOf(p.nameSuffixes.orEmpty()) }
     LaunchedEffect(p.id, p.lastSyncAt) {
         channels = graph.playlists.channelCount(p.id)
         if (p.type == PlaylistType.XTREAM) account = graph.playlists.xtreamAccount(p.id)
@@ -268,6 +279,15 @@ private fun PlaylistCard(index: Int, p: PlaylistEntity, active: Boolean, onDelet
             )
         }
         p.lastError?.let { Text(it, style = TextStyle(color = Tokens.Danger, fontSize = Tokens.CaptionSize)) }
+        if (namesEditor) {
+            Caption("Remove these from the start and end of channel names, separated by commas — for example \"UK:, IN |\" and \"| FHD, HEVC\".")
+            TvTextField("Prefixes to remove", prefixes, { prefixes = it }, tag = "names_prefixes_$index")
+            TvTextField("Suffixes to remove", suffixes, { suffixes = it }, tag = "names_suffixes_$index")
+            ActionButton("Apply", {
+                namesEditor = false
+                scope.launch { graph.playlists.setNameEditor(p.id, prefixes, suffixes) }
+            }, primary = true, tag = "names_apply_$index")
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 6.dp)) {
             ActionButton(if (syncing) "Updating…" else "Update now", {
                 if (!syncing) {
@@ -279,6 +299,7 @@ private fun PlaylistCard(index: Int, p: PlaylistEntity, active: Boolean, onDelet
                 }
             }, tag = "playlist_refresh_$index")
             ActionButton("Edit", { nav.push(Screen.AddPlaylist(p.type, editId = p.id)) }, tag = "playlist_edit_$index")
+            ActionButton("Names editor", { namesEditor = !namesEditor }, tag = "playlist_names_$index")
             ActionButton("Delete", onDelete, tag = "playlist_delete_$index")
         }
     }

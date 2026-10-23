@@ -91,6 +91,10 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
         .flatMapLatest { repo.favoriteKeys(it.id) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
+    val customGroups: StateFlow<List<app.tiviate.data.db.CustomGroupEntity>> = _playlist.filterNotNull()
+        .flatMapLatest { repo.customGroups(it.id) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     val groups: StateFlow<List<CategoryRow>> = _playlist.filterNotNull()
         .flatMapLatest { repo.groups(it.id) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -152,7 +156,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     fun switchPlaylist(id: Long) {
         viewModelScope.launch {
             graph.settings.update { it.copy(activePlaylistId = id, lastChannelKey = null, lastGroup = null) }
-            _category.value = Category.All
+            _category.value = if (graph.settings.settings.first().openPlaylistOn == app.tiviate.data.OpenOn.FAVORITES) Category.Favorites else Category.All
             controller.stop()
             ensurePlaying()
         }

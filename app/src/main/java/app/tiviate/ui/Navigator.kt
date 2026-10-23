@@ -15,6 +15,8 @@ sealed interface Screen {
     data object Guide : Screen
     data object Search : Screen
     data object Settings : Screen
+    data class ManageChannels(val playlistId: Long, val category: app.tiviate.data.Category, val reorder: Boolean) : Screen
+    data class ManageGroups(val playlistId: Long) : Screen
 }
 
 /** A tiny back stack; screens are cheap to recreate and state that must survive lives in view models/DB. */
