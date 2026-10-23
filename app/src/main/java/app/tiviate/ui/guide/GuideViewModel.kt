@@ -49,6 +49,10 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
     val playlists: StateFlow<List<PlaylistEntity>> = graph.playlists.playlists
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val customGroups: StateFlow<List<app.tiviate.data.db.CustomGroupEntity>> = _playlist.filterNotNull()
+        .flatMapLatest { repo.customGroups(it.id) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     val groups: StateFlow<List<CategoryRow>> = _playlist.filterNotNull()
         .flatMapLatest { repo.groups(it.id) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -120,6 +124,7 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
             graph.player.stop()
             graph.settings.update { it.copy(activePlaylistId = id, lastChannelKey = null, lastGroup = null) }
             open()
+            if (graph.settings.settings.first().openPlaylistOn == app.tiviate.data.OpenOn.FAVORITES) selectCategory(Category.Favorites)
         }
     }
 

@@ -44,6 +44,8 @@ import app.tiviate.data.AppSettings
 import app.tiviate.data.Category
 import app.tiviate.data.DisplayMode
 import app.tiviate.data.UpDownMode
+import app.tiviate.ui.organise.ChannelSheet
+import app.tiviate.ui.organise.SheetTarget
 import app.tiviate.player.ExternalPlayer
 import app.tiviate.ui.LocalGraph
 import app.tiviate.ui.LocalNavigator
@@ -71,6 +73,8 @@ fun PlayerScreen() {
     val playlists by vm.playlists.collectAsStateWithLifecycle()
     val groups by vm.groups.collectAsStateWithLifecycle()
     val favorites by vm.favoriteKeys.collectAsStateWithLifecycle()
+    val customGroups by vm.customGroups.collectAsStateWithLifecycle()
+    var sheet by remember { mutableStateOf<SheetTarget?>(null) }
     val numberText by vm.numberText.collectAsStateWithLifecycle()
     val toast by vm.toast.collectAsStateWithLifecycle()
     val showStats by vm.showStats.collectAsStateWithLifecycle()
@@ -174,6 +178,7 @@ fun PlayerScreen() {
     // Back: close the top overlay, otherwise show the TV guide (the channel keeps playing in its preview).
     BackHandler {
         when {
+            sheet != null -> sheet = null
             overlay is Overlay.Picker -> vm.open(Overlay.Options)
             !inFullscreen -> vm.close()
             overlay == Overlay.Banner -> vm.close()
@@ -224,7 +229,11 @@ fun PlayerScreen() {
                     category = category,
                     current = current,
                     categoriesFocused = o.categoriesFocused,
-                    railEntries = railEntries(groups, playlists, playlist?.id),
+                    railEntries = railEntries(
+                        groups, playlists, playlist?.id, customGroups,
+                        settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup,
+                    ),
+                    onRowMenu = { ch -> sheet = SheetTarget(ch.playlistId, ch, category) },
                     favorites = favorites,
                     nowNext = vm.nowNext,
                     showNumbers = settings.showChannelNumbers,
@@ -288,6 +297,7 @@ fun PlayerScreen() {
                                 if (!ExternalPlayer.open(context, it.streamUrl, it.name)) vm.showToast("No other video player is installed")
                             }
                         },
+                        ch?.let { OptionItem("option_channel", "Channel options", null) { vm.lastOptionTag = "option_channel"; vm.close(); sheet = SheetTarget(it.playlistId, it, category, vm.nowNext[it.epgRef]?.now?.title) } },
                         OptionItem("option_search", "Search", null) { vm.close(); nav.push(Screen.Search) },
                         OptionItem("option_settings", "Settings", null) { vm.close(); nav.push(Screen.Settings) },
                     ),
@@ -410,6 +420,7 @@ fun PlayerScreen() {
                 onExternal = { current?.let { if (!ExternalPlayer.open(context, it.streamUrl, it.name)) vm.showToast("No other video player is installed") } },
             )
         }
+        sheet?.let { t -> ChannelSheet(t, onClose = { sheet = null }, onMessage = vm::showToast) }
         if (numberText.isNotEmpty()) NumberBadge(numberText)
         toast?.let { Toast(it) }
     }

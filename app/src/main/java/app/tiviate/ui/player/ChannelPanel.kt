@@ -68,12 +68,21 @@ sealed interface RailEntry {
     data object Settings : RailEntry
 }
 
-fun railEntries(groups: List<CategoryRow>, playlists: List<PlaylistEntity>, activeId: Long?): List<RailEntry> = buildList {
+fun railEntries(
+    groups: List<CategoryRow>,
+    playlists: List<PlaylistEntity>,
+    activeId: Long?,
+    custom: List<app.tiviate.data.db.CustomGroupEntity> = emptyList(),
+    showAll: Boolean = true,
+    showFavorites: Boolean = true,
+    showRecent: Boolean = true,
+): List<RailEntry> = buildList {
     add(RailEntry.Search)
-    add(RailEntry.Pick(Category.All, "All channels", groups.sumOf { it.count }.takeIf { it > 0 }))
-    add(RailEntry.Pick(Category.Favorites, "Favorites", null))
-    add(RailEntry.Pick(Category.Recent, "Recent", null))
-    groups.forEach { g -> g.name?.let { add(RailEntry.Pick(Category.Group(it), it, g.count)) } }
+    if (showAll) add(RailEntry.Pick(Category.All, "All channels", groups.sumOf { it.count }.takeIf { it > 0 }))
+    if (showFavorites) add(RailEntry.Pick(Category.Favorites, "Favorites", null))
+    if (showRecent) add(RailEntry.Pick(Category.Recent, "Recent", null))
+    custom.forEach { add(RailEntry.Pick(Category.Custom(it.id, it.name), it.name, null)) }
+    groups.forEach { g -> g.name?.let { add(RailEntry.Pick(Category.Group(it), g.shownName ?: it, g.count)) } }
     playlists.filter { it.id != activeId }.forEach { add(RailEntry.SwitchPlaylist(it)) }
     add(RailEntry.Settings)
 }
@@ -106,6 +115,7 @@ fun ChannelPanel(
     initialIndex: Int,
     requestNowNext: (Collection<String>) -> Unit,
     onTune: (ChannelEntity) -> Unit,
+    onRowMenu: (ChannelEntity) -> Unit = {},
     onRail: (RailEntry) -> Unit,
     onOpenRail: () -> Unit,
     onCloseRail: () -> Unit,
@@ -180,6 +190,7 @@ fun ChannelPanel(
                         modifier = (if (isTarget || (index == initialIndex && current == null)) Modifier.focusRequester(rowFocus) else Modifier)
                             .onFocusChanged { if (it.isFocused && channel != null) focused = channel },
                         onClick = { channel?.let(onTune) },
+                        onLongClick = { channel?.let(onRowMenu) },
                     )
                 }
             }
@@ -198,8 +209,9 @@ private fun ChannelRow(
     showNumber: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
 ) {
-    FocusSurface(onClick = onClick, modifier = modifier.fillMaxWidth().height(64.dp), container = androidx.compose.ui.graphics.Color.Transparent, scale = 1.02f) {
+    FocusSurface(onClick = onClick, onLongClick = onLongClick, modifier = modifier.fillMaxWidth().height(64.dp), container = androidx.compose.ui.graphics.Color.Transparent, scale = 1.02f) {
         if (channel == null) return@FocusSurface
         Row(Modifier.fillMaxSize().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (showNumber) {

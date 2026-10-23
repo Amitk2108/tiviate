@@ -63,8 +63,8 @@ enum class LogoStyle(val label: String) { ROUNDED("Rounded"), SQUARE("Square"), 
 /** The fullscreen options cards, in their default order. */
 val DEFAULT_OPTION_CARDS = listOf(
     "option_guide", "option_playpause", "option_previous", "option_audio", "option_subtitles", "option_display", "option_zoom",
-    "option_quality", "option_audio_sync", "option_stats", "option_sleep", "option_favorite", "option_pip", "option_external",
-    "option_search", "option_settings",
+    "option_quality", "option_audio_sync", "option_stats", "option_sleep", "option_favorite", "option_channel", "option_pip",
+    "option_external", "option_search", "option_settings",
 )
 
 /** How the TV guide marks programmes on air. */
