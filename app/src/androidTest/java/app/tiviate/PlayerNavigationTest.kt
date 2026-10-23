@@ -219,7 +219,11 @@ class PlayerNavigationTest {
         repeat(20) { if (runCatching { rule.onNodeWithTag("option_channels").assertIsFocused() }.isFailure) { Remote.left(); rule.waitForIdle() } }
         Remote.ok()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
-        rule.waitUntil(15_000) { !rule.onAllNodesWithTagExists("channel_panel") }
+        // Effect delays run on the test clock, which only moves with frames: move it past the 10 s.
+        rule.mainClock.advanceTimeBy(9_000)
+        assertTrue("still open before the time is up", rule.onAllNodesWithTagExists("channel_panel"))
+        rule.mainClock.advanceTimeBy(2_000)
+        rule.waitUntil(5_000) { !rule.onAllNodesWithTagExists("channel_panel") }
     }
 
 }
