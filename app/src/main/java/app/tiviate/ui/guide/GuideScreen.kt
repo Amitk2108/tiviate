@@ -49,6 +49,9 @@ import app.tiviate.data.AppSettings
 import app.tiviate.data.Category
 import app.tiviate.ui.LocalGraph
 import app.tiviate.ui.LocalNavigator
+import app.tiviate.ui.Screen
+import app.tiviate.ui.components.KeyAction
+import app.tiviate.ui.components.LongPressDetector
 import app.tiviate.ui.components.Clock
 import app.tiviate.ui.components.FocusSurface
 import app.tiviate.ui.components.ProgressLine
@@ -84,7 +87,10 @@ fun GuideScreen() {
     var initialised by remember(category) { mutableStateOf(false) }
     LaunchedEffect(ready) { if (!ready) initialised = false }
     var details by remember { mutableStateOf<FocusBlock?>(null) }
-    var picker by remember { mutableStateOf(false) }
+    var side by remember { mutableStateOf(SideNav.GRID) }
+    val playlists by vm.playlists.collectAsStateWithLifecycle()
+    val playlist by vm.playlist.collectAsStateWithLifecycle()
+    val leftPress = remember { LongPressDetector() }
     val listState = rememberLazyListState()
     val gridFocus = remember { FocusRequester() }
     // Every start (first open, or back from the TV home screen) refreshes the guide and its preview.
@@ -150,6 +156,23 @@ fun GuideScreen() {
     }
 
     fun handleKey(native: AndroidKeyEvent): Boolean {
+        // Left on the programme on air opens the groups column; a long Left (or Left elsewhere) moves in time.
+        if (native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_LEFT) {
+            if (!state.leftOpensGroups(System.currentTimeMillis())) {
+                if (native.action == AndroidKeyEvent.ACTION_DOWN) {
+                    state.moveTime(-1, rowProgrammes(state.row))
+                    keepRowVisible()
+                    tick++
+                }
+                return true
+            }
+            when (leftPress.onKey(native)) {
+                KeyAction.Short -> side = SideNav.GROUPS
+                KeyAction.Long -> { state.moveTime(-1, rowProgrammes(state.row)); keepRowVisible(); tick++ }
+                KeyAction.None -> Unit
+            }
+            return true
+        }
         if (native.action != AndroidKeyEvent.ACTION_DOWN) {
             return native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_CENTER || native.keyCode == AndroidKeyEvent.KEYCODE_ENTER
         }
@@ -161,12 +184,11 @@ fun GuideScreen() {
                 state.moveRow(-visibleRows, rows, rowProgrammes((state.row - visibleRows).coerceAtLeast(0)))
             AndroidKeyEvent.KEYCODE_CHANNEL_DOWN, AndroidKeyEvent.KEYCODE_PAGE_DOWN ->
                 state.moveRow(visibleRows, rows, rowProgrammes((state.row + visibleRows).coerceAtMost(rows - 1)))
-            AndroidKeyEvent.KEYCODE_DPAD_LEFT -> state.moveTime(-1, rowProgrammes(state.row))
             AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> state.moveTime(+1, rowProgrammes(state.row))
             AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD, AndroidKeyEvent.KEYCODE_MEDIA_NEXT -> state.jumpHours(2, rowProgrammes(state.row))
             AndroidKeyEvent.KEYCODE_MEDIA_REWIND, AndroidKeyEvent.KEYCODE_MEDIA_PREVIOUS -> state.jumpHours(-2, rowProgrammes(state.row))
             AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER -> { if (native.repeatCount == 0) onOk(); return true }
-            AndroidKeyEvent.KEYCODE_MENU -> { picker = true; return true }
+            AndroidKeyEvent.KEYCODE_MENU -> { side = SideNav.GROUPS; return true }
             AndroidKeyEvent.KEYCODE_GUIDE -> { nav.back(); return true }
             else -> return false
         }
@@ -183,7 +205,8 @@ fun GuideScreen() {
     BackHandler {
         when {
             details != null -> details = null
-            picker -> picker = false
+            side == SideNav.RAIL -> side = SideNav.GROUPS
+            side == SideNav.GROUPS -> side = SideNav.GRID
             !settings.confirmExit || System.currentTimeMillis() - lastBackAt < 2_000 -> activity?.finish()
             else -> {
                 lastBackAt = System.currentTimeMillis()
@@ -191,7 +214,7 @@ fun GuideScreen() {
             }
         }
     }
-    LaunchedEffect(details, picker) { if (details == null && !picker && initialised) focusSoon(gridFocus) }
+    LaunchedEffect(details, side) { if (details == null && side == SideNav.GRID && initialised) focusSoon(gridFocus) }
     KeepScreenOn()
 
     Column(Modifier.fillMaxSize().background(Tokens.Background).testTag("guide_screen")) {
@@ -249,21 +272,36 @@ fun GuideScreen() {
         }
     }
 
+    if (side != SideNav.GRID) {
+        Row(Modifier.fillMaxSize().background(Tokens.ScrimSoft)) {
+            if (side == SideNav.RAIL) {
+                NavRail(
+                    onSearch = { side = SideNav.GRID; nav.push(Screen.Search) },
+                    onTv = { side = SideNav.GROUPS },
+                    onSettings = { side = SideNav.GRID; nav.push(Screen.Settings) },
+                )
+            }
+            GroupsColumn(
+                playlistName = playlist?.name?.takeIf { playlists.size > 1 },
+                entries = groupEntries(groups, playlists, playlist?.id),
+                selected = category,
+                onPick = { picked ->
+                    side = SideNav.GRID
+                    if (picked != category) {
+                        vm.selectCategory(picked)
+                        state.focusRow(0, emptyList())
+                        scope.launch { listState.scrollToItem(0) }
+                        tick++
+                    }
+                },
+                onSwitch = { p -> side = SideNav.GRID; vm.switchPlaylist(p.id) },
+                onLeft = { side = SideNav.RAIL },
+                onRight = { side = SideNav.GRID },
+            )
+        }
+    }
     details?.let { ProgrammeDetailsDialog(it) { details = null } }
     toast?.let { app.tiviate.ui.player.Toast(it) }
-    if (picker) {
-        GroupPicker(
-            entries = listOf(Category.All, Category.Favorites, Category.Recent) + groups.mapNotNull { g -> g.name?.let { Category.Group(it) } },
-            selected = category,
-            onPick = { picked ->
-                picker = false
-                vm.selectCategory(picked)
-                state.focusRow(0, emptyList())
-                scope.launch { listState.scrollToItem(0) }
-                tick++
-            },
-        )
-    }
 }
 
 /** Reads a value while depending on [tick], so the composable refreshes after GuideState changes. */
@@ -309,39 +347,6 @@ private fun ProgrammeDetailsDialog(block: FocusBlock, onClose: () -> Unit) {
             p?.description?.let { Text(it, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize)) }
             FocusSurface(onClick = onClose, modifier = Modifier.focusRequester(first), container = Tokens.Raised) {
                 Text("Close", modifier = Modifier.padding(horizontal = 22.dp, vertical = 12.dp), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
-            }
-        }
-    }
-}
-
-@Composable
-private fun GroupPicker(entries: List<Category>, selected: Category, onPick: (Category) -> Unit) {
-    val first = remember { FocusRequester() }
-    val selectedIndex = entries.indexOf(selected).coerceAtLeast(0)
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = (selectedIndex - 3).coerceAtLeast(0))
-    LaunchedEffect(Unit) { focusSoon(first) }
-    Box(Modifier.fillMaxSize().background(Tokens.ScrimSoft).testTag("guide_groups"), contentAlignment = Alignment.CenterStart) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.width(340.dp).fillMaxHeight().background(Tokens.Background).padding(top = 28.dp, start = 16.dp, end = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            items(entries.size) { i ->
-                val c = entries[i]
-                FocusSurface(
-                    onClick = { onPick(c) },
-                    modifier = (if (i == selectedIndex) Modifier.focusRequester(first) else Modifier).fillMaxWidth(),
-                    container = Color.Transparent,
-                    scale = 1.02f,
-                ) {
-                    Text(
-                        categoryLabel(c),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = TextStyle(color = if (c == selected) Tokens.Cyan else Tokens.Text, fontSize = Tokens.BodySize, fontWeight = if (c == selected) FontWeight.SemiBold else FontWeight.Normal),
-                    )
-                }
             }
         }
     }

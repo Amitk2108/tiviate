@@ -46,6 +46,9 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
     var initialRow = 0
         private set
 
+    val playlists: StateFlow<List<PlaylistEntity>> = graph.playlists.playlists
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     val groups: StateFlow<List<CategoryRow>> = _playlist.filterNotNull()
         .flatMapLatest { repo.groups(it.id) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -110,6 +113,15 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
     }
 
     fun tune(channel: ChannelEntity) = graph.player.tune(channel, _playlist.value?.userAgent)
+
+    /** Shows another playlist: its first (or last watched) channel starts in the preview. */
+    fun switchPlaylist(id: Long) {
+        viewModelScope.launch {
+            graph.player.stop()
+            graph.settings.update { it.copy(activePlaylistId = id, lastChannelKey = null, lastGroup = null) }
+            open()
+        }
+    }
 
     companion object {
         private const val HOUR = 3_600_000L

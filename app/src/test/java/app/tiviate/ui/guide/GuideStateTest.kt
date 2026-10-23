@@ -2,6 +2,8 @@ package app.tiviate.ui.guide
 
 import app.tiviate.data.db.ProgrammeEntity
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -95,5 +97,22 @@ class GuideStateTest {
         s.moveTime(-1, emptyList())
         s.moveTime(-1, emptyList())
         assertEquals(earliest, s.viewStartMs)
+    }
+
+    @Test
+    fun leftOnTheProgrammeOnAirOpensGroupsElsewhereItMovesLeft() {
+        val now = t10 + 40 * min
+        val s = state(now)
+        val row = listOf(p(t10 - hour, t10, "Past"), p(t10, t10 + hour, "On air"), p(t10 + hour, t10 + 2 * hour, "Later"))
+        s.focusRow(0, row)
+        assertTrue("on air → groups", s.leftOpensGroups(now))
+        s.moveTime(+1, row)
+        assertFalse("future → move left", s.leftOpensGroups(now))
+        s.moveTime(-1, row)
+        s.moveTime(-1, row) // long Left: into the past
+        assertEquals("Past", s.focused?.programme?.title)
+        assertFalse("past → keep moving", s.leftOpensGroups(now))
+        val empty = state(now).apply { focusRow(0, emptyList()) }
+        assertTrue("no guide data → groups", empty.leftOpensGroups(now))
     }
 }
