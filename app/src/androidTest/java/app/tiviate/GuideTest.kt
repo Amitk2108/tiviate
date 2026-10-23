@@ -72,10 +72,14 @@ class GuideTest {
     }
 
     @Test
-    fun backReturnsToFullscreen() {
+    fun backTwiceFromTheGuideExits() {
         Remote.right()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }
+        rule.waitForIdle()
         Remote.back()
-        rule.waitUntil(5_000) { !rule.onAllNodesWithTagExists("guide_screen") && rule.onAllNodesWithTagExists("player_screen") }
+        rule.waitUntil(3_000) { rule.textExists("Press Back again to exit") }
+        assert(rule.onAllNodesWithTagExists("guide_screen")) { "the first Back only asks" }
+        Remote.back()
+        rule.waitUntil(5_000) { scenario.state == androidx.lifecycle.Lifecycle.State.DESTROYED }
     }
 }

@@ -18,7 +18,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,7 +71,6 @@ fun PlayerScreen() {
 
     val rootFocus = remember { FocusRequester() }
     val okPress = remember { LongPressDetector() }
-    var lastBackAt by remember { mutableLongStateOf(0L) }
     var panelIndex by remember { mutableIntStateOf(0) }
 
     KeepScreenOn()
@@ -147,16 +145,12 @@ fun PlayerScreen() {
         return false
     }
 
-    // Back: close the top overlay, otherwise ask for a second press to exit.
+    // Back: close the top overlay, otherwise show the TV guide (the channel keeps playing in its preview).
     BackHandler {
         when {
             !inFullscreen -> vm.close()
             overlay == Overlay.Banner -> vm.close()
-            System.currentTimeMillis() - lastBackAt < 2_000 -> (context as? Activity)?.finish()
-            else -> {
-                lastBackAt = System.currentTimeMillis()
-                vm.showToast("Press Back again to exit")
-            }
+            else -> nav.push(Screen.Guide)
         }
     }
 

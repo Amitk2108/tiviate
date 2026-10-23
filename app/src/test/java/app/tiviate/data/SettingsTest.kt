@@ -8,6 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -36,6 +37,48 @@ class SettingsTest {
 
         store.update { it.copy(lastGroup = null) }
         assertNull(store.settings.first().lastGroup)
+    }
+
+    @Test
+    fun b1SettingsHaveDefaultsAndPersist() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val store = SettingsStore.forFile(File(context.filesDir, "settings-b1-${System.nanoTime()}.preferences_pb"))
+
+        val d = store.settings.first()
+        assertTrue("exit asks for a second Back", d.confirmExit)
+        assertEquals(UpDownMode.UP_NEXT_DOWN_OPTIONS, d.upDownMode)
+        assertNull(d.preferredAudioLanguage)
+        assertFalse(d.subtitlesForAll)
+        assertNull(d.preferredTextLanguage)
+        assertEquals(DisplayMode.FIT, d.displayMode)
+        assertEquals(100, d.zoomPercent)
+        assertFalse(d.autoStartOnBoot)
+        assertEquals(1, d.epgPastDays)
+        assertTrue(d.updateOnStart)
+        assertEquals(12, d.updateIntervalHours)
+
+        store.update {
+            it.copy(
+                confirmExit = false, upDownMode = UpDownMode.ZAP, preferredAudioLanguage = "hi", subtitlesForAll = true,
+                preferredTextLanguage = "en", displayMode = DisplayMode.RATIO_16_9, zoomPercent = 120, autoStartOnBoot = true,
+                epgPastDays = 3, updateOnStart = false, updateIntervalHours = 24,
+            )
+        }
+        val s = store.settings.first()
+        assertFalse(s.confirmExit)
+        assertEquals(UpDownMode.ZAP, s.upDownMode)
+        assertEquals("hi", s.preferredAudioLanguage)
+        assertTrue(s.subtitlesForAll)
+        assertEquals("en", s.preferredTextLanguage)
+        assertEquals(DisplayMode.RATIO_16_9, s.displayMode)
+        assertEquals(120, s.zoomPercent)
+        assertTrue(s.autoStartOnBoot)
+        assertEquals(3, s.epgPastDays)
+        assertFalse(s.updateOnStart)
+        assertEquals(24, s.updateIntervalHours)
+
+        store.update { it.copy(preferredAudioLanguage = null) }
+        assertNull("Reset clears the language", store.settings.first().preferredAudioLanguage)
     }
 
     @Test

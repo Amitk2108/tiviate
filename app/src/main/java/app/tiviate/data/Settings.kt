@@ -21,6 +21,18 @@ enum class BufferPreset(val minMs: Int, val maxMs: Int, val startMs: Int, val re
     STABLE(30_000, 90_000, 2_500, 5_000),
 }
 
+/** What D-pad Up/Down do while a channel plays fullscreen. */
+enum class UpDownMode { UP_NEXT_DOWN_OPTIONS, ZAP }
+
+/** How the picture fills the screen; applies to all channels. */
+enum class DisplayMode(val label: String) {
+    FIT("Fit"),
+    FILL("Stretch"),
+    ZOOM("Fill screen"),
+    RATIO_16_9("16:9"),
+    RATIO_4_3("4:3"),
+}
+
 data class AppSettings(
     val activePlaylistId: Long? = null,
     val bufferPreset: BufferPreset = BufferPreset.NORMAL,
@@ -35,6 +47,19 @@ data class AppSettings(
     val lastGroup: String? = null,
     /** Open straight into the last channel fullscreen; off = start on the TV guide with the preview. */
     val startFullscreen: Boolean = false,
+    /** Back on the guide asks for a second press before leaving. */
+    val confirmExit: Boolean = true,
+    val upDownMode: UpDownMode = UpDownMode.UP_NEXT_DOWN_OPTIONS,
+    /** Audio language picked "for all channels" (ISO 639 code from the stream). */
+    val preferredAudioLanguage: String? = null,
+    val subtitlesForAll: Boolean = false,
+    val preferredTextLanguage: String? = null,
+    val displayMode: DisplayMode = DisplayMode.FIT,
+    val zoomPercent: Int = 100,
+    val autoStartOnBoot: Boolean = false,
+    val epgPastDays: Int = 1,
+    val updateOnStart: Boolean = true,
+    val updateIntervalHours: Int = 12,
 )
 
 class SettingsStore private constructor(private val store: DataStore<Preferences>) {
@@ -57,6 +82,17 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p.setOrRemove(LAST_CHANNEL, next.lastChannelKey)
             p.setOrRemove(LAST_GROUP, next.lastGroup)
             p[START_FULLSCREEN] = next.startFullscreen
+            p[CONFIRM_EXIT] = next.confirmExit
+            p[UP_DOWN] = next.upDownMode.name
+            p.setOrRemove(AUDIO_LANG, next.preferredAudioLanguage)
+            p[SUBS_FOR_ALL] = next.subtitlesForAll
+            p.setOrRemove(TEXT_LANG, next.preferredTextLanguage)
+            p[DISPLAY_MODE] = next.displayMode.name
+            p[ZOOM] = next.zoomPercent
+            p[AUTO_START] = next.autoStartOnBoot
+            p[EPG_PAST_DAYS] = next.epgPastDays
+            p[UPDATE_ON_START] = next.updateOnStart
+            p[UPDATE_INTERVAL] = next.updateIntervalHours
         }
     }
 
@@ -73,6 +109,17 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         lastChannelKey = p[LAST_CHANNEL],
         lastGroup = p[LAST_GROUP],
         startFullscreen = p[START_FULLSCREEN] ?: false,
+        confirmExit = p[CONFIRM_EXIT] ?: true,
+        upDownMode = p[UP_DOWN]?.let { runCatching { UpDownMode.valueOf(it) }.getOrNull() } ?: UpDownMode.UP_NEXT_DOWN_OPTIONS,
+        preferredAudioLanguage = p[AUDIO_LANG],
+        subtitlesForAll = p[SUBS_FOR_ALL] ?: false,
+        preferredTextLanguage = p[TEXT_LANG],
+        displayMode = p[DISPLAY_MODE]?.let { runCatching { DisplayMode.valueOf(it) }.getOrNull() } ?: DisplayMode.FIT,
+        zoomPercent = p[ZOOM] ?: 100,
+        autoStartOnBoot = p[AUTO_START] ?: false,
+        epgPastDays = p[EPG_PAST_DAYS] ?: 1,
+        updateOnStart = p[UPDATE_ON_START] ?: true,
+        updateIntervalHours = p[UPDATE_INTERVAL] ?: 12,
     )
 
     private fun <T> androidx.datastore.preferences.core.MutablePreferences.setOrRemove(key: Preferences.Key<T>, value: T?) {
@@ -92,6 +139,17 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val LAST_CHANNEL = stringPreferencesKey("last_channel_key")
         private val LAST_GROUP = stringPreferencesKey("last_group")
         private val START_FULLSCREEN = booleanPreferencesKey("start_fullscreen")
+        private val CONFIRM_EXIT = booleanPreferencesKey("confirm_exit")
+        private val UP_DOWN = stringPreferencesKey("up_down_mode")
+        private val AUDIO_LANG = stringPreferencesKey("preferred_audio_language")
+        private val SUBS_FOR_ALL = booleanPreferencesKey("subtitles_for_all")
+        private val TEXT_LANG = stringPreferencesKey("preferred_text_language")
+        private val DISPLAY_MODE = stringPreferencesKey("display_mode")
+        private val ZOOM = intPreferencesKey("zoom_percent")
+        private val AUTO_START = booleanPreferencesKey("auto_start_on_boot")
+        private val EPG_PAST_DAYS = intPreferencesKey("epg_past_days")
+        private val UPDATE_ON_START = booleanPreferencesKey("update_on_start")
+        private val UPDATE_INTERVAL = intPreferencesKey("update_interval_hours")
 
         fun create(context: Context): SettingsStore = forFile(context.preferencesDataStoreFile("settings"))
 
