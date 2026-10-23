@@ -476,6 +476,7 @@ private fun PlayerSection() {
         ) { if (settings.preferredAudioLanguage != null) update { it.copy(preferredAudioLanguage = null) } }
         Caption(t("Choose it while watching: Down → Audio → \"Use this language for all channels\". OK here clears it."))
         ToggleRow(t("Subtitles on"), settings.subtitlesForAll, { update { it.copy(subtitlesForAll = !it.subtitlesForAll) } }, tag = "setting_subs_all")
+        ToggleRow(t("Subtitles on for English channels"), settings.englishSubtitles, { update { it.copy(englishSubtitles = !it.englishSubtitles) } }, tag = "setting_subs_english")
         ValueRow(t("Display mode"), settings.displayMode.label, "setting_display_mode") { update { it.copy(displayMode = DisplayMode.entries.after(it.displayMode)) } }
         ValueRow(t("Zoom"), "${settings.zoomPercent}%", "setting_zoom") { update { it.copy(zoomPercent = listOf(100, 110, 120, 130, 140, 150).after(it.zoomPercent)) } }
     }

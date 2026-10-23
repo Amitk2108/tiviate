@@ -150,6 +150,8 @@ data class AppSettings(
     // --- B2: player
     val optionCards: List<String> = DEFAULT_OPTION_CARDS,
     val hiddenOptionCards: Set<String> = emptySet(),
+    /** Subtitles on by default when the channel's sound is English (Hindi and other channels stay off). */
+    val englishSubtitles: Boolean = true,
     val preferSurround: Boolean = false,
     /** Audio delay against the picture, ms (+ = sound later). */
     val audioOffsetMs: Int = 0,
@@ -227,6 +229,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p[OPTION_CARDS] = next.optionCards.joinToString(",")
             p[HIDDEN_CARDS] = next.hiddenOptionCards
             p[PREFER_SURROUND] = next.preferSurround
+            p[ENGLISH_SUBTITLES] = next.englishSubtitles
             p[AUDIO_OFFSET] = next.audioOffsetMs
             p[PIP_ON_HOME] = next.pipOnHome
             p[ALWAYS_EXTERNAL] = next.alwaysExternalPlayer
@@ -296,6 +299,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         } ?: DEFAULT_OPTION_CARDS,
         hiddenOptionCards = p[HIDDEN_CARDS] ?: emptySet(),
         preferSurround = p[PREFER_SURROUND] ?: false,
+        englishSubtitles = p[ENGLISH_SUBTITLES] ?: true,
         audioOffsetMs = p[AUDIO_OFFSET] ?: 0,
         pipOnHome = p[PIP_ON_HOME] ?: false,
         alwaysExternalPlayer = p[ALWAYS_EXTERNAL] ?: false,
@@ -366,6 +370,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val OPTION_CARDS = stringPreferencesKey("option_cards")
         private val HIDDEN_CARDS = stringSetPreferencesKey("hidden_option_cards")
         private val PREFER_SURROUND = booleanPreferencesKey("prefer_surround")
+        private val ENGLISH_SUBTITLES = booleanPreferencesKey("english_subtitles")
         private val AUDIO_OFFSET = intPreferencesKey("audio_offset_ms")
         private val PIP_ON_HOME = booleanPreferencesKey("pip_on_home")
         private val ALWAYS_EXTERNAL = booleanPreferencesKey("always_external_player")

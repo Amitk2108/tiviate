@@ -17,6 +17,19 @@ import org.robolectric.annotation.LooperMode
 class Media3EngineTest {
 
     @Test
+    fun englishChannelsGetSubtitlesHindiChannelsDoNot() {
+        assertTrue(autoSubtitles(audioLanguage = "en", enabled = true, forAll = false))
+        assertTrue(autoSubtitles(audioLanguage = "eng", enabled = true, forAll = false))
+        assertFalse(autoSubtitles(audioLanguage = "hi", enabled = true, forAll = false))
+        assertFalse("unknown language: leave them off", autoSubtitles(audioLanguage = null, enabled = true, forAll = false))
+        assertFalse("setting off", autoSubtitles(audioLanguage = "en", enabled = false, forAll = false))
+        assertFalse("subtitles for all channels already decide", autoSubtitles(audioLanguage = "en", enabled = true, forAll = true))
+        assertEquals(1, pickSubtitle(listOf("hi", "en", null)))
+        assertEquals(2, pickSubtitle(listOf("hi", "ta", null)))
+        assertEquals(null, pickSubtitle(listOf("hi", "ta")))
+    }
+
+    @Test
     fun audioSyncShiftsTheClockButNeverBelowZero() {
         assertEquals(1_250_000L, shiftAudioClock(1_000_000L, 250_000L))
         assertEquals(750_000L, shiftAudioClock(1_000_000L, -250_000L))

@@ -67,6 +67,7 @@ class Media3Engine(
     /** Sound against picture, µs (+ = sound later); read by the audio sink on the playback thread. */
     @Volatile private var audioOffsetUs: Long = settings.audioOffsetMs * 1_000L
     private var surroundChecked = false
+    private var subtitlesChecked = false
 
     /** "Select surround audio track by default": once per channel, switch to a 5.1/7.1 track if there is one. */
     private fun preferSurround(tracks: Tracks) {
@@ -86,6 +87,20 @@ class Media3Engine(
                 }
             }
         }
+    }
+
+    /** English channels: once per channel, show an English (or unlabelled) subtitle track if the stream has one. */
+    private fun englishChannelSubtitles(tracks: Tracks) {
+        val audio = tracks.selectedFormat(C.TRACK_TYPE_AUDIO) ?: return
+        subtitlesChecked = true
+        if (!autoSubtitles(audio.language, settings.englishSubtitles, settings.subtitlesForAll)) return
+        val texts = tracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
+            .flatMap { g -> (0 until g.length).filter(g::isTrackSupported).map { g to it } }
+        val pick = pickSubtitle(texts.map { (g, i) -> g.getTrackFormat(i).language }) ?: return
+        val (group, index) = texts[pick]
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+            .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, index)).build()
     }
 
     /** The link the next (re)connection will use. */
@@ -145,6 +160,7 @@ class Media3Engine(
 
         override fun onTracksChanged(tracks: Tracks) {
             if (settings.preferSurround && !surroundChecked) preferSurround(tracks)
+            if (!subtitlesChecked) englishChannelSubtitles(tracks)
             val video = tracks.selectedFormat(C.TRACK_TYPE_VIDEO)
             val audio = tracks.selectedFormat(C.TRACK_TYPE_AUDIO)
             _state.update {
@@ -248,6 +264,7 @@ class Media3Engine(
         pausedAtMs = null
         applyPreferences(settings) // a new channel starts from the "for all channels" choices
         surroundChecked = false
+        subtitlesChecked = false
         _state.value = PlaybackState(channelKey = channelKey, isBuffering = true)
         startCurrent()
     }
@@ -481,3 +498,13 @@ class Media3Engine(
  */
 internal fun shiftAudioClock(positionUs: Long, offsetUs: Long): Long =
     if (positionUs == AudioSink.CURRENT_POSITION_NOT_SET) positionUs else (positionUs + offsetUs).coerceAtLeast(0)
+
+private fun isEnglish(language: String?) = language?.lowercase()?.let { it == "en" || it == "eng" || it.startsWith("en-") } == true
+
+/** Subtitles on by default? Only for English sound, when the setting is on and "for all channels" is not deciding. */
+internal fun autoSubtitles(audioLanguage: String?, enabled: Boolean, forAll: Boolean): Boolean =
+    enabled && !forAll && isEnglish(audioLanguage)
+
+/** Which subtitle track: English first, then one without a language; none otherwise. */
+internal fun pickSubtitle(languages: List<String?>): Int? =
+    languages.indexOfFirst(::isEnglish).takeIf { it >= 0 } ?: languages.indexOfFirst { it == null || it == "und" }.takeIf { it >= 0 }
