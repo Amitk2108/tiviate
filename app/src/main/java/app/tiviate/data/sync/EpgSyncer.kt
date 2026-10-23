@@ -15,6 +15,7 @@ import app.tiviate.data.db.ProgrammeEntity
 import app.tiviate.data.db.TiviateDatabase
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.xmlpull.v1.XmlPullParser
@@ -35,32 +36,53 @@ class EpgSyncer(
     private val futureMs: Long = 7 * DAY,
 ) {
 
-    suspend fun syncForPlaylist(playlistId: Long, onProgress: (Int) -> Unit = {}): EpgSyncResult = withContext(Dispatchers.IO) {
-        val playlist = db.playlists().get(playlistId) ?: return@withContext EpgSyncResult(0, 0, 0)
-        ensureAutoSource(playlist)
-        val wanted = WantedChannels.from(db.channels().matchRows(playlistId).map { Triple(it.tvgId, it.tvgName, it.name) })
+    suspend fun syncForPlaylist(playlistId: Long, onProgress: (Int) -> Unit = {}): EpgSyncResult =
+        syncPlaylists(listOf(playlistId), onProgress)
+
+    /**
+     * Refreshes every source the playlists use, each source once. A playlist's own (AUTO) source keeps
+     * the channels that playlist uses; a shared (MANUAL) source keeps the channels of every enabled
+     * playlist, so refreshing one playlist never drops another playlist's guide.
+     */
+    suspend fun syncPlaylists(playlistIds: List<Long>, onProgress: (Int) -> Unit = {}): EpgSyncResult = withContext(Dispatchers.IO) {
+        val playlists = playlistIds.distinct().mapNotNull { db.playlists().get(it) }
+        if (playlists.isEmpty()) return@withContext EpgSyncResult(0, 0, 0)
+        playlists.forEach { ensureAutoSource(it) }
+        val sources = playlists.flatMap { db.epg().sourcesFor(it.id) }.distinctBy { it.id }
+        val everyPlaylist = (db.playlists().all().filter { it.enabled }.map { it.id } + playlists.map { it.id }).distinct()
+        var shared: WantedChannels? = null
 
         var total = 0
         var ok = 0
         var failed = 0
-        for (source in db.epg().sourcesFor(playlistId)) {
-            val ua = if (source.origin == EpgOrigin.AUTO) playlist.userAgent else null
+        for (source in sources) {
+            val owner = playlists.firstOrNull { source.origin == EpgOrigin.AUTO && it.id == source.playlistId }
+            val wanted = if (owner != null) wantedFor(listOf(owner.id)) else shared ?: wantedFor(everyPlaylist).also { shared = it }
             try {
                 val base = total
-                total += syncSource(source, ua, wanted) { onProgress(base + it) }
+                total += syncSource(source, owner?.userAgent, wanted) { onProgress(base + it) }
                 ok++
             } catch (e: CancellationException) {
-                db.epg().deleteGeneration(source.id, source.activeGeneration + 1)
+                withContext(NonCancellable) { discardNextGeneration(source.id) }
                 throw e
             } catch (e: Exception) {
                 failed++
-                db.epg().deleteGeneration(source.id, source.activeGeneration + 1)
+                discardNextGeneration(source.id)
                 db.epg().source(source.id)?.let { db.epg().updateSource(it.copy(lastError = e.message ?: e.javaClass.simpleName)) }
             }
         }
-        EpgLinker(db).relink(playlistId)
+        val relinked = if (shared != null) everyPlaylist else playlists.map { it.id }
+        relinked.forEach { EpgLinker(db).relink(it) }
         db.epg().deleteEndedBefore(clock() - pastMs)
         EpgSyncResult(total, ok, failed)
+    }
+
+    private suspend fun wantedFor(playlistIds: List<Long>) =
+        WantedChannels.from(playlistIds.flatMap { db.channels().matchRows(it) }.map { Triple(it.tvgId, it.tvgName, it.name) })
+
+    /** Drops a half-written refresh; re-reads the source so a generation swapped meanwhile is never touched. */
+    private suspend fun discardNextGeneration(sourceId: Long) {
+        db.epg().source(sourceId)?.let { db.epg().deleteGeneration(it.id, it.activeGeneration + 1) }
     }
 
     private suspend fun ensureAutoSource(playlist: PlaylistEntity) {

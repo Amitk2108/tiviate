@@ -18,6 +18,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 
@@ -36,6 +38,12 @@ class PlaylistRepository(
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
     val playlists: Flow<List<PlaylistEntity>> = db.playlists().observeAll()
+
+    /**
+     * One writer at a time: overlapping syncs would delete each other's freshly written channels
+     * (stale-stamp cleanup) and write into the same next guide generation.
+     */
+    private val syncLock = Mutex()
 
     suspend fun get(id: Long): PlaylistEntity? = db.playlists().get(id)
 
@@ -61,20 +69,22 @@ class PlaylistRepository(
 
     /** Playlist first, then its guide. Guide failures are recorded per source and never fail the playlist. */
     fun sync(playlistId: Long): Flow<SyncProgress> = channelFlow {
-        try {
-            send(SyncProgress.Channels(0))
-            playlistSyncer.sync(playlistId) { trySend(SyncProgress.Channels(it)) }
-            send(SyncProgress.Guide(0))
-            epgSyncer.syncForPlaylist(playlistId) { trySend(SyncProgress.Guide(it)) }
-            send(SyncProgress.Done)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            send(SyncProgress.Failed(e.message ?: "Sync failed"))
+        send(SyncProgress.Channels(0))
+        syncLock.withLock {
+            try {
+                playlistSyncer.sync(playlistId) { trySend(SyncProgress.Channels(it)) }
+                send(SyncProgress.Guide(0))
+                epgSyncer.syncForPlaylist(playlistId) { trySend(SyncProgress.Guide(it)) }
+                send(SyncProgress.Done)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                send(SyncProgress.Failed(e.message ?: "Sync failed"))
+            }
         }
     }
 
-    suspend fun refreshGuide(playlistId: Long) = epgSyncer.syncForPlaylist(playlistId)
+    suspend fun refreshGuide(playlistId: Long) = syncLock.withLock { epgSyncer.syncForPlaylist(playlistId) }
 
     val epgSources = db.epg().observeSources()
 
@@ -97,17 +107,16 @@ class PlaylistRepository(
 
     suspend fun clearHistory(playlistId: Long) = db.history().clear(playlistId)
 
-    suspend fun syncAll() {
-        for (p in db.playlists().all().filter { it.enabled }) {
-            runCatching { playlistSyncer.sync(p.id) }
-            runCatching { epgSyncer.syncForPlaylist(p.id) }
-        }
+    suspend fun syncAll() = syncLock.withLock {
+        val enabled = db.playlists().all().filter { it.enabled }.map { it.id }
+        for (id in enabled) runCatching { playlistSyncer.sync(id) }
+        runCatching { epgSyncer.syncPlaylists(enabled) } // shared guide links download once
     }
 
     suspend fun isStale(staleMs: Long): Boolean =
         db.playlists().all().any { it.enabled && (it.lastSyncAt == null || clock() - it.lastSyncAt > staleMs) }
 
-    suspend fun delete(playlistId: Long) {
+    suspend fun delete(playlistId: Long) = syncLock.withLock {
         db.withTransaction {
             db.epg().autoSource(playlistId)?.let { src ->
                 db.epg().deleteProgrammes(src.id)
