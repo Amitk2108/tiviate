@@ -70,6 +70,12 @@ interface ChannelDao {
     @Query("SELECT * FROM channel WHERE playlistId = :playlistId AND (:group IS NULL OR groupName = :group) ORDER BY sortIndex DESC LIMIT 1")
     suspend fun last(playlistId: Long, group: String?): ChannelEntity?
 
+    @Query(
+        """SELECT COUNT(*) FROM channel WHERE playlistId = :playlistId AND (:group IS NULL OR groupName = :group)
+           AND sortIndex < :sortIndex""",
+    )
+    suspend fun positionOf(playlistId: Long, group: String?, sortIndex: Int): Int
+
     @Query("SELECT * FROM channel WHERE playlistId = :playlistId AND stableKey = :stableKey")
     suspend fun byKey(playlistId: Long, stableKey: String): ChannelEntity?
 

@@ -16,6 +16,8 @@ data class PlaybackState(
     val frameRate: Float? = null,
     val audioLabel: String? = null,
     val retrying: Int = 0,
+    /** Short status shown under the spinner while recovering (e.g. provider busy). */
+    val notice: String? = null,
 )
 
 /**

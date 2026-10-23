@@ -14,8 +14,13 @@ import okio.Path.Companion.toOkioPath
 /** Some logo/CDN hosts reject non-browser clients, so images are fetched with a browser-like User-Agent. */
 val IMAGE_USER_AGENT = "Mozilla/5.0 (Linux; Android ${Build.VERSION.RELEASE}; TV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 
-/** Shares the app's connection pool but always presents a browser User-Agent. */
+/**
+ * Shares the app's connection pool but always presents a browser User-Agent. Short timeouts so a
+ * dead logo URL falls through to the next candidate quickly instead of leaving a tile empty.
+ */
 fun imageHttpClient(http: OkHttpClient): OkHttpClient = http.newBuilder()
+    .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+    .readTimeout(8, java.util.concurrent.TimeUnit.SECONDS)
     .addInterceptor { chain -> chain.proceed(chain.request().newBuilder().header("User-Agent", IMAGE_USER_AGENT).build()) }
     .build()
 
@@ -34,5 +39,6 @@ fun buildImageLoader(context: Context, http: OkHttpClient): ImageLoader {
                 .build()
         }
         .crossfade(false)
+        .apply { if (app.tiviate.BuildConfig.DEBUG) logger(coil3.util.DebugLogger()) }
         .build()
 }

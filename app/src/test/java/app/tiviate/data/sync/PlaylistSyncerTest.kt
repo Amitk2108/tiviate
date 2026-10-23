@@ -158,4 +158,18 @@ class PlaylistSyncerTest {
             assertTrue(e.message!!.contains("login", ignoreCase = true))
         }
     }
+
+    @Test
+    fun xtreamNumbersFollowListOrderWhenProviderRepeatsNum() = runBlocking {
+        h.routes["/player_api.php?username=u&password=p&action=get_live_categories"] = { text("[]") }
+        h.routes["/player_api.php?username=u&password=p&action=get_live_streams"] = {
+            text("""[{"num":2,"name":"A","stream_id":1},{"num":2,"name":"B","stream_id":2},{"num":4,"name":"C","stream_id":3}]""")
+        }
+        h.routes["/player_api.php?username=u&password=p"] = { text("""{"user_info":{"auth":1,"allowed_output_formats":["m3u8"]}}""") }
+        val id = h.db.playlists().insert(
+            PlaylistEntity(name = "X", type = PlaylistType.XTREAM, xtreamServer = h.url("/").trimEnd('/'), xtreamUser = "u", xtreamPass = "p"),
+        )
+        h.playlistSyncer().sync(id)
+        assertEquals(listOf(1, 2, 3), h.db.channels().allInPlaylist(id).map { it.number })
+    }
 }

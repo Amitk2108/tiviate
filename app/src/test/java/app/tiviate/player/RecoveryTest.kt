@@ -17,6 +17,24 @@ class RetryPolicyTest {
     }
 }
 
+class RefusalTest {
+
+    @Test
+    fun accountBusyCodesAreRecognised() {
+        // 458/407 are what single-session Xtream panels send; some (like the owner's provider) send a bare 400.
+        listOf(400, 407, 429, 458, 503, 509).forEach { assertTrue("$it", Refusal.isAccountBusy(it)) }
+        listOf(200, 401, 403, 404, 500).forEach { assertFalse("$it", Refusal.isAccountBusy(it)) }
+    }
+
+    @Test
+    fun busyRetriesAreSlowerAndLastAboutNinetySeconds() {
+        val p = RetryPolicy.accountBusy()
+        val delays = generateSequence(0) { it + 1 }.map { p.nextDelay(it) }.takeWhile { it != null }.toList().filterNotNull()
+        assertTrue(delays.sum() in 80_000L..120_000L)
+        assertTrue(delays.first() >= 2_000L)
+    }
+}
+
 class StallWatchdogTest {
 
     @Test

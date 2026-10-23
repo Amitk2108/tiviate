@@ -5,6 +5,23 @@ import androidx.media3.common.MimeTypes
 /** Exponential backoff for reconnecting a failed stream: 1, 2, 4, 8, 16 s, then give up. */
 class RetryPolicy(private val delaysMs: List<Long> = listOf(1_000, 2_000, 4_000, 8_000, 16_000)) {
     fun nextDelay(attempt: Int): Long? = delaysMs.getOrNull(attempt)
+
+    companion object {
+        /**
+         * Slower, longer schedule (~83 s) for "account busy" refusals: the stream is fine, another
+         * session holds the account's only connection and usually frees it within a minute.
+         */
+        fun accountBusy() = RetryPolicy(listOf(3_000, 5_000, 8_000, 10_000, 12_000, 15_000, 15_000, 15_000))
+    }
+}
+
+/** HTTP answers that mean "the provider refused this request", not "the stream is broken". */
+object Refusal {
+    /**
+     * Single-connection Xtream panels refuse a second session with a non-standard 458, a 407 from a
+     * gateway, a 429/503/509 rate limit — or, on some panels (the owner's provider), a bare 400.
+     */
+    fun isAccountBusy(code: Int): Boolean = code == 400 || code == 407 || code == 429 || code == 458 || code == 503 || code == 509
 }
 
 /**

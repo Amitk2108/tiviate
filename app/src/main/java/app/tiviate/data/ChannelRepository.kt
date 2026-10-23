@@ -57,6 +57,14 @@ class ChannelRepository(private val db: TiviateDatabase, private val clock: () -
         }
     }
 
+    /** Index of [channel] inside [category]'s list, used to open the channel list on the playing channel. */
+    suspend fun positionOf(playlistId: Long, category: Category, channel: ChannelEntity): Int = when (category) {
+        Category.All -> db.channels().positionOf(playlistId, null, channel.sortIndex)
+        is Category.Group -> if (channel.groupName == category.name) db.channels().positionOf(playlistId, category.name, channel.sortIndex) else 0
+        Category.Favorites -> db.favorites().favoriteChannels(playlistId).first().indexOfFirst { it.stableKey == channel.stableKey }.coerceAtLeast(0)
+        Category.Recent -> db.history().recent(playlistId).first().indexOfFirst { it.stableKey == channel.stableKey }.coerceAtLeast(0)
+    }
+
     private fun cycle(list: List<ChannelEntity>, current: ChannelEntity, forward: Boolean): ChannelEntity? {
         if (list.isEmpty()) return null
         val i = list.indexOfFirst { it.stableKey == current.stableKey }

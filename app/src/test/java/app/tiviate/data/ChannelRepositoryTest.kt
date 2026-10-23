@@ -93,4 +93,12 @@ class ChannelRepositoryTest {
         assertEquals("Now", nn.getValue("$src:x").now?.title)
         assertEquals("Next", nn.getValue("$src:x").next?.title)
     }
+
+    @Test
+    fun positionOfCountsWithinCategory() = runBlocking {
+        val pid = seed()
+        val d = db.channels().byKey(pid, "D")!!
+        assertEquals(3, repo.positionOf(pid, Category.All, d))
+        assertEquals(2, repo.positionOf(pid, Category.Group("News"), d))
+    }
 }

@@ -45,6 +45,7 @@ class Media3Engine(
     private val http: OkHttpClient,
     private var settings: AppSettings,
     private val retryPolicy: RetryPolicy = RetryPolicy(),
+    private val busyPolicy: RetryPolicy = RetryPolicy.accountBusy(),
     private val watchdog: StallWatchdog = StallWatchdog(),
 ) : PlaybackEngine {
 
@@ -83,7 +84,14 @@ class Media3Engine(
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) attempt = 0
-            _state.update { it.copy(isPlaying = isPlaying, error = if (isPlaying) null else it.error, retrying = if (isPlaying) 0 else it.retrying) }
+            _state.update {
+                it.copy(
+                    isPlaying = isPlaying,
+                    error = if (isPlaying) null else it.error,
+                    retrying = if (isPlaying) 0 else it.retrying,
+                    notice = if (isPlaying) null else it.notice,
+                )
+            }
         }
 
         override fun onVideoSizeChanged(videoSize: VideoSize) {
@@ -195,13 +203,15 @@ class Media3Engine(
                 return
             }
         }
-        val delay = retryPolicy.nextDelay(attempt)
+        val busy = httpStatus(error)?.let(Refusal::isAccountBusy) == true
+        val delay = (if (busy) busyPolicy else retryPolicy).nextDelay(attempt)
         if (delay == null) {
-            _state.update { it.copy(isBuffering = false, isPlaying = false, error = describe(error), retrying = 0) }
+            val message = if (busy) ACCOUNT_BUSY else describe(error)
+            _state.update { it.copy(isBuffering = false, isPlaying = false, error = message, notice = null, retrying = 0) }
             return
         }
         attempt++
-        _state.update { it.copy(isBuffering = true, retrying = attempt) }
+        _state.update { it.copy(isBuffering = true, retrying = attempt, notice = if (busy) ACCOUNT_BUSY_RETRYING else null) }
         main.postDelayed(retryRunnable, delay)
     }
 
@@ -292,6 +302,15 @@ class Media3Engine(
         return null
     }
 
+    private fun httpStatus(error: PlaybackException): Int? {
+        var t: Throwable? = error
+        while (t != null) {
+            if (t is androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException) return t.responseCode
+            t = t.cause
+        }
+        return null
+    }
+
     private fun describe(error: PlaybackException): String = when (error.errorCode) {
         PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> "The provider refused this stream (HTTP error)."
         PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
@@ -303,6 +322,9 @@ class Media3Engine(
 
     companion object {
         private const val LIVE_REJOIN_MS = 30_000L
+        private const val ACCOUNT_BUSY =
+            "Your provider refused the stream. The account is probably in use on another device (it allows a limited number of connections). Close the other player and try again."
+        private const val ACCOUNT_BUSY_RETRYING = "Provider busy — another device may be using this account. Retrying…"
 
         private val EXTRACTORS = DefaultExtractorsFactory()
             .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES or DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS)

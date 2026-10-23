@@ -114,7 +114,7 @@ class PlaylistSyncer(
                     ChannelEntity(
                         playlistId = writer.playlistId,
                         stableKey = keys.keyFor(s.streamId, s.epgChannelId, s.name, group),
-                        number = s.num ?: position,
+                        number = position, // provider "num" values often repeat; list order keeps number entry unambiguous
                         name = s.name,
                         groupName = group,
                         logoUrl = s.icon,
