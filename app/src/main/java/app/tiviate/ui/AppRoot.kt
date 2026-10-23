@@ -14,6 +14,7 @@ import app.tiviate.data.sync.SyncScheduler
 import app.tiviate.ui.guide.GuideScreen
 import app.tiviate.ui.player.PlayerScreen
 import app.tiviate.ui.search.SearchScreen
+import app.tiviate.ui.settings.SettingsScreen
 import app.tiviate.ui.theme.Tokens
 import app.tiviate.ui.welcome.AddPlaylistScreen
 import app.tiviate.ui.welcome.SyncingScreen
@@ -51,7 +52,7 @@ fun AppRoot() {
                 Screen.Player -> PlayerScreen()
                 Screen.Guide -> GuideScreen()
                 Screen.Search -> SearchScreen()
-                Screen.Settings -> PlayerScreen()
+                Screen.Settings -> SettingsScreen()
             }
         }
     }

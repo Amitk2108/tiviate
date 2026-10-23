@@ -5,6 +5,8 @@ import app.tiviate.core.xtream.XtreamAccount
 import app.tiviate.core.xtream.XtreamCredentials
 import app.tiviate.core.xtream.XtreamJson
 import app.tiviate.core.xtream.XtreamUrls
+import app.tiviate.data.db.EpgOrigin
+import app.tiviate.data.db.EpgSourceEntity
 import app.tiviate.data.db.PlaylistEntity
 import app.tiviate.data.db.PlaylistType
 import app.tiviate.data.db.TiviateDatabase
@@ -15,6 +17,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 
@@ -72,6 +75,27 @@ class PlaylistRepository(
     }
 
     suspend fun refreshGuide(playlistId: Long) = epgSyncer.syncForPlaylist(playlistId)
+
+    val epgSources = db.epg().observeSources()
+
+    suspend fun addEpgSource(url: String): Long {
+        val clean = url.trim()
+        val name = clean.substringAfter("://").substringBefore('/').ifBlank { "Guide" }
+        val priority = (db.epg().observeSources().first().filter { it.origin == EpgOrigin.MANUAL }.maxOfOrNull { it.priority } ?: -1) + 1
+        return db.epg().insertSource(EpgSourceEntity(url = clean, name = name, origin = EpgOrigin.MANUAL, priority = priority))
+    }
+
+    suspend fun deleteEpgSource(id: Long) {
+        db.withTransaction {
+            db.epg().deleteProgrammes(id)
+            db.epg().deleteChannels(id)
+            db.epg().deleteSource(id)
+        }
+    }
+
+    suspend fun channelCount(playlistId: Long): Int = db.channels().count(playlistId)
+
+    suspend fun clearHistory(playlistId: Long) = db.history().clear(playlistId)
 
     suspend fun syncAll() {
         for (p in db.playlists().all().filter { it.enabled }) {
