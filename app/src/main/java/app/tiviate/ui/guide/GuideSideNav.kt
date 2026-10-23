@@ -1,5 +1,14 @@
 package app.tiviate.ui.guide
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.PlaylistPlay
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LiveTv
 import androidx.compose.material.icons.rounded.Search
@@ -102,24 +111,43 @@ fun GroupsColumn(
     LaunchedEffect(selectedIndex) { focusSoon(first) }
     Column(
         Modifier
-            .width(250.dp)
+            .width(280.dp)
             .fillMaxHeight()
-            .background(Tokens.Surface)
-            .padding(top = 20.dp, start = 10.dp, end = 10.dp)
+            // A floating card: rounded at the top and bottom, a small gap from the screen edges.
+            .padding(vertical = 12.dp)
+            .background(Tokens.Surface, RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp))
+            .padding(top = 22.dp, start = 12.dp, end = 12.dp)
             .leftRight(onLeft, onRight)
             .testTag("guide_groups"),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        // Heading: the playlist these groups belong to.
         playlistName?.let {
-            Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 12.dp), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.SemiBold))
+            Row(Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(Modifier.size(30.dp).background(Tokens.BrandGradient, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.PlaylistPlay, contentDescription = null, tint = Tokens.Text, modifier = Modifier.size(18.dp))
+                }
+                Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Bold))
+            }
         }
-        LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(2.dp)) {
             items(entries.size) { i ->
                 val e = entries[i]
                 val (label, isSelected) = when (e) {
-                    is GroupEntry.Pick -> (e.label + (e.count?.let { "  $it" } ?: "")) to (e.category == selected)
+                    is GroupEntry.Pick -> e.label to (e.category == selected)
                     is GroupEntry.SwitchPlaylist -> tf("Playlist: %s", e.playlist.name) to false
                 }
+                val icon = when (e) {
+                    is GroupEntry.SwitchPlaylist -> Icons.Rounded.PlaylistPlay
+                    is GroupEntry.Pick -> when (e.category) {
+                        Category.Favorites -> Icons.Rounded.Star
+                        Category.All -> Icons.Rounded.LiveTv
+                        Category.Recent -> Icons.Rounded.History
+                        is Category.Custom -> Icons.Rounded.Bookmark
+                        is Category.Group -> Icons.Rounded.Folder
+                    }
+                }
+                val count = (e as? GroupEntry.Pick)?.count
                 FocusSurface(
                     onClick = { when (e) { is GroupEntry.Pick -> onPick(e.category); is GroupEntry.SwitchPlaylist -> onSwitch(e.playlist) } },
                     modifier = (if (i == selectedIndex) Modifier.focusRequester(first) else Modifier)
@@ -129,17 +157,32 @@ fun GroupsColumn(
                     shape = Tokens.SmallShape,
                     scale = 1.02f,
                 ) {
-                    Text(
-                        label,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = TextStyle(
-                            color = if (isSelected) Tokens.Cyan else Tokens.Text,
-                            fontSize = Tokens.BodySize,
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        ),
-                    )
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Icon(icon, contentDescription = null, tint = if (isSelected) Tokens.Cyan else Tokens.TextSecondary, modifier = Modifier.size(20.dp))
+                        Text(
+                            label,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = TextStyle(
+                                color = if (isSelected) Tokens.Cyan else Tokens.Text,
+                                fontSize = Tokens.BodySize,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            ),
+                        )
+                        // Channel count as a quiet badge on the right.
+                        count?.let {
+                            Text(
+                                "$it",
+                                style = TextStyle(color = if (isSelected) Tokens.Cyan else Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.SemiBold),
+                                modifier = Modifier.background(Tokens.Raised, Tokens.PillShape).padding(horizontal = 9.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -157,7 +200,8 @@ fun NavRail(onSearch: () -> Unit, onTv: () -> Unit, onSettings: () -> Unit) {
         Modifier
             .width(200.dp)
             .fillMaxHeight()
-            .background(Tokens.Background)
+            .padding(vertical = 12.dp)
+            .background(Tokens.Background, RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp))
             .padding(vertical = 20.dp, horizontal = 10.dp)
             .leftRight(onLeft = {}, onRight = onTv)
             .testTag("guide_rail"),

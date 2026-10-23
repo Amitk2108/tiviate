@@ -344,7 +344,7 @@ fun GuideScreen() {
                 )
             }
             GroupsColumn(
-                playlistName = playlist?.name?.takeIf { playlists.size > 1 },
+                playlistName = playlist?.name,
                 entries = groupEntries(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup),
                 selected = category,
                 onPick = { picked ->
