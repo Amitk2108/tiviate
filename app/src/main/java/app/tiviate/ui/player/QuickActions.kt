@@ -19,8 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -30,32 +28,6 @@ import app.tiviate.player.TrackOption
 import app.tiviate.ui.components.FocusSurface
 import app.tiviate.ui.theme.Tokens
 import kotlinx.coroutines.delay
-
-data class QuickAction(val tag: String, val label: String, val onClick: () -> Unit)
-
-/** Bottom row of player actions (Menu or long-press OK). */
-@Composable
-fun QuickActionsBar(actions: List<QuickAction>) {
-    val first = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focusSoon(first) }
-    Box(
-        Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, Tokens.Scrim))).testTag("quick_actions"),
-        contentAlignment = Alignment.BottomStart,
-    ) {
-        Row(Modifier.padding(Tokens.SafeMargin), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            actions.forEachIndexed { i, action ->
-                FocusSurface(
-                    onClick = action.onClick,
-                    modifier = (if (i == 0) Modifier.focusRequester(first) else Modifier).testTag(action.tag),
-                    container = Tokens.Raised,
-                    focusedContainer = Tokens.Outline,
-                ) {
-                    Text(action.label, modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium))
-                }
-            }
-        }
-    }
-}
 
 /** Audio or subtitle choices. [allowOff] adds an "Off" entry (subtitles). */
 @Composable

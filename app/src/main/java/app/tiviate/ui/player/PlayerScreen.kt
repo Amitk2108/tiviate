@@ -37,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import app.tiviate.data.AppSettings
 import app.tiviate.data.Category
+import app.tiviate.data.UpDownMode
 import app.tiviate.player.ExternalPlayer
 import app.tiviate.ui.LocalGraph
 import app.tiviate.ui.LocalNavigator
@@ -102,7 +103,7 @@ fun PlayerScreen() {
             AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER, AndroidKeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 when (okPress.onKey(native)) {
                     KeyAction.Short -> openPanel(categories = false)
-                    KeyAction.Long -> vm.open(Overlay.QuickActions)
+                    KeyAction.Long -> vm.open(Overlay.Options)
                     KeyAction.None -> Unit
                 }
                 return true
@@ -111,7 +112,16 @@ fun PlayerScreen() {
                 if (down && native.repeatCount % 3 == 0) vm.zap(forward = true)
                 return true
             }
-            AndroidKeyEvent.KEYCODE_DPAD_DOWN, AndroidKeyEvent.KEYCODE_CHANNEL_DOWN, AndroidKeyEvent.KEYCODE_PAGE_DOWN -> {
+            // Down opens the options (owner's choice); with "Up/Down change channel" it zaps back instead.
+            AndroidKeyEvent.KEYCODE_DPAD_DOWN -> {
+                if (settings.upDownMode == UpDownMode.ZAP) {
+                    if (down && native.repeatCount % 3 == 0) vm.zap(forward = false)
+                } else if (down && native.repeatCount == 0) {
+                    vm.open(Overlay.Options)
+                }
+                return true
+            }
+            AndroidKeyEvent.KEYCODE_CHANNEL_DOWN, AndroidKeyEvent.KEYCODE_PAGE_DOWN -> {
                 if (down && native.repeatCount % 3 == 0) vm.zap(forward = false)
                 return true
             }
@@ -120,7 +130,7 @@ fun PlayerScreen() {
                 if (down) nav.push(Screen.Guide)
                 return true
             }
-            AndroidKeyEvent.KEYCODE_MENU, AndroidKeyEvent.KEYCODE_SETTINGS -> { if (down) vm.open(Overlay.QuickActions); return true }
+            AndroidKeyEvent.KEYCODE_MENU, AndroidKeyEvent.KEYCODE_SETTINGS -> { if (down) vm.open(Overlay.Options); return true }
             AndroidKeyEvent.KEYCODE_INFO -> { if (down) vm.showBanner(); return true }
             AndroidKeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, AndroidKeyEvent.KEYCODE_MEDIA_PLAY, AndroidKeyEvent.KEYCODE_MEDIA_PAUSE -> {
                 if (down) {
@@ -148,6 +158,7 @@ fun PlayerScreen() {
     // Back: close the top overlay, otherwise show the TV guide (the channel keeps playing in its preview).
     BackHandler {
         when {
+            overlay is Overlay.Picker -> vm.open(Overlay.Options)
             !inFullscreen -> vm.close()
             overlay == Overlay.Banner -> vm.close()
             else -> nav.push(Screen.Guide)
@@ -217,34 +228,51 @@ fun PlayerScreen() {
                     onCloseRail = { vm.open(Overlay.Panel(categoriesFocused = false)) },
                 )
             }
-            Overlay.QuickActions -> QuickActionsBar(
-                listOfNotNull(
-                    QuickAction("action_audio", "Audio") { vm.open(Overlay.Tracks(audio = true)) },
-                    QuickAction("action_subtitles", "Subtitles") { vm.open(Overlay.Tracks(audio = false)) },
-                    QuickAction("action_aspect", "Picture: ${aspect.label}") { vm.cycleAspect() },
-                    current?.let { ch ->
-                        QuickAction("action_favorite", if (ch.stableKey in favorites) "Remove favorite" else "Add to favorites") { vm.toggleFavorite(ch) }
-                    },
-                    current?.let { ch ->
-                        QuickAction("action_external", "Other player") {
-                            if (!ExternalPlayer.open(context, ch.streamUrl, ch.name)) vm.showToast("No other video player is installed")
-                        }
-                    },
-                    QuickAction("action_guide", "TV guide") { vm.close(); nav.push(Screen.Guide) },
-                    QuickAction("action_refresh", "Update guide") { vm.close(); vm.refreshGuide() },
-                ),
-            )
-            is Overlay.Tracks -> {
-                val options = remember(o, playback.channelKey) { if (o.audio) engine.audioTracks() else engine.textTracks() }
-                TrackDialog(if (o.audio) "Audio" else "Subtitles", options, allowOff = !o.audio) { choice ->
-                    if (o.audio) choice?.let(engine::selectAudio) else engine.selectText(choice)
-                    vm.close()
+            Overlay.Options -> {
+                fun pick(tag: String, kind: PickerKind) { vm.lastOptionTag = tag; vm.open(Overlay.Picker(kind)) }
+                val ch = current
+                val subtitle = remember(playback.channelKey, overlay) { engine.textTracks().firstOrNull { it.selected }?.label ?: "Off" }
+                OptionsPanel(
+                    channel = ch,
+                    info = ch?.epgRef?.let(vm.nowNext::get),
+                    playback = playback,
+                    showNumber = settings.showChannelNumbers,
+                    requestInfo = { ref -> vm.loadNowNext(listOf(ref)) },
+                    focusTag = vm.lastOptionTag,
+                    options = listOfNotNull(
+                        OptionItem("option_guide", "TV guide", null) { vm.close(); nav.push(Screen.Guide) },
+                        OptionItem("option_audio", "Audio", playback.audioLabel ?: "Default") { pick("option_audio", PickerKind.AUDIO) },
+                        OptionItem("option_subtitles", "Subtitles", subtitle) { pick("option_subtitles", PickerKind.SUBTITLES) },
+                        ch?.let {
+                            OptionItem("option_favorite", "Favorite", if (it.stableKey in favorites) "Added" else "Not added") {
+                                vm.lastOptionTag = "option_favorite"
+                                vm.toggleFavorite(it)
+                            }
+                        },
+                        ch?.let {
+                            OptionItem("option_external", "Other player", null) {
+                                if (!ExternalPlayer.open(context, it.streamUrl, it.name)) vm.showToast("No other video player is installed")
+                            }
+                        },
+                        OptionItem("option_search", "Search", null) { vm.close(); nav.push(Screen.Search) },
+                        OptionItem("option_settings", "Settings", null) { vm.close(); nav.push(Screen.Settings) },
+                    ),
+                )
+            }
+            is Overlay.Picker -> when (o.kind) {
+                PickerKind.AUDIO, PickerKind.SUBTITLES -> {
+                    val audio = o.kind == PickerKind.AUDIO
+                    val options = remember(o, playback.channelKey) { if (audio) engine.audioTracks() else engine.textTracks() }
+                    TrackDialog(if (audio) "Audio" else "Subtitles", options, allowOff = !audio) { choice ->
+                        if (audio) choice?.let(engine::selectAudio) else engine.selectText(choice)
+                        vm.open(Overlay.Options)
+                    }
                 }
             }
             Overlay.TouchControls -> TouchControls(
                 onChannels = { openPanel(categories = false) },
                 onGuide = { vm.close(); nav.push(Screen.Guide) },
-                onMenu = { vm.open(Overlay.QuickActions) },
+                onMenu = { vm.open(Overlay.Options) },
                 onPlayPause = { vm.togglePause() },
             )
         }
