@@ -73,6 +73,12 @@ class GuideState(
         }
     }
 
+    /** Left on the programme on air (or where there is no guide data) opens the groups column. */
+    fun leftOpensGroups(nowMs: Long): Boolean {
+        val block = focused ?: return true
+        return block.programme == null || (block.startMs <= nowMs && nowMs < block.stopMs)
+    }
+
     fun jumpHours(hours: Int, programmesInRow: List<ProgrammeEntity>) {
         viewStartMs = clampView(viewStartMs + hours * 3_600_000L)
         focusTimeMs = viewStartMs

@@ -82,4 +82,47 @@ class GuideTest {
         Remote.back()
         rule.waitUntil(5_000) { scenario.state == androidx.lifecycle.Lifecycle.State.DESTROYED }
     }
+
+    private fun openGuide() {
+        Remote.right()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }
+        rule.waitUntil(5_000) { rule.textExists("Aurora News Show 3") } // focused on the programme on air
+        rule.waitForIdle()
+    }
+
+    @Test
+    fun leftOpensGroupsAndOkFiltersTheGuide() {
+        openGuide()
+        Remote.left()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("guide_groups") }
+        rule.waitForIdle()
+        Remote.down(3) // All channels → Recent → News & Sports → Entertainment
+        Remote.ok()
+        rule.waitUntil(5_000) { !rule.onAllNodesWithTagExists("guide_groups") && rule.textExists("Cobalt Movies") && !rule.textExists("Beacon Sports") }
+    }
+
+    @Test
+    fun leftTwiceReachesSettings() {
+        openGuide()
+        Remote.left()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("guide_groups") }
+        rule.waitForIdle()
+        Remote.left()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("guide_rail") }
+        rule.waitForIdle()
+        Remote.down() // TV → Settings
+        Remote.ok()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("settings_screen") }
+    }
+
+    @Test
+    fun backClosesTheGroupsColumnFirst() {
+        openGuide()
+        Remote.left()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("guide_groups") }
+        rule.waitForIdle()
+        Remote.back()
+        rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("guide_groups") }
+        assert(rule.onAllNodesWithTagExists("guide_screen") && !rule.textExists("Press Back again to exit"))
+    }
 }
