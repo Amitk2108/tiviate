@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
         HistoryEntity::class, EpgSourceEntity::class, EpgChannelEntity::class, ProgrammeEntity::class,
     ],
     version = 1,
-    exportSchema = false,
+    exportSchema = true,
 )
 abstract class TiviateDatabase : RoomDatabase() {
     abstract fun playlists(): PlaylistDao

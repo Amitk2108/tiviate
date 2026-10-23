@@ -8,6 +8,7 @@ plugins {
 }
 
 android {
+    sourceSets["androidTest"].assets.srcDir("$projectDir/schemas")
     namespace = "app.tiviate"
     compileSdk = 36
 
@@ -71,6 +72,8 @@ kotlin { jvmToolchain(17) }
 
 ksp {
     arg("room.generateKotlin", "true")
+    // Exported schemas let migrations be checked, so an update never wipes the viewer's data.
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
@@ -92,6 +95,7 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.room.paging)
     ksp(libs.room.compiler)
+    androidTestImplementation(libs.room.testing)
     implementation(libs.paging.runtime)
     implementation(libs.paging.compose)
     implementation(libs.okhttp)
