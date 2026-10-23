@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -112,9 +113,14 @@ fun ChannelPanel(
     LaunchedEffect(listState, channels) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.map { it.index } }
             .debounce(120)
-            .collect { indices -> requestNowNext(indices.mapNotNull { i -> channels.peek(i)?.epgRef }) }
+            // The list may have shrunk (category switch) since these indices were measured.
+            .collect { indices -> requestNowNext(indices.filter { it < channels.itemCount }.mapNotNull { i -> channels.peek(i)?.epgRef }) }
     }
-    LaunchedEffect(categoriesFocused, channels.itemCount) {
+    // Deep in a long category the target row is a placeholder at first: focus it once it has loaded.
+    val targetLoaded by remember(channels, initialIndex) {
+        derivedStateOf { initialIndex < channels.itemCount && channels.peek(initialIndex) != null }
+    }
+    LaunchedEffect(categoriesFocused, channels.itemCount, targetLoaded) {
         if (!categoriesFocused && channels.itemCount > 0) {
             repeat(10) {
                 if (runCatching { rowFocus.requestFocus() }.isSuccess) return@LaunchedEffect

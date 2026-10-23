@@ -36,7 +36,7 @@ class ChannelRepository(private val db: TiviateDatabase, private val clock: () -
         db.channels().categories(playlistId).map { rows -> rows.filter { it.name != null } }
 
     fun page(playlistId: Long, category: Category): Flow<PagingData<ChannelEntity>> = when (category) {
-        Category.All, is Category.Group -> Pager(PagingConfig(pageSize = 60, prefetchDistance = 40, enablePlaceholders = true, maxSize = 600)) {
+        Category.All, is Category.Group -> Pager(PagingConfig(pageSize = 60, prefetchDistance = 40, enablePlaceholders = true, maxSize = 600, jumpThreshold = 180)) {
             db.channels().pageInGroup(playlistId, (category as? Category.Group)?.name)
         }.flow
         Category.Favorites -> db.favorites().favoriteChannels(playlistId).map { PagingData.from(it) }
