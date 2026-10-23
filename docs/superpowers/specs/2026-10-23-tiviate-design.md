@@ -62,7 +62,13 @@ That means **feature and interaction parity**: the same capabilities, the same f
   - Stalker portal.
   - Appearance options (accent colours, transparency, font size, clock).
   - Auto-start on boot, sleep timer, PiP, voice search, merged "All playlists" view, external player choice, and a libVLC engine option.
-- **Phase C — "own touch":** the UI/UX upgrade beyond TiviMate.
+- **Phase C — "own touch":** the UI/UX upgrade beyond TiviMate. It includes a dedicated phone layout (portrait, bottom navigation).
+
+**Phones and tablets (owner request, 2026-10-23):** the same APK must also work on phones and tablets.
+- In Phase A every screen is touch-usable: every focusable item is tappable.
+- The player gets a tap-to-show control bar (Channels, Guide, Menu, Play/Pause), and swiping up/down zaps.
+- On phones the app runs landscape with the TV layout.
+- The phone-optimized design is Phase C.
 
 **Never in scope:** premium gating or licensing checks, accounts/backend, telemetry, ads, bundled content.
 
