@@ -22,9 +22,14 @@ class UiLogicTest {
 
     @Test
     fun logoModelFallsBackInOrder() {
-        assertEquals(listOf("http://a.png", "http://b.png"), logoCandidates(channel("http://a.png", "http://b.png")))
-        assertEquals(listOf("http://b.png"), logoCandidates(channel("  ", "http://b.png")))
-        assertEquals(listOf("http://a.png"), logoCandidates(channel("http://a.png", "http://a.png")))
+        // Plain-http logos are tried over https first: some networks stall plain http to CDNs.
+        assertEquals(
+            listOf("https://a.png", "http://a.png", "https://b.png"),
+            logoCandidates(channel("http://a.png", "https://b.png")),
+        )
+        assertEquals(listOf("https://b.png", "http://b.png"), logoCandidates(channel("  ", "http://b.png")))
+        assertEquals(listOf("https://a.png", "http://a.png"), logoCandidates(channel("http://a.png", "http://a.png")))
+        assertEquals(listOf("https://x/logo.svg"), logoCandidates(channel("https://x/logo.svg", null)))
         assertEquals(emptyList<String>(), logoCandidates(channel(null, null)))
     }
 

@@ -1,6 +1,8 @@
 package app.tiviate.player
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import app.tiviate.data.AppSettings
 import app.tiviate.data.ChannelRepository
 import app.tiviate.data.SettingsStore
@@ -36,9 +38,18 @@ class PlayerController(
 
     private var historyJob: Job? = null
 
-    /** Created on first use so app start doesn't pay for codec/player setup. */
+    /**
+     * Created on first use so app start doesn't pay for codec/player setup. ExoPlayer must be
+     * created on the main thread, so creation is always marshalled there.
+     */
     val engine: Media3Engine
-        get() = engineOrNull ?: Media3Engine(context, http, settings).also { engineOrNull = it }
+        get() {
+            engineOrNull?.let { return it }
+            if (Looper.myLooper() == Looper.getMainLooper()) return Media3Engine(context, http, settings).also { engineOrNull = it }
+            val created = java.util.concurrent.CompletableFuture<Media3Engine>()
+            Handler(Looper.getMainLooper()).post { created.complete(engine) }
+            return created.get()
+        }
 
     init {
         scope.launch {
