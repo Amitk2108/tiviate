@@ -46,6 +46,9 @@ class DeepListTest {
 
     @Test
     fun listOpensOnThePlayingChannelDeepInTheCategory() {
+        Remote.ok() // control panel; "Channels" has focus
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        rule.waitForIdle()
         Remote.ok()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("channel_panel") }
         rule.waitUntil(5_000) { rule.textExists("Big 350") }
@@ -57,6 +60,9 @@ class DeepListTest {
 
     @Test
     fun pageDownJumpsAScreenOfChannels() {
+        Remote.ok() // control panel; "Channels" has focus
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        rule.waitForIdle()
         Remote.ok()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("channel_panel") }
         rule.waitUntil(5_000) { rule.textExists("Big 350") }

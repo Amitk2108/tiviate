@@ -82,7 +82,21 @@ class PlayerNavigationTest {
     }
 
     @Test
+    fun okOpensTheControlPanelWithShortcutsAndRecentChannels() {
+        Remote.ok()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        rule.waitForIdle()
+        rule.onNodeWithTag("control_channels").assertIsFocused()
+        rule.onNodeWithTag("control_guide").assertExistsCompat()
+        Remote.back()
+        rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("control_panel") }
+    }
+
+    @Test
     fun okOpensPanelAndOkTunesFocused() {
+        Remote.ok() // control panel; "Channels" has focus
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        rule.waitForIdle()
         Remote.ok()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
         Remote.down(2)
@@ -198,6 +212,9 @@ class PlayerNavigationTest {
     @Test
     fun idlePanelClosesAfterTheChosenTime() {
         runBlocking { graph.settings.update { it.copy(panelTimeoutSec = 10) } }
+        Remote.ok() // control panel; "Channels" has focus
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("control_panel") }
+        rule.waitForIdle()
         Remote.ok()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
         rule.waitUntil(15_000) { !rule.onAllNodesWithTagExists("channel_panel") }

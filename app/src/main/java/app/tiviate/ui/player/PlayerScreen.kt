@@ -110,7 +110,7 @@ fun PlayerScreen() {
     // "Close the channel list and options after N s": an idle panel closes by itself.
     LaunchedEffect(overlay, settings.panelTimeoutSec, lastInputAt) {
         val seconds = settings.panelTimeoutSec
-        if (seconds > 0 && (overlay is Overlay.Panel || overlay == Overlay.Options)) {
+        if (seconds > 0 && (overlay is Overlay.Panel || overlay == Overlay.Options || overlay == Overlay.Control)) {
             delay(seconds * 1_000L)
             vm.close()
         }
@@ -135,7 +135,7 @@ fun PlayerScreen() {
         when (native.keyCode) {
             AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER, AndroidKeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 when (okPress.onKey(native)) {
-                    KeyAction.Short -> if (!vm.commitPeek()) openPanel(categories = false)
+                    KeyAction.Short -> if (!vm.commitPeek()) vm.open(Overlay.Control)
                     KeyAction.Long -> vm.open(Overlay.Options)
                     KeyAction.None -> Unit
                 }
@@ -292,6 +292,23 @@ fun PlayerScreen() {
                     },
                     onOpenRail = { vm.open(Overlay.Panel(categoriesFocused = true)) },
                     onCloseRail = { vm.open(Overlay.Panel(categoriesFocused = false)) },
+                )
+            }
+            Overlay.Control -> {
+                val ch = current
+                val recent by androidx.compose.runtime.produceState(emptyList<app.tiviate.data.db.ChannelEntity>(), ch?.stableKey) { value = vm.recentChannels() }
+                ControlPanel(
+                    channel = ch,
+                    info = ch?.epgRef?.let(vm.nowNext::get),
+                    playback = playback,
+                    showNumber = settings.showChannelNumbers,
+                    requestInfo = { ref -> vm.loadNowNext(listOf(ref)) },
+                    recent = recent,
+                    nowNext = vm.nowNext,
+                    onChannels = { openPanel(categories = false) },
+                    onGuide = { vm.close(); nav.push(Screen.Guide) },
+                    onOptions = { vm.open(Overlay.Options) },
+                    onRecent = { vm.tune(it); vm.close() },
                 )
             }
             Overlay.Options -> {
