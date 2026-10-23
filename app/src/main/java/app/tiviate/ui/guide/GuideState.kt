@@ -88,10 +88,13 @@ class GuideState(
         }
     }
 
-    /** Left on the programme on air (or where there is no guide data) opens the groups column. */
+    /**
+     * Left on what is on now (a programme, or the empty slot around now) opens the groups column.
+     * Anywhere later or earlier — empty "No information" slots included — Left moves back towards now.
+     */
     fun leftOpensGroups(nowMs: Long): Boolean {
         val block = focused ?: return true
-        return block.programme == null || (block.startMs <= nowMs && nowMs < block.stopMs)
+        return block.startMs <= nowMs && nowMs < block.stopMs
     }
 
     fun jumpHours(hours: Int, programmesInRow: List<ProgrammeEntity>) {

@@ -68,7 +68,7 @@ enum class LogoStyle(override val english: String) : Labelled { ROUNDED("Rounded
 
 /** The fullscreen options cards, in their default order. */
 val DEFAULT_OPTION_CARDS = listOf(
-    "option_guide", "option_playpause", "option_previous", "option_audio", "option_subtitles", "option_display", "option_zoom",
+    "option_channels", "option_guide", "option_playpause", "option_previous", "option_audio", "option_subtitles", "option_display", "option_zoom",
     "option_quality", "option_audio_sync", "option_stats", "option_sleep", "option_favorite", "option_channel", "option_pip",
     "option_external", "option_search", "option_settings",
 )
@@ -295,7 +295,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         stayOnList = p[STAY_ON_LIST] ?: false,
         autoplayDelaySec = p[AUTOPLAY] ?: 0,
         optionCards = p[OPTION_CARDS]?.split(',')?.filter { it.isNotBlank() }?.let { saved ->
-            saved.filter { it in DEFAULT_OPTION_CARDS } + DEFAULT_OPTION_CARDS.filter { it !in saved } // new cards appear at the end
+            mergeCardOrder(saved, DEFAULT_OPTION_CARDS) // new cards appear where they sit by default
         } ?: DEFAULT_OPTION_CARDS,
         hiddenOptionCards = p[HIDDEN_CARDS] ?: emptySet(),
         preferSurround = p[PREFER_SURROUND] ?: false,
@@ -396,4 +396,11 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
 
         fun forFile(file: File): SettingsStore = SettingsStore(PreferenceDataStoreFactory.create(produceFile = { file }))
     }
+}
+
+/** The viewer's card order, with cards added in an update slotted in at their default position. */
+fun mergeCardOrder(saved: List<String>, defaults: List<String>): List<String> {
+    val out = saved.filter { it in defaults }.toMutableList()
+    defaults.forEachIndexed { i, card -> if (card !in out) out.add(i.coerceAtMost(out.size), card) }
+    return out
 }

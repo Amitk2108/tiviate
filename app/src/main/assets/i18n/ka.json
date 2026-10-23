@@ -137,7 +137,7 @@
 "Language": "ენა",
 "TV's language": "ტელევიზორის ენა",
 "Open last channel fullscreen on start": "გაშვებისას ბოლო არხის სრულ ეკრანზე გახსნა",
-"When off, Tiviate starts on the TV guide with the channel playing in the preview.": "გამორთვისას Tiviate იხსნება ტელეგიდზე, არხი კი გადახედვის ფანჯარაში უკრავს.",
+"When off, Tiviate starts on the TV guide; OK on a channel plays it.": "გამორთულისას Tiviate იხსნება გიდზე; OK არხზე ჩართავს მას.",
 "Confirm exit with a second Back": "გასვლის დადასტურება „უკან“-ის ხელახლა დაჭერით",
 "Start Tiviate when the TV turns on": "Tiviate-ის გაშვება ტელევიზორის ჩართვისას",
 "On Android 10 and newer, allow \"Display over other apps\" for Tiviate when asked — the TV needs it to open Tiviate at start-up.": "Android 10-სა და უფრო ახალ ვერსიებზე, მოთხოვნისას დაუშვით Tiviate-ისთვის „სხვა აპების ზემოდან ჩვენება“ — ტელევიზორს ეს სჭირდება, რომ ჩართვისას Tiviate გახსნას.",

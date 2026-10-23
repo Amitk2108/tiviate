@@ -137,7 +137,7 @@
 "Language": "اللغة",
 "TV's language": "لغة التلفزيون",
 "Open last channel fullscreen on start": "فتح آخر قناة بملء الشاشة عند البدء",
-"When off, Tiviate starts on the TV guide with the channel playing in the preview.": "عند إيقافه، يبدأ Tiviate بدليل التلفزيون مع تشغيل القناة في المعاينة.",
+"When off, Tiviate starts on the TV guide; OK on a channel plays it.": "عند الإيقاف يبدأ Tiviate على دليل البرامج؛ اضغط OK على قناة لتشغيلها.",
 "Confirm exit with a second Back": "تأكيد الخروج بضغطة رجوع ثانية",
 "Start Tiviate when the TV turns on": "تشغيل Tiviate عند تشغيل التلفزيون",
 "On Android 10 and newer, allow \"Display over other apps\" for Tiviate when asked — the TV needs it to open Tiviate at start-up.": "في Android 10 والإصدارات الأحدث، اسمح بـ \"الظهور فوق التطبيقات الأخرى\" لـ Tiviate عند الطلب — يحتاج التلفزيون إلى ذلك لفتح Tiviate عند بدء التشغيل.",

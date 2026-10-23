@@ -137,7 +137,7 @@
 "Language": "भाषा",
 "TV's language": "टीव्हीची भाषा",
 "Open last channel fullscreen on start": "सुरू झाल्यावर शेवटचा चॅनेल फुलस्क्रीनमध्ये उघडा",
-"When off, Tiviate starts on the TV guide with the channel playing in the preview.": "बंद असताना Tiviate टीव्ही गाइडवर उघडते आणि चॅनेल प्रिव्ह्यूमध्ये चालतो.",
+"When off, Tiviate starts on the TV guide; OK on a channel plays it.": "बंद असताना Tiviate टीव्ही गाइडवर उघडते; चॅनेलवर OK दाबल्यास ते सुरू होते.",
 "Confirm exit with a second Back": "बाहेर पडण्यासाठी दुसऱ्यांदा Back दाबावे लागेल",
 "Start Tiviate when the TV turns on": "टीव्ही सुरू झाल्यावर Tiviate सुरू करा",
 "On Android 10 and newer, allow \"Display over other apps\" for Tiviate when asked — the TV needs it to open Tiviate at start-up.": "Android 10 आणि नवीनवर, विचारल्यावर Tiviate ला \"इतर ॲप्सवर दाखवा\" ची परवानगी द्या — टीव्ही सुरू होताना Tiviate उघडण्यासाठी हे आवश्यक आहे.",

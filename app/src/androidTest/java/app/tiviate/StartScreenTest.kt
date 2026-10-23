@@ -41,10 +41,14 @@ class StartScreenTest {
     }
 
     @Test
-    fun launchOpensTheGuideWithThePreviewPlayingByDefault() {
+    fun launchOpensTheGuideAndNothingPlaysUntilOk() {
         seed(startFullscreen = false)
         scenario = ActivityScenario.launch(MainActivity::class.java)
         rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("guide_screen") }
+        rule.waitForIdle()
+        Thread.sleep(2_000)
+        org.junit.Assert.assertNull("no autoplay on start", graph.player.engine.state.value.channelKey)
+        Remote.ok() // plays the focused channel in the preview
         rule.waitUntil(15_000) { graph.player.engine.state.value.isPlaying }
         rule.waitForIdle()
         Remote.ok() // OK on the playing channel goes fullscreen (Back here would ask to exit)

@@ -38,9 +38,12 @@ class AddPlaylistFlowTest {
         rule.onNodeWithTag("field_url_input").performTextInput(fixtures.url("/list.m3u"))
         rule.onNodeWithTag("save_playlist").activate()
 
-        // Like other TV players, a new playlist lands on the TV guide with the channel in the preview.
+        // A new playlist lands on the TV guide; OK plays the focused (first) channel in the preview.
         rule.waitUntil(30_000) { rule.onAllNodesWithTagExists("guide_screen") }
         val graph = (rule.activity.application as TiviateApp).graph
+        rule.waitUntil(10_000) { rule.textExists(fixtures.channelNames.first()) }
+        rule.waitForIdle()
+        Remote.ok()
         rule.waitUntil(20_000) { graph.player.engine.state.value.isPlaying }
         rule.waitUntil(5_000) { graph.player.current.value?.name == fixtures.channelNames.first() }
     }

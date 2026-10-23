@@ -41,8 +41,6 @@ sealed interface Overlay {
     data class Panel(val categoriesFocused: Boolean) : Overlay
     /** Fullscreen options: info plus a row of picture/sound cards (Down, Menu or long OK). */
     data object Options : Overlay
-    /** OK in fullscreen: info, shortcuts and recent channels. */
-    data object Control : Overlay
     /** A choice list opened from an options card; closing it returns to the options. */
     data class Picker(val kind: PickerKind) : Overlay
     data object TouchControls : Overlay
@@ -61,7 +59,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     fun toggleStats() { _showStats.value = !_showStats.value }
 
     /** The options card used last; the panel reopens with it focused. */
-    var lastOptionTag: String = "option_audio"
+    var lastOptionTag: String = "option_playpause"
     private val repo = graph.channels
 
     private val _playlist = MutableStateFlow<PlaylistEntity?>(null)
@@ -299,13 +297,6 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
             delay(2_000)
             _toast.value = null
         }
-    }
-
-    /** Channels watched last (newest first), without the one playing; for the control panel. */
-    suspend fun recentChannels(): List<ChannelEntity> {
-        val pid = _playlist.value?.id ?: return emptyList()
-        val playing = controller.current.value?.stableKey
-        return repo.list(pid, Category.Recent).filter { it.stableKey != playing }.take(12)
     }
 
     suspend fun positionOf(category: Category, channel: ChannelEntity): Int {

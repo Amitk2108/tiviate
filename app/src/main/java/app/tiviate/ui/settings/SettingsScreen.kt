@@ -191,7 +191,7 @@ private fun GeneralSection() {
         Heading(t("General"))
         ValueRow(t("Language"), settings.language?.let { tag -> app.tiviate.ui.I18n.LANGUAGES.firstOrNull { it.first == tag }?.second } ?: t("TV's language"), "setting_language") { pickLanguage = true }
         ToggleRow(t("Open last channel fullscreen on start"), settings.startFullscreen, { update { it.copy(startFullscreen = !it.startFullscreen) } }, tag = "setting_start_fullscreen")
-        Caption(t("When off, Tiviate starts on the TV guide with the channel playing in the preview."))
+        Caption(t("When off, Tiviate starts on the TV guide; OK on a channel plays it."))
         ToggleRow(t("Confirm exit with a second Back"), settings.confirmExit, { update { it.copy(confirmExit = !it.confirmExit) } }, tag = "setting_confirm_exit")
         val context = androidx.compose.ui.platform.LocalContext.current
         ToggleRow(t("Start Tiviate when the TV turns on"), settings.autoStartOnBoot, {

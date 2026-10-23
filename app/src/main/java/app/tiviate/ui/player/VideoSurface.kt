@@ -32,13 +32,13 @@ fun VideoSurface(engine: PlaybackEngine, mode: DisplayMode, zoomPercent: Int, vi
     BoxWithConstraints(modifier.clipToBounds(), contentAlignment = Alignment.Center) {
         val frame = videoFrame(mode, zoomPercent, constraints.maxWidth, constraints.maxHeight, videoWidth, videoHeight)
         val size = with(LocalDensity.current) { DpSize(frame.width.toDp(), frame.height.toDp()) }
-        PlayerSurface(engine, Modifier.requiredSize(size), blackOnSwitch)
+        PlayerSurface(engine, Modifier.requiredSize(size), blackOnSwitch, videoWidth, videoHeight)
     }
 }
 
 @OptIn(UnstableApi::class)
 @Composable
-private fun PlayerSurface(engine: PlaybackEngine, modifier: Modifier, blackOnSwitch: Boolean) {
+private fun PlayerSurface(engine: PlaybackEngine, modifier: Modifier, blackOnSwitch: Boolean, videoWidth: Int = 0, videoHeight: Int = 0) {
     AndroidView(
         modifier = modifier,
         factory = { context ->
@@ -53,6 +53,9 @@ private fun PlayerSurface(engine: PlaybackEngine, modifier: Modifier, blackOnSwi
         },
         update = {
             it.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
+            // Buffers at the stream's own size: resizing (guide ⇄ fullscreen) is then done by the display
+            // hardware, without the decoder having to follow every step.
+            if (videoWidth > 0 && videoHeight > 0) (it.videoSurfaceView as? android.view.SurfaceView)?.holder?.setFixedSize(videoWidth, videoHeight)
             // Keep the last picture while the next channel loads, unless "black screen while switching" is on.
             it.setKeepContentOnPlayerReset(!blackOnSwitch)
             // Subtitles follow the TV's caption style (Settings → Accessibility → Captions).
