@@ -67,6 +67,29 @@ class PlaylistRepository(
             ),
         )
 
+    /** Saves edited details; the next sync uses them (favorites and history follow the channels' stable keys). */
+    suspend fun updateM3uUrl(id: Long, name: String, url: String, epgUrl: String?, userAgent: String?) = edit(id) {
+        it.copy(name = name.trim().ifEmpty { it.name }, url = url.trim(), epgUrl = epgUrl.blankToNull(), userAgent = userAgent.blankToNull())
+    }
+
+    suspend fun updateM3uFile(id: Long, name: String, uri: String, epgUrl: String?) = edit(id) {
+        it.copy(name = name.trim().ifEmpty { it.name }, url = uri, epgUrl = epgUrl.blankToNull())
+    }
+
+    suspend fun updateXtream(id: Long, name: String, creds: XtreamCredentials) = edit(id) {
+        it.copy(
+            name = name.trim().ifEmpty { it.name },
+            xtreamServer = XtreamUrls.normalizeServer(creds.server),
+            xtreamUser = creds.username.trim(),
+            xtreamPass = creds.password,
+        )
+    }
+
+    private suspend fun edit(id: Long, change: (PlaylistEntity) -> PlaylistEntity) {
+        val p = db.playlists().get(id) ?: return
+        db.playlists().update(change(p).copy(lastError = null))
+    }
+
     /** Playlist first, then its guide. Guide failures are recorded per source and never fail the playlist. */
     fun sync(playlistId: Long): Flow<SyncProgress> = channelFlow {
         send(SyncProgress.Channels(0))

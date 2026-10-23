@@ -1,6 +1,9 @@
 package app.tiviate.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assert.assertTrue
+import kotlinx.coroutines.flow.first
+import app.tiviate.core.xtream.XtreamCredentials
 import app.tiviate.data.db.PlaylistEntity
 import app.tiviate.data.db.PlaylistType
 import app.tiviate.data.sync.SyncHarness
@@ -69,5 +72,40 @@ class PlaylistRepositoryTest {
         assertEquals(2, h.db.channels().count(id))
         val ref = h.db.channels().allInPlaylist(id).first { it.name == "A" }.epgRef!!
         assertEquals(listOf("Now"), h.db.epg().programmesFor(listOf(ref), 0, Long.MAX_VALUE).map { it.title })
+    }
+
+    private fun repo() = PlaylistRepository(h.db, h.http, h.playlistSyncer(), h.epgSyncer(), clock = { h.now })
+
+    @Test
+    fun editingAPlaylistKeepsItsFavoritesAndUsesTheNewDetails() = runBlocking {
+        h.routes["/old.m3u"] = { text("#EXTM3U\n#EXTINF:-1 tvg-id=\"a\",A\nhttp://h/a.m3u8?t=old\n") }
+        h.routes["/new.m3u"] = { text("#EXTM3U\n#EXTINF:-1 tvg-id=\"a\",A\nhttp://h/a.m3u8?t=new\n") }
+        val repo = repo()
+        val id = repo.addM3uUrl("Old", h.url("/old.m3u"), null, null)
+        repo.sync(id).collect {}
+        h.db.favorites().toggle(id, h.db.channels().allInPlaylist(id).single().stableKey, 1)
+
+        repo.updateM3uUrl(id, "New name", h.url("/new.m3u"), epgUrl = null, userAgent = "UA/2")
+        h.now += 1_000
+        repo.sync(id).collect {}
+
+        val p = h.db.playlists().get(id)!!
+        assertEquals("New name", p.name)
+        assertEquals(h.url("/new.m3u"), p.url)
+        assertEquals("UA/2", p.userAgent)
+        assertTrue(h.db.channels().allInPlaylist(id).single().streamUrl.endsWith("t=new"))
+        assertEquals("favorites survive the edit", 1, h.db.favorites().observeKeys(id).first().size)
+    }
+
+    @Test
+    fun editingAnXtreamLoginStoresTheNewServerAndPassword() = runBlocking {
+        val repo = repo()
+        val id = repo.addXtream("X", XtreamCredentials("old.host", "u", "p1"), preferHls = false)
+        repo.updateXtream(id, "Home", XtreamCredentials("http://new.host:8080/", " u2 ", "p2"))
+        val p = h.db.playlists().get(id)!!
+        assertEquals("Home", p.name)
+        assertEquals("http://new.host:8080", p.xtreamServer)
+        assertEquals("u2", p.xtreamUser)
+        assertEquals("p2", p.xtreamPass)
     }
 }

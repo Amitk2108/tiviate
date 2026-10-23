@@ -2,6 +2,7 @@ package app.tiviate
 
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -94,6 +95,24 @@ class SettingsTest {
         rule.onNodeWithTag("confirm_delete").activate()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("welcome_screen") }
         assertEquals(0, runBlocking { graph.db.playlists().all().size })
+    }
+
+    @Test
+    fun editPlaylistSavesNewDetailsAndReloads() {
+        launchWith(xtream = true)
+        rule.onNodeWithTag("section_playlists").activate()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("playlist_edit_0") }
+        rule.onNodeWithTag("playlist_edit_0").activate()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("add_playlist_screen") }
+        rule.waitUntil(3_000) { rule.textExists("Fixture Xtream") } // the saved details are filled in
+        rule.onNodeWithTag("field_name").activate()
+        rule.onNodeWithTag("field_name_input").performTextClearance()
+        rule.onNodeWithTag("field_name_input").performTextInput("Home IPTV")
+        rule.onNodeWithTag("save_playlist").activate()
+        rule.waitUntil(10_000) { runBlocking { graph.db.playlists().all().single().name == "Home IPTV" } }
+        val p = runBlocking { graph.db.playlists().all().single() }
+        assertEquals("login is kept unless changed", "p", p.xtreamPass)
+        rule.waitUntil(15_000) { runBlocking { graph.db.playlists().all().single().lastSyncAt != null } }
     }
 
     @Test

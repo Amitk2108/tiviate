@@ -48,7 +48,7 @@ fun AppRoot() {
             when (val screen = nav.current) {
                 Screen.Loading -> Unit
                 Screen.Welcome -> WelcomeScreen()
-                is Screen.AddPlaylist -> AddPlaylistScreen(screen.type)
+                is Screen.AddPlaylist -> AddPlaylistScreen(screen.type, screen.editId)
                 is Screen.Syncing -> SyncingScreen(screen.playlistId)
                 Screen.Player -> PlayerScreen()
                 Screen.Guide -> GuideScreen()

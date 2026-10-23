@@ -42,7 +42,7 @@ import app.tiviate.ui.theme.Tokens
 import kotlinx.coroutines.launch
 
 @Composable
-fun AddPlaylistScreen(type: PlaylistType) {
+fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
     val graph = LocalGraph.current
     val nav = LocalNavigator.current
     val scope = rememberCoroutineScope()
@@ -63,6 +63,18 @@ fun AddPlaylistScreen(type: PlaylistType) {
     // Down from the last field always lands on "Add playlist" (never on Cancel).
     val toSave = Modifier.focusProperties { down = saveButton }
 
+    // Editing: start from the saved details (the password field stays masked).
+    LaunchedEffect(editId) {
+        val p = editId?.let { graph.playlists.get(it) } ?: return@LaunchedEffect
+        name = p.name
+        epgUrl = p.epgUrl.orEmpty()
+        userAgent = p.userAgent.orEmpty()
+        server = p.xtreamServer.orEmpty()
+        username = p.xtreamUser.orEmpty()
+        password = p.xtreamPass.orEmpty()
+        if (type == PlaylistType.M3U_FILE) fileUri = p.url else url = p.url.orEmpty()
+    }
+
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) {
             runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
@@ -80,6 +92,15 @@ fun AddPlaylistScreen(type: PlaylistType) {
         if (error != null) return
         scope.launch {
             val repo = graph.playlists
+            if (editId != null) {
+                when (type) {
+                    PlaylistType.M3U_URL -> repo.updateM3uUrl(editId, name, url, epgUrl, userAgent)
+                    PlaylistType.M3U_FILE -> repo.updateM3uFile(editId, name, fileUri!!, epgUrl)
+                    PlaylistType.XTREAM -> repo.updateXtream(editId, name, XtreamCredentials(server, username, password))
+                }
+                nav.push(Screen.Syncing(editId)) // reload with the new details
+                return@launch
+            }
             val id = when (type) {
                 PlaylistType.M3U_URL -> repo.addM3uUrl(name.ifBlank { defaultName(url) }, url, epgUrl, userAgent)
                 PlaylistType.M3U_FILE -> repo.addM3uFile(name.ifBlank { "Local playlist" }, fileUri!!, epgUrl)
@@ -91,7 +112,7 @@ fun AddPlaylistScreen(type: PlaylistType) {
 
     Row(Modifier.fillMaxSize().padding(Tokens.SafeMargin).testTag("add_playlist_screen"), horizontalArrangement = Arrangement.spacedBy(40.dp)) {
         Column(Modifier.width(260.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title(type), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+            Text(if (editId != null) "Edit playlist" else title(type), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
             Text(help(type), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
         }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -127,7 +148,7 @@ fun AddPlaylistScreen(type: PlaylistType) {
             }
             error?.let { Text(it, style = TextStyle(color = Tokens.Danger, fontSize = Tokens.BodySize)) }
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                ActionButton("Add playlist", onClick = ::save, modifier = Modifier.focusRequester(saveButton), primary = true, tag = "save_playlist")
+                ActionButton(if (editId != null) "Save changes" else "Add playlist", onClick = ::save, modifier = Modifier.focusRequester(saveButton), primary = true, tag = "save_playlist")
                 ActionButton("Cancel", onClick = { nav.back() })
             }
         }
