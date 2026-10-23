@@ -35,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Text
 import app.tiviate.BuildConfig
 import app.tiviate.core.xtream.XtreamAccount
+import app.tiviate.core.xtream.XtreamUrls
 import app.tiviate.data.AppSettings
 import app.tiviate.data.BufferPreset
 import app.tiviate.data.db.EpgOrigin
@@ -218,7 +219,7 @@ private fun GuideSection() {
         sources.forEach { s ->
             Column(Modifier.fillMaxWidth().background(Tokens.Surface, Tokens.Shape).padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(s.name + if (s.origin == EpgOrigin.AUTO) "  (from playlist)" else "", style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium))
-                Text(s.url, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
+                Text(XtreamUrls.redact(s.url), maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
                 Caption(s.lastSyncAt?.let { "Updated ${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it))}" } ?: "Not updated yet")
                 s.lastError?.let { Text(it, style = TextStyle(color = Tokens.Danger, fontSize = Tokens.CaptionSize)) }
                 if (s.origin == EpgOrigin.MANUAL) ActionButton("Remove", { scope.launch { graph.playlists.deleteEpgSource(s.id) } })

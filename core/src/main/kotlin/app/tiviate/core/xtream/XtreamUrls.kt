@@ -19,7 +19,7 @@ object XtreamUrls {
     }
 
     fun live(c: XtreamCredentials, streamId: Long, ext: String = "ts"): String =
-        "${c.server}/live/${c.username}/${c.password}/$streamId.$ext"
+        "${c.server}/live/${segment(c.username)}/${segment(c.password)}/$streamId.$ext"
 
     fun xmltv(c: XtreamCredentials): String =
         "${c.server}/xmltv.php?username=${enc(c.username)}&password=${enc(c.password)}"
@@ -38,6 +38,16 @@ object XtreamUrls {
             else -> allowed.first()
         }
     }
+
+    /** Hides passwords in links shown on screen: `password=` query values and `/live/<user>/<password>/` paths. */
+    fun redact(url: String): String = url
+        .replace(Regex("""([?&]password=)[^&#]*"""), "$1$MASK")
+        .replace(Regex("""(/(?:live|movie|series|timeshift)/[^/]+/)[^/]+/"""), "$1$MASK/")
+
+    private const val MASK = "•••"
+
+    /** Percent-encodes one path segment (URLEncoder targets query strings, where a space is "+"). */
+    private fun segment(s: String): String = enc(s).replace("+", "%20")
 
     private fun enc(s: String): String = URLEncoder.encode(s, "UTF-8")
 }
