@@ -62,12 +62,13 @@ class PlayerOptionsTest {
             rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
             rule.waitForIdle()
         }
-        repeat(12) {
+        // Cards left of the starting card (e.g. Pause) are reached by going to the start first.
+        repeat(14) { i ->
             if (runCatching { rule.onNodeWithTag(tag).assertIsFocused() }.isSuccess) {
                 Remote.ok()
                 return
             }
-            Remote.right()
+            if (i == 0) Remote.left(4) else Remote.right()
             rule.waitForIdle()
         }
         throw AssertionError("could not reach $tag")
@@ -128,4 +129,29 @@ class PlayerOptionsTest {
         rule.onNodeWithTag("choice_Off").activate()
         rule.waitUntil(3_000) { graph.player.sleepMinutes.value == null }
     }
+
+    @Test
+    fun displayModeCanBeSetForThisChannelOnly() {
+        openOption("option_display", "display_dialog")
+        // Remote only: from the ticked "Fit" down to the "Apply to all channels" switch, turn it off, then pick 4:3.
+        repeat(6) { if (runCatching { rule.onNodeWithTag("picker_toggle").assertIsFocused() }.isFailure) Remote.down() }
+        Remote.ok()
+        Remote.up()
+        repeat(6) { if (!focusedText().contains("4:3")) Remote.up() }
+        Remote.ok()
+        val key = graph.player.current.value!!.let { "${it.playlistId}:${it.stableKey}" }
+        rule.waitUntil(3_000) { settings().channelDisplayModes[key] == DisplayMode.RATIO_4_3 }
+        org.junit.Assert.assertEquals("other channels keep Fit", DisplayMode.FIT, settings().displayMode)
+    }
+
+    @Test
+    fun pauseThenBackToLive() {
+        pressOption("option_playpause")
+        rule.waitUntil(3_000) { graph.player.engine.state.value.isPaused }
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("option_live") }
+        val starts = graph.player.engine.startCount
+        pressOption("option_live")
+        rule.waitUntil(8_000) { !graph.player.engine.state.value.isPaused && graph.player.engine.startCount > starts && graph.player.engine.state.value.isPlaying }
+    }
+
 }

@@ -22,7 +22,7 @@ class Media3EngineTest {
         assertFalse(engine.state.value.isPlaying)
         assertEquals(null, engine.state.value.channelKey)
         val before = engine.player
-        engine.reconfigure(AppSettings(bufferPreset = BufferPreset.STABLE))
+        engine.reconfigure(AppSettings(bufferPreset = BufferPreset.LARGE))
         assertFalse("buffer preset change must rebuild the player", before === engine.player)
         engine.release()
     }

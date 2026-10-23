@@ -23,15 +23,15 @@ class SettingsTest {
 
         val defaults = store.settings.first()
         assertNull(defaults.activePlaylistId)
-        assertEquals(BufferPreset.NORMAL, defaults.bufferPreset)
+        assertEquals(BufferPreset.MEDIUM, defaults.bufferPreset)
         assertFalse(defaults.tunneling)
         assertEquals(4_000, defaults.bannerTimeoutMs)
         assertFalse("TV-guide start is the default", defaults.startFullscreen)
 
-        store.update { it.copy(activePlaylistId = 7, bufferPreset = BufferPreset.STABLE, lastChannelKey = "x:6775", lastGroup = "Sports") }
+        store.update { it.copy(activePlaylistId = 7, bufferPreset = BufferPreset.LARGE, lastChannelKey = "x:6775", lastGroup = "Sports") }
         val updated = store.settings.first()
         assertEquals(7L, updated.activePlaylistId)
-        assertEquals(BufferPreset.STABLE, updated.bufferPreset)
+        assertEquals(BufferPreset.LARGE, updated.bufferPreset)
         assertEquals("x:6775", updated.lastChannelKey)
         assertEquals("Sports", updated.lastGroup)
 
@@ -82,9 +82,46 @@ class SettingsTest {
     }
 
     @Test
-    fun bufferPresetValuesMatchSpec() {
-        assertEquals(listOf(5_000, 20_000, 750, 2_000), BufferPreset.FAST.let { listOf(it.minMs, it.maxMs, it.startMs, it.restartMs) })
-        assertEquals(listOf(15_000, 40_000, 1_500, 3_000), BufferPreset.NORMAL.let { listOf(it.minMs, it.maxMs, it.startMs, it.restartMs) })
-        assertEquals(listOf(30_000, 90_000, 2_500, 5_000), BufferPreset.STABLE.let { listOf(it.minMs, it.maxMs, it.startMs, it.restartMs) })
+    fun bufferSizesSmallToVeryLarge() {
+        assertEquals(listOf(5_000, 20_000, 750, 2_000), BufferPreset.SMALL.let { listOf(it.minMs, it.maxMs, it.startMs, it.restartMs) })
+        assertEquals(listOf(15_000, 40_000, 1_500, 3_000), BufferPreset.MEDIUM.let { listOf(it.minMs, it.maxMs, it.startMs, it.restartMs) })
+        assertEquals(listOf(30_000, 90_000, 2_500, 5_000), BufferPreset.LARGE.let { listOf(it.minMs, it.maxMs, it.startMs, it.restartMs) })
+        assertEquals(listOf(60_000, 180_000, 4_000, 8_000), BufferPreset.VERY_LARGE.let { listOf(it.minMs, it.maxMs, it.startMs, it.restartMs) })
+        assertEquals("older installs keep their choice", BufferPreset.LARGE, BufferPreset.fromStored("STABLE"))
+        assertEquals(BufferPreset.SMALL, BufferPreset.fromStored("FAST"))
+        assertEquals(BufferPreset.MEDIUM, BufferPreset.fromStored("NORMAL"))
+        assertEquals(BufferPreset.MEDIUM, BufferPreset.fromStored(null))
+    }
+
+    @Test
+    fun partlyDoneSettingsHaveDefaultsAndPersist() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val store = SettingsStore.forFile(File(context.filesDir, "settings-pd-${System.nanoTime()}.preferences_pb"))
+        val d = store.settings.first()
+        assertEquals(50, d.recentCount)
+        assertEquals(5, d.recentDelaySec)
+        assertTrue(d.listShowProgramme)
+        assertTrue(d.listShowDescription)
+        assertEquals(GuideHighlight.ON_AIR, d.guideHighlight)
+        assertEquals("panels stay until closed", 0, d.panelTimeoutSec)
+        assertEquals(emptyMap<String, DisplayMode>(), d.channelDisplayModes)
+
+        store.update {
+            it.copy(
+                recentCount = 100, recentDelaySec = 10, listShowProgramme = false, listShowDescription = false,
+                guideHighlight = GuideHighlight.PROGRESS, panelTimeoutSec = 20,
+                channelDisplayModes = mapOf("1:x:9" to DisplayMode.RATIO_4_3, "1:t:abc|news" to DisplayMode.ZOOM),
+            )
+        }
+        val s = store.settings.first()
+        assertEquals(100, s.recentCount)
+        assertEquals(10, s.recentDelaySec)
+        assertFalse(s.listShowProgramme)
+        assertFalse(s.listShowDescription)
+        assertEquals(GuideHighlight.PROGRESS, s.guideHighlight)
+        assertEquals(20, s.panelTimeoutSec)
+        assertEquals(mapOf("1:x:9" to DisplayMode.RATIO_4_3, "1:t:abc|news" to DisplayMode.ZOOM), s.channelDisplayModes)
+        assertEquals("a channel's own mode wins", DisplayMode.RATIO_4_3, s.displayModeFor("1:x:9"))
+        assertEquals("others use the all-channels mode", DisplayMode.FIT, s.displayModeFor("1:x:10"))
     }
 }

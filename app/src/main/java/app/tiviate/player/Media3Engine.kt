@@ -272,6 +272,14 @@ class Media3Engine(
         if (r.channelKey == channelKey && r.url != url) request = r.copy(url = url)
     }
 
+    /** Leaves a pause and rejoins the live edge with a fresh connection. */
+    fun goLive() {
+        if (request == null) return
+        pausedAtMs = null
+        _state.update { it.copy(isPaused = false) }
+        startCurrent()
+    }
+
     override fun retryNow() {
         reconnector.reset()
         _state.update { it.copy(error = null, issue = null, issueDetail = null, isBuffering = true) }

@@ -194,6 +194,15 @@ class PlayerNavigationTest {
         rule.onNodeWithTag("error_retry").assertIsFocused()
     }
 
+
+    @Test
+    fun idlePanelClosesAfterTheChosenTime() {
+        runBlocking { graph.settings.update { it.copy(panelTimeoutSec = 10) } }
+        Remote.ok()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
+        rule.waitUntil(15_000) { !rule.onAllNodesWithTagExists("channel_panel") }
+    }
+
 }
 
 private fun androidx.compose.ui.test.SemanticsNodeInteraction.assertExistsCompat() = assertExists()

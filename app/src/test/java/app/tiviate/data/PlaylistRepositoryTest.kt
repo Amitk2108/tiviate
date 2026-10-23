@@ -108,4 +108,26 @@ class PlaylistRepositoryTest {
         assertEquals("u2", p.xtreamUser)
         assertEquals("p2", p.xtreamPass)
     }
+
+    @Test
+    fun xtreamUserAgentAndStreamFormatAreSavedAndEditable() = runBlocking {
+        val repo = repo()
+        val id = repo.addXtream("X", XtreamCredentials("h", "u", "p"), preferHls = false, userAgent = "Box/1")
+        assertEquals("Box/1", h.db.playlists().get(id)!!.userAgent)
+        repo.updateXtream(id, "X", XtreamCredentials("h", "u", "p"), preferHls = true, userAgent = " ")
+        val p = h.db.playlists().get(id)!!
+        assertTrue(p.preferHls)
+        assertEquals("blank clears it", null, p.userAgent)
+    }
+
+    @Test
+    fun guideSourcesCanBeRenamed() = runBlocking {
+        val repo = repo()
+        val src = repo.addEpgSource("http://epg.example/guide.xml")
+        assertEquals("epg.example", h.db.epg().source(src)!!.name)
+        repo.renameEpgSource(src, "  My guide ")
+        assertEquals("My guide", h.db.epg().source(src)!!.name)
+        repo.renameEpgSource(src, "   ")
+        assertEquals("an empty name is ignored", "My guide", h.db.epg().source(src)!!.name)
+    }
 }

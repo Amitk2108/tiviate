@@ -18,6 +18,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import android.os.SystemClock
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -84,6 +89,15 @@ fun PlayerScreen() {
     }
 
     val inFullscreen = overlay == Overlay.None || overlay == Overlay.Banner
+    var lastInputAt by remember { mutableLongStateOf(SystemClock.uptimeMillis()) }
+    // "Close the channel list and options after N s": an idle panel closes by itself.
+    LaunchedEffect(overlay, settings.panelTimeoutSec, lastInputAt) {
+        val seconds = settings.panelTimeoutSec
+        if (seconds > 0 && (overlay is Overlay.Panel || overlay == Overlay.Options)) {
+            delay(seconds * 1_000L)
+            vm.close()
+        }
+    }
     LaunchedEffect(inFullscreen, playback.error) {
         if (inFullscreen && playback.error == null) focusSoon(rootFocus)
     }
@@ -173,6 +187,7 @@ fun PlayerScreen() {
             .background(Color.Black)
             .testTag("player_screen")
             .focusRequester(rootFocus)
+            .onPreviewKeyEvent { lastInputAt = SystemClock.uptimeMillis(); false }
             .focusable()
             .onKeyEvent { if (inFullscreen) handleKey(it.nativeKeyEvent) else false }
             // Phones/tablets: tap shows touch controls, vertical swipe zaps. TVs never send these.
@@ -187,7 +202,8 @@ fun PlayerScreen() {
                 ) { _, dy -> total += dy }
             },
     ) {
-        VideoSurface(engine, settings.displayMode, settings.zoomPercent, playback.videoWidth, playback.videoHeight, Modifier.fillMaxSize())
+        val channelKey = current?.let { "${it.playlistId}:${it.stableKey}" }
+        VideoSurface(engine, settings.displayModeFor(channelKey), settings.zoomPercent, playback.videoWidth, playback.videoHeight, Modifier.fillMaxSize())
         if (showStats) StatsOverlay(engine)
 
         if (playback.isBuffering && !playback.isPaused && playback.error == null) BufferingIndicator(playback.retrying, playback.notice)
@@ -212,6 +228,8 @@ fun PlayerScreen() {
                     favorites = favorites,
                     nowNext = vm.nowNext,
                     showNumbers = settings.showChannelNumbers,
+                    showProgramme = settings.listShowProgramme,
+                    showDescription = settings.listShowDescription,
                     initialIndex = panelIndex,
                     requestNowNext = vm::loadNowNext,
                     onTune = { ch -> if (ch.stableKey == current?.stableKey) vm.close() else vm.tune(ch) },
@@ -244,9 +262,14 @@ fun PlayerScreen() {
                     focusTag = vm.lastOptionTag,
                     options = listOfNotNull(
                         OptionItem("option_guide", "TV guide", null) { vm.close(); nav.push(Screen.Guide) },
+                        OptionItem("option_playpause", if (playback.isPaused) "Play" else "Pause", if (playback.isPaused) "Paused" else "Live") {
+                            vm.lastOptionTag = "option_playpause"
+                            vm.togglePause()
+                        },
+                        if (playback.isPaused) OptionItem("option_live", "Back to live", null) { vm.lastOptionTag = "option_playpause"; engine.goLive() } else null,
                         OptionItem("option_audio", "Audio", playback.audioLabel ?: "Default") { pick("option_audio", PickerKind.AUDIO) },
                         OptionItem("option_subtitles", "Subtitles", subtitle) { pick("option_subtitles", PickerKind.SUBTITLES) },
-                        OptionItem("option_display", "Display", settings.displayMode.label) { pick("option_display", PickerKind.DISPLAY) },
+                        OptionItem("option_display", "Display", settings.displayModeFor(ch?.let { "${it.playlistId}:${it.stableKey}" }).label) { pick("option_display", PickerKind.DISPLAY) },
                         OptionItem("option_zoom", "Zoom", "${settings.zoomPercent}%") { pick("option_zoom", PickerKind.ZOOM) },
                         OptionItem(
                             "option_quality", "Quality",
@@ -322,11 +345,30 @@ fun PlayerScreen() {
                             tag = "track_dialog",
                         )
                     }
-                    PickerKind.DISPLAY -> ChoiceDialog(
-                        title = "Display (all channels)",
-                        choices = DisplayMode.entries.map { m -> Choice(m.label, m == settings.displayMode) { save { it.copy(displayMode = m) }; done() } },
-                        tag = "display_dialog",
-                    )
+                    PickerKind.DISPLAY -> {
+                        val key = current?.let { "${it.playlistId}:${it.stableKey}" }
+                        var applyAll by remember(o) { mutableStateOf(key == null || key !in settings.channelDisplayModes) }
+                        val effective = settings.displayModeFor(key)
+                        ChoiceDialog(
+                            title = "Display",
+                            choices = DisplayMode.entries.map { m ->
+                                Choice(m.label, m == effective) {
+                                    save { s ->
+                                        if (applyAll || key == null) s.copy(displayMode = m, channelDisplayModes = s.channelDisplayModes - (key ?: ""))
+                                        else s.copy(channelDisplayModes = s.channelDisplayModes + (key to m))
+                                    }
+                                    done()
+                                }
+                            },
+                            toggle = key?.let {
+                                ToggleChoice("Apply to all channels", applyAll) { on ->
+                                    applyAll = on
+                                    if (on) save { s -> s.copy(channelDisplayModes = s.channelDisplayModes - it) }
+                                }
+                            },
+                            tag = "display_dialog",
+                        )
+                    }
                     PickerKind.ZOOM -> ChoiceDialog(
                         title = "Zoom (all channels)",
                         choices = ZOOM_STEPS.map { z -> Choice("$z%", z == settings.zoomPercent) { save { it.copy(zoomPercent = z) }; done() } },

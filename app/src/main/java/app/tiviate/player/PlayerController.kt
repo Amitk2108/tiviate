@@ -139,15 +139,16 @@ class PlayerController(
         engineOrNull = null
     }
 
-    /** History records a channel after 5 s of watching, then adds watch time every minute. */
+    /** Recent records a channel after the chosen delay (5 s by default), then adds watch time every minute. */
     private fun trackHistory(channel: ChannelEntity) {
         historyJob?.cancel()
         historyJob = scope.launch {
-            delay(5_000)
-            channels.recordWatch(channel.playlistId, channel.stableKey, 5)
+            val delaySec = settings.recentDelaySec.coerceIn(1, 120)
+            delay(delaySec * 1_000L)
+            channels.recordWatch(channel.playlistId, channel.stableKey, delaySec, keep = settings.recentCount)
             while (isActive) {
                 delay(60_000)
-                channels.recordWatch(channel.playlistId, channel.stableKey, 60)
+                channels.recordWatch(channel.playlistId, channel.stableKey, 60, keep = settings.recentCount)
             }
         }
     }

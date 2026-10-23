@@ -69,7 +69,7 @@ class SettingsTest {
         rule.onNodeWithTag("section_player").activate()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("setting_buffer") }
         rule.onNodeWithTag("setting_buffer").activate() // Normal → Stable
-        rule.waitUntil(3_000) { runBlocking { graph.settings.settings.first().bufferPreset == BufferPreset.STABLE } }
+        rule.waitUntil(3_000) { runBlocking { graph.settings.settings.first().bufferPreset == BufferPreset.LARGE } }
     }
 
     @Test
@@ -150,4 +150,22 @@ class SettingsTest {
         rule.onNodeWithTag("section_playlists").activate()
         rule.waitUntil(8_000) { rule.textExists("Active") && rule.textExists("Expires") }
     }
+
+    @Test
+    fun appearanceAndRecentChoicesPersist() {
+        launchWith(xtream = false)
+        rule.onNodeWithTag("section_appearance").activate()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("setting_panel_timeout") }
+        rule.onNodeWithTag("setting_panel_timeout").activate() // Never → 10 s
+        rule.onNodeWithTag("setting_guide_highlight").activate() // On-air → Progress only
+        rule.onNodeWithTag("setting_list_programme").activate()
+        rule.waitUntil(3_000) {
+            runBlocking { graph.settings.settings.first().let { it.panelTimeoutSec == 10 && it.guideHighlight == app.tiviate.data.GuideHighlight.PROGRESS && !it.listShowProgramme } }
+        }
+        rule.onNodeWithTag("section_other").activate()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("setting_recent_count") }
+        rule.onNodeWithTag("setting_recent_count").activate() // 50 → 100
+        rule.waitUntil(3_000) { runBlocking { graph.settings.settings.first().recentCount == 100 } }
+    }
+
 }

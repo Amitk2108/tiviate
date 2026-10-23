@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -25,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import app.tiviate.data.db.ChannelEntity
+import app.tiviate.data.GuideHighlight
 import app.tiviate.data.db.ProgrammeEntity
 import app.tiviate.ui.components.ChannelLogo
 import app.tiviate.ui.components.formatTime
@@ -64,6 +67,7 @@ fun GuideRow(
     isPlaying: Boolean,
     showNumber: Boolean,
     focused: FocusBlock?,
+    highlight: GuideHighlight = GuideHighlight.ON_AIR,
 ) {
     Row(Modifier.fillMaxWidth().height(GUIDE_ROW_HEIGHT).padding(vertical = 2.dp)) {
         ChannelCell(channel, isPlaying, showNumber, rowFocused = focused != null)
@@ -72,7 +76,7 @@ fun GuideRow(
             for (p in programmes) {
                 if (p.stopMs <= viewStartMs || p.startMs >= viewEnd) continue
                 val isFocused = focused?.programme?.id == p.id && focused.programme != null
-                ProgrammeBlock(p.title, p.startMs, p.stopMs, viewStartMs, windowMs, stripWidth, nowMs, isFocused)
+                ProgrammeBlock(p.title, p.startMs, p.stopMs, viewStartMs, windowMs, stripWidth, nowMs, isFocused, highlight = highlight)
             }
             if (focused != null && focused.programme == null && focused.stopMs > viewStartMs && focused.startMs < viewEnd) {
                 ProgrammeBlock("No information", focused.startMs, focused.stopMs, viewStartMs, windowMs, stripWidth, nowMs, focused = true, empty = true)
@@ -111,6 +115,7 @@ private fun ProgrammeBlock(
     nowMs: Long,
     focused: Boolean,
     empty: Boolean = false,
+    highlight: GuideHighlight = GuideHighlight.ON_AIR,
 ) {
     val from = maxOf(startMs, viewStartMs)
     val to = minOf(stopMs, viewStartMs + windowMs)
@@ -120,8 +125,14 @@ private fun ProgrammeBlock(
     val live = startMs <= nowMs && nowMs < stopMs
     val bg = when {
         focused -> Tokens.Raised
-        live -> Color(0xFF0F1A2E)
+        live && highlight == GuideHighlight.ON_AIR -> Color(0xFF0F1A2E)
         else -> Tokens.Surface
+    }
+    // "Progress only": the elapsed part of the programme on air is shaded instead.
+    val elapsed = if (live && !focused && highlight == GuideHighlight.PROGRESS) {
+        ((minOf(nowMs, to) - from).toFloat() / (to - from).coerceAtLeast(1)).coerceIn(0f, 1f)
+    } else {
+        0f
     }
     Box(
         Modifier
@@ -129,7 +140,9 @@ private fun ProgrammeBlock(
             .width(w)
             .fillMaxHeight()
             .padding(end = 3.dp)
-            .background(bg, Tokens.SmallShape)
+            .clip(Tokens.SmallShape)
+            .background(bg)
+            .drawBehind { if (elapsed > 0f) drawRect(ELAPSED, size = size.copy(width = size.width * elapsed)) }
             .then(if (focused) Modifier.border(Tokens.FocusBorder, Tokens.Cyan, Tokens.SmallShape).testTag("guide_focused") else Modifier)
             .padding(horizontal = 10.dp),
         contentAlignment = Alignment.CenterStart,
@@ -160,3 +173,5 @@ fun NowLine(viewStartMs: Long, windowMs: Long, nowMs: Long, stripWidth: Dp) {
         Box(Modifier.offset(x = x).width(2.dp).fillMaxHeight().background(Tokens.Cyan))
     }
 }
+
+private val ELAPSED = Color(0xFF16263D)

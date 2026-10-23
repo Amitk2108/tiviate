@@ -115,4 +115,13 @@ class DaoTest {
         db.channels().insertAll(listOf(channel(7, "A")))
         assertEquals("Channel 7", db.channels().byNumber(playlistId, 7)?.name)
     }
+
+    @Test
+    fun recentKeepsTheChosenNumberOfChannels() = runTest {
+        val pid = db.playlists().insert(PlaylistEntity(name = "P", type = PlaylistType.M3U_URL, url = "u"))
+        db.channels().insertAll((1..5).map { channel(it, "A").copy(playlistId = pid) })
+        for (i in 1..5) db.history().record(pid, "k$i", nowMs = i * 1_000L, watchedSec = 5, keep = 3)
+        val recent = db.history().recent(pid).first()
+        assertEquals(3, recent.size)
+    }
 }

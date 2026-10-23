@@ -264,6 +264,7 @@ fun GuideScreen() {
                                 isPlaying = channel != null && channel.stableKey == current?.stableKey,
                                 showNumber = settings.showChannelNumbers,
                                 focused = if (isFocusedRow) withTick(tick) { state.focused } else null,
+                                highlight = settings.guideHighlight,
                             )
                         }
                     }
