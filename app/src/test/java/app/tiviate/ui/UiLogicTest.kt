@@ -7,6 +7,7 @@ import app.tiviate.ui.components.KeyAction
 import app.tiviate.ui.components.LongPressDetector
 import app.tiviate.ui.components.logoCandidates
 import app.tiviate.ui.components.monogramInitials
+import app.tiviate.ui.player.optionOrder
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,6 +20,16 @@ class UiLogicTest {
         tvgId = null, tvgName = null, userAgent = null, referrer = null, epgRef = null, logoFallback = fallback,
         catchupDays = null, sortIndex = 1, syncStamp = 1,
     )
+
+    @Test
+    fun backToLiveSitsRightAfterPause() {
+        val order = listOf("option_guide", "option_playpause", "option_audio")
+        val tags = listOf("option_audio", "option_live", "option_unknown", "option_playpause", "option_guide")
+        assertEquals(
+            listOf("option_guide", "option_playpause", "option_live", "option_audio", "option_unknown"),
+            tags.sortedBy { optionOrder(order, it) },
+        )
+    }
 
     @Test
     fun logoModelFallsBackInOrder() {

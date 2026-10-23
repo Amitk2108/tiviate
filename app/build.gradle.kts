@@ -98,6 +98,9 @@ dependencies {
     implementation(libs.media3.ffmpeg.decoder)
     ksp(libs.room.compiler)
     androidTestImplementation(libs.room.testing)
+    // room-testing reads schemas with kotlinx-serialization-json 1.8.1; tests resolve against the app's
+    // classpath, so the app carries the matching core (Room pulls in 1.7.3 otherwise).
+    implementation(libs.kotlinx.serialization.core)
     implementation(libs.paging.runtime)
     implementation(libs.paging.compose)
     implementation(libs.okhttp)

@@ -17,6 +17,15 @@ import org.robolectric.annotation.LooperMode
 class Media3EngineTest {
 
     @Test
+    fun audioSyncShiftsTheClockButNeverBelowZero() {
+        assertEquals(1_250_000L, shiftAudioClock(1_000_000L, 250_000L))
+        assertEquals(750_000L, shiftAudioClock(1_000_000L, -250_000L))
+        assertEquals(0L, shiftAudioClock(100_000L, -500_000L))
+        val unknown = androidx.media3.exoplayer.audio.AudioSink.CURRENT_POSITION_NOT_SET
+        assertEquals(unknown, shiftAudioClock(unknown, 250_000L))
+    }
+
+    @Test
     fun constructsWithIdleStateAndRebuildsOnSettingsChange() {
         val engine = Media3Engine(ApplicationProvider.getApplicationContext(), HttpClients.create(), AppSettings())
         assertFalse(engine.state.value.isPlaying)
