@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Xml
 import app.tiviate.data.PlaylistRepository
+import app.tiviate.data.SettingsStore
 import app.tiviate.data.db.TiviateDatabase
 import app.tiviate.data.sync.EpgSyncer
 import app.tiviate.data.sync.HttpClients
@@ -18,6 +19,7 @@ class AppGraph(context: Context) {
 
     val db: TiviateDatabase by lazy { TiviateDatabase.create(appContext) }
     val http: OkHttpClient by lazy { HttpClients.create() }
+    val settings: SettingsStore by lazy { SettingsStore.create(appContext) }
 
     val playlists: PlaylistRepository by lazy {
         PlaylistRepository(
