@@ -1,6 +1,10 @@
 package app.tiviate
 
+import android.app.PictureInPictureParams
+import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
+import android.util.Rational
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -60,6 +64,26 @@ class MainActivity : ComponentActivity() {
             return true
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    /** Picture-in-picture (16:9); Android 8+. */
+    fun enterPip(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
+        return runCatching {
+            enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())
+        }.getOrDefault(false)
+    }
+
+    /** "Switch to picture-in-picture on Home": only from fullscreen, only while something plays. */
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        val player = graph.player
+        if (player.pipOnHome && player.fullscreenVisible && player.engine.state.value.isPlaying) enterPip()
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        graph.player.inPip.value = isInPictureInPictureMode
     }
 
     private companion object {

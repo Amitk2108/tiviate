@@ -34,6 +34,18 @@ class PlayerController(
     private var engineOrNull: Media3Engine? = null
     private var settings = AppSettings()
 
+    private val _previous = MutableStateFlow<ChannelEntity?>(null)
+    /** The channel watched before the current one ("Previous channel"). */
+    val previous: StateFlow<ChannelEntity?> = _previous
+
+    /** True while the fullscreen player is on screen (picture-in-picture on Home only applies there). */
+    @Volatile var fullscreenVisible: Boolean = false
+
+    /** Picture-in-picture is showing; the player screen hides its panels then. */
+    val inPip = MutableStateFlow(false)
+
+    val pipOnHome: Boolean get() = settings.pipOnHome
+
     private val _current = MutableStateFlow<ChannelEntity?>(null)
     val current: StateFlow<ChannelEntity?> = _current
 
@@ -76,6 +88,7 @@ class PlayerController(
     fun tune(channel: ChannelEntity, playlistUserAgent: String?) {
         val already = _current.value?.stableKey == channel.stableKey && _current.value?.playlistId == channel.playlistId
         if (already && engine.state.value.error == null && engine.state.value.channelKey == channel.stableKey) return
+        _current.value?.takeIf { it.stableKey != channel.stableKey }?.let { _previous.value = it }
         _current.value = channel
         val headers = buildMap { channel.referrer?.let { put("Referer", it) } }
         val ua = channel.userAgent ?: playlistUserAgent ?: settings.defaultUserAgent ?: HttpClients.defaultUserAgent

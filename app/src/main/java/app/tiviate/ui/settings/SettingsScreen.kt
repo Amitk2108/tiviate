@@ -172,6 +172,8 @@ private fun RemoteSection() {
             }
         }
         Caption("Menu or a long press of OK always opens the options. CH+ and CH− always change channel.")
+        val nav = LocalNavigator.current
+        ActionButton("Option cards (show, hide, order)", { nav.push(Screen.OptionCards) }, tag = "setting_option_cards")
     }
 }
 
@@ -384,6 +386,18 @@ private fun PlayerSection() {
         ToggleRow("Tunneled playback", settings.tunneling, { update { it.copy(tunneling = !it.tunneling) } }, tag = "setting_tunneling")
         ToggleRow("Match TV refresh rate to video", settings.matchRefreshRate, { update { it.copy(matchRefreshRate = !it.matchRefreshRate) } }, tag = "setting_afr")
         Caption("Refresh-rate matching removes judder on 25/50 fps channels; the screen may blink when it switches.")
+        ToggleRow("Prefer surround sound (5.1/7.1) when a channel has it", settings.preferSurround, { update { it.copy(preferSurround = !it.preferSurround) } }, tag = "setting_surround")
+        ValueRow("Audio sync", app.tiviate.ui.player.audioSyncLabel(settings.audioOffsetMs), "setting_audio_sync") {
+            update { it.copy(audioOffsetMs = listOf(0, 50, 100, 150, 200, 300, 400, 500, -500, -400, -300, -200, -150, -100, -50).after(it.audioOffsetMs)) }
+        }
+        ToggleRow("Black screen while switching channels", settings.blackOnSwitch, { update { it.copy(blackOnSwitch = !it.blackOnSwitch) } }, tag = "setting_black")
+        ToggleRow("Always open channels in another player", settings.alwaysExternalPlayer, { update { it.copy(alwaysExternalPlayer = !it.alwaysExternalPlayer) } }, tag = "setting_external")
+        ToggleRow("Picture-in-picture when Home is pressed", settings.pipOnHome, { update { it.copy(pipOnHome = !it.pipOnHome) } }, tag = "setting_pip_home")
+        val captionContext = androidx.compose.ui.platform.LocalContext.current
+        ActionButton("Subtitle style (TV settings)", {
+            runCatching { captionContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_CAPTIONING_SETTINGS).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        }, tag = "setting_caption_style")
+        Caption("Subtitles use the size, colour and background chosen in the TV's caption settings.")
         Heading("For all channels")
         ValueRow(
             "Audio language",
@@ -407,6 +421,12 @@ private fun AppearanceSection() {
     fun update(transform: (AppSettings) -> AppSettings) = scope.launch { graph.settings.update(transform) }
     SectionColumn {
         Heading("Appearance")
+        ToggleRow("TV guide over the full-screen video", settings.guideOverlay, { update { it.copy(guideOverlay = !it.guideOverlay) } }, tag = "setting_guide_overlay")
+        ToggleRow("Channel list with a small video window", settings.listPreview, { update { it.copy(listPreview = !it.listPreview) } }, tag = "setting_list_preview")
+        ToggleRow("Stay on the channel list after switching", settings.stayOnList, { update { it.copy(stayOnList = !it.stayOnList) } }, tag = "setting_stay_on_list")
+        ValueRow("Play the channel you stop on in the list", if (settings.autoplayDelaySec == 0) "Off" else "after ${settings.autoplayDelaySec} s", "setting_autoplay") {
+            update { it.copy(autoplayDelaySec = listOf(0, 1, 2, 3).after(it.autoplayDelaySec)) }
+        }
         ToggleRow("Show what's on in the channel list", settings.listShowProgramme, { update { it.copy(listShowProgramme = !it.listShowProgramme) } }, tag = "setting_list_programme")
         ToggleRow("Show programme descriptions", settings.listShowDescription, { update { it.copy(listShowDescription = !it.listShowDescription) } }, tag = "setting_list_description")
         ValueRow("Highlight in the TV guide", settings.guideHighlight.label, "setting_guide_highlight") {

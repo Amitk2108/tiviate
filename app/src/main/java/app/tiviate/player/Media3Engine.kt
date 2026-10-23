@@ -8,6 +8,8 @@ import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Format
+import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.ForwardingAudioSink
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
@@ -61,6 +63,30 @@ class Media3Engine(
     override val state: StateFlow<PlaybackState> = _state
 
     private var request: Request? = null
+
+    /** Sound against picture, µs (+ = sound later); read by the audio sink on the playback thread. */
+    @Volatile private var audioOffsetUs: Long = settings.audioOffsetMs * 1_000L
+    private var surroundChecked = false
+
+    /** "Select surround audio track by default": once per channel, switch to a 5.1/7.1 track if there is one. */
+    private fun preferSurround(tracks: Tracks) {
+        val groups = tracks.groups
+        if (groups.none { it.type == C.TRACK_TYPE_AUDIO }) return
+        surroundChecked = true
+        val current = tracks.selectedFormat(C.TRACK_TYPE_AUDIO)
+        if ((current?.channelCount ?: 0) >= 6) return
+        for (group in groups) {
+            if (group.type != C.TRACK_TYPE_AUDIO) continue
+            for (i in 0 until group.length) {
+                val f = group.getTrackFormat(i)
+                if (group.isTrackSupported(i) && f.channelCount >= 6 && (current?.language == null || f.language == current.language)) {
+                    player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+                        .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, i)).build()
+                    return
+                }
+            }
+        }
+    }
 
     /** The link the next (re)connection will use. */
     val currentUrl: String? get() = request?.url
@@ -118,6 +144,7 @@ class Media3Engine(
         }
 
         override fun onTracksChanged(tracks: Tracks) {
+            if (settings.preferSurround && !surroundChecked) preferSurround(tracks)
             val video = tracks.selectedFormat(C.TRACK_TYPE_VIDEO)
             val audio = tracks.selectedFormat(C.TRACK_TYPE_AUDIO)
             _state.update {
@@ -152,7 +179,18 @@ class Media3Engine(
     }
 
     private fun buildPlayer(s: AppSettings): ExoPlayer {
-        val renderers = DefaultRenderersFactory(context)
+        val renderers = object : DefaultRenderersFactory(context) {
+            // Audio sync: the picture follows the audio clock, so shifting the reported clock shifts sound against picture.
+            override fun buildAudioSink(context: Context, enableFloatOutput: Boolean, enableAudioOutputPlaybackParams: Boolean): AudioSink? {
+                val sink = super.buildAudioSink(context, enableFloatOutput, enableAudioOutputPlaybackParams) ?: return null
+                return object : ForwardingAudioSink(sink) {
+                    override fun getCurrentPositionUs(sourceEnded: Boolean): Long {
+                        val pos = super.getCurrentPositionUs(sourceEnded)
+                        return if (pos == AudioSink.CURRENT_POSITION_NOT_SET) pos else (pos + audioOffsetUs).coerceAtLeast(0)
+                    }
+                }
+            }
+        }
             .setEnableDecoderFallback(true)
             // FFmpeg audio only when the device has no decoder for the track (AC3/DTS on many TV chips).
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
@@ -190,6 +228,7 @@ class Media3Engine(
         val prefsChanged = newSettings.preferredAudioLanguage != settings.preferredAudioLanguage ||
             newSettings.subtitlesForAll != settings.subtitlesForAll ||
             newSettings.preferredTextLanguage != settings.preferredTextLanguage
+        audioOffsetUs = newSettings.audioOffsetMs * 1_000L
         settings = newSettings
         if (!needsRebuild) {
             if (prefsChanged) applyPreferences(newSettings)
@@ -209,6 +248,7 @@ class Media3Engine(
         reconnector.reset()
         pausedAtMs = null
         applyPreferences(settings) // a new channel starts from the "for all channels" choices
+        surroundChecked = false
         _state.value = PlaybackState(channelKey = channelKey, isBuffering = true)
         startCurrent()
     }

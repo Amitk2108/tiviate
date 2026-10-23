@@ -73,6 +73,7 @@ import kotlinx.coroutines.launch
 fun GuideScreen() {
     val graph = LocalGraph.current
     val nav = LocalNavigator.current
+    val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
     val vm: GuideViewModel = viewModel(factory = GuideViewModel.factory(graph))
     val scope = rememberCoroutineScope()
 
@@ -161,6 +162,7 @@ fun GuideScreen() {
         val live = block == null || (block.startMs <= nowMs && nowMs < block.stopMs)
         when {
             channel.stableKey == current?.stableKey && live -> nav.back() // already playing: go fullscreen, no reconnect
+            live && settings.alwaysExternalPlayer -> app.tiviate.player.ExternalPlayer.open(activity ?: return, channel.streamUrl, channel.name)
             live -> vm.tune(channel) // preview it here; a second OK goes fullscreen
             else -> details = block
         }
@@ -215,7 +217,6 @@ fun GuideScreen() {
     }
 
     // Back closes what is open; on the bare guide it leaves the app (after a second press unless turned off).
-    val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
     var lastBackAt by remember { mutableStateOf(0L) }
     var toast by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(toast) { if (toast != null) { kotlinx.coroutines.delay(2_000); toast = null } }
