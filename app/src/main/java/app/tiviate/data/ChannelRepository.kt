@@ -78,17 +78,20 @@ class ChannelRepository(
     private suspend fun sort() = sortSetting.first()
 
     fun groups(playlistId: Long): Flow<List<CategoryRow>> =
-        db.channels().categories(playlistId).map { rows -> rows.filter { it.name != null } }
+        db.channels().categories(playlistId).map { rows -> rows.filter { it.name != null } }.distinctUntilChanged()
 
-    fun allGroups(playlistId: Long): Flow<List<GroupRow>> = db.channels().allGroups(playlistId)
+    fun allGroups(playlistId: Long): Flow<List<GroupRow>> = db.channels().allGroups(playlistId).distinctUntilChanged()
 
     fun customGroups(playlistId: Long): Flow<List<CustomGroupEntity>> = db.organise().customGroups(playlistId)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun page(playlistId: Long, category: Category, includeHidden: Boolean = false): Flow<PagingData<ChannelEntity>> =
         sortSetting.distinctUntilChanged().flatMapLatest { sort ->
+            val query = ChannelQuery.select(playlistId, category, sort, includeHidden = includeHidden)
+            val channelsOnly = (category == Category.All || category is Category.Group) && sort != ChannelSort.MOST_WATCHED
             Pager(PagingConfig(pageSize = 60, prefetchDistance = 40, enablePlaceholders = true, maxSize = 600, jumpThreshold = 180)) {
-                db.channels().pageRaw(ChannelQuery.select(playlistId, category, sort, includeHidden = includeHidden))
+                // A history write every minute used to reload every open list (a stutter 5 s after each tune).
+                if (channelsOnly) db.channels().pageChannelsRaw(query) else db.channels().pageRaw(query)
             }.flow
         }
 

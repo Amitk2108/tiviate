@@ -66,5 +66,7 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+        <!-- Lets the system profiler (simpleperf / Perfetto) measure release builds; no effect for viewers. -->
+        <profileable android:shell="true" />
     </application>
 </manifest>

@@ -130,14 +130,18 @@ class PlaylistRepository(
 
     suspend fun refreshGuide(playlistId: Long) = syncLock.withLock { epgSyncer.syncForPlaylist(playlistId) }
 
+    @Volatile private var guideLastsUntil = 0L
+
     /**
      * Providers often publish the guide one day at a time. When what is stored ends within 3 hours,
      * fetch it again — at most once an hour — so tomorrow appears as soon as the provider has it.
      */
     suspend fun refreshGuideIfRunningOut(playlistId: Long): Boolean {
         val now = clock()
+        // Finding the guide's end scans the whole programme table; once it is known to last, skip until then.
+        if (now < guideLastsUntil) return false
         val latest = db.epg().latestStop() ?: return false
-        if (latest > now + 3 * 3_600_000L) return false
+        if (latest > now + 3 * 3_600_000L) { guideLastsUntil = latest - 3 * 3_600_000L; return false }
         val lastUpdate = db.epg().sourcesFor(playlistId).mapNotNull { it.lastSyncAt }.maxOrNull() ?: 0L
         if (now - lastUpdate < 3_600_000L) return false
         runCatching { refreshGuide(playlistId) }

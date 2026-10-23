@@ -1,5 +1,7 @@
 package app.tiviate.ui.components
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import androidx.compose.ui.graphics.FilterQuality
 import coil3.request.ImageRequest
 import coil3.compose.LocalPlatformContext
@@ -52,9 +54,17 @@ object LogoUrls {
         good += p.getStringSet("good", emptySet()).orEmpty()
     }
 
+    private var unsaved = 0
+
     fun worked(url: String) {
         bad -= url
-        if (good.add(url)) prefs?.edit()?.putStringSet("good", HashSet(good))?.apply()
+        // Saved in batches: writing the whole set for every logo made the first start of a big playlist stutter.
+        if (good.add(url) && ++unsaved >= 25) save()
+    }
+
+    fun save() {
+        unsaved = 0
+        prefs?.edit()?.putStringSet("good", HashSet(good))?.apply()
     }
     fun failed(url: String) { if (url !in good) bad += url }
 
@@ -135,15 +145,34 @@ fun Monogram(name: String, size: Dp) {
     }
 }
 
-/** Fetches channel logos in the background so the lists show them at once (stored on disk by the image loader). */
-fun prefetchLogos(context: android.content.Context, channels: List<ChannelEntity>, sizePx: Int) {
-    val loader = coil3.SingletonImageLoader.get(context)
-    for (ch in channels) {
-        val url = logoCandidates(ch).firstOrNull() ?: continue
-        loader.enqueue(
-            ImageRequest.Builder(context).data(url).size(sizePx)
-                .listener(onSuccess = { _, _ -> LogoUrls.worked(url) }, onError = { _, _ -> LogoUrls.failed(url) })
-                .build(),
-        )
+/** The logo links still to download: one per channel, skipping those already saved on the device. */
+fun logosToFetch(channels: List<ChannelEntity>, isSaved: (String) -> Boolean): List<String> =
+    channels.mapNotNull { logoCandidates(it).firstOrNull() }.distinct().filterNot(isSaved)
+
+/**
+ * Downloads the logos that are not on the device yet, so the lists show them at once. Logos already
+ * saved are left alone (every start after the first does nothing here). The rest load a few at a
+ * time after the start has settled, straight to disk: decoding hundreds of logos into memory at
+ * start-up made zapping and group changes stutter on low-end TVs.
+ */
+suspend fun prefetchLogos(context: android.content.Context, channels: List<ChannelEntity>, sizePx: Int) =
+    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        val loader = coil3.SingletonImageLoader.get(context)
+        val disk = loader.diskCache
+        val missing = logosToFetch(channels) { url -> disk?.openSnapshot(url)?.use { true } ?: false }
+        if (missing.isEmpty()) return@withContext
+        kotlinx.coroutines.delay(5_000)
+        for (batch in missing.chunked(4)) {
+            batch.map { url ->
+                async {
+                    val ok = loader.execute(
+                        ImageRequest.Builder(context).data(url).size(sizePx)
+                            .memoryCachePolicy(coil3.request.CachePolicy.DISABLED)
+                            .build(),
+                    ) is coil3.request.SuccessResult
+                    if (ok) LogoUrls.worked(url) else LogoUrls.failed(url)
+                }
+            }.awaitAll()
+        }
+        LogoUrls.save()
     }
-}

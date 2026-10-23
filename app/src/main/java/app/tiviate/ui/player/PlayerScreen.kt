@@ -84,7 +84,7 @@ fun PlayerScreen() {
     val toast by vm.toast.collectAsStateWithLifecycle()
     val showStats by vm.showStats.collectAsStateWithLifecycle()
     val sleepMinutes by graph.player.sleepMinutes.collectAsStateWithLifecycle()
-    val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
+    val settings by graph.settings.screenSettings.collectAsStateWithLifecycle(AppSettings())
 
     val rootFocus = remember { FocusRequester() }
     val okPress = remember { LongPressDetector() }
@@ -94,7 +94,7 @@ fun PlayerScreen() {
     LaunchedEffect(browsing) {
         val c = browsing ?: return@LaunchedEffect
         delay(300)
-        if (c != category) { vm.selectCategory(c); panelIndex = 0 }
+        if (c != category) { vm.selectCategory(c, save = false); panelIndex = 0 }
     }
 
     KeepScreenOn()
@@ -264,10 +264,12 @@ fun PlayerScreen() {
                     category = category,
                     current = current,
                     categoriesFocused = o.categoriesFocused,
-                    railEntries = railEntries(
-                        groups, playlists, playlist?.id, customGroups,
-                        settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup,
-                    ),
+                    railEntries = remember(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup) {
+                        railEntries(
+                            groups, playlists, playlist?.id, customGroups,
+                            settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup,
+                        )
+                    },
                     onRowMenu = { ch -> sheet = SheetTarget(ch.playlistId, ch, category) },
                     favorites = favorites,
                     nowNext = vm.nowNext,
@@ -299,7 +301,7 @@ fun PlayerScreen() {
                         }
                     },
                     onOpenRail = { vm.open(Overlay.Panel(categoriesFocused = true)) },
-                    onCloseRail = { browsing = null; vm.open(Overlay.Panel(categoriesFocused = false)) },
+                    onCloseRail = { browsing = null; vm.rememberGroup(); vm.open(Overlay.Panel(categoriesFocused = false)) },
                     onBrowse = { browsing = it },
                 )
             }

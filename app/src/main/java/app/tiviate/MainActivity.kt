@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val settings by graph.settings.settings.collectAsState(initial = app.tiviate.data.AppSettings())
+            val settings by graph.settings.screenSettings.collectAsState(initial = app.tiviate.data.AppSettings())
             TiviateTheme(settings) {
                 CompositionLocalProvider(LocalGraph provides graph) { AppRoot() }
             }

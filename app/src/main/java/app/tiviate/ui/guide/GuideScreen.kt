@@ -91,7 +91,7 @@ fun GuideScreen() {
     val category by vm.category.collectAsStateWithLifecycle()
     val groups by vm.groups.collectAsStateWithLifecycle()
     val current by graph.player.current.collectAsStateWithLifecycle()
-    val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
+    val settings by graph.settings.screenSettings.collectAsStateWithLifecycle(AppSettings())
     val items = vm.channels.collectAsLazyPagingItems()
 
     val now = rememberNow(30_000)
@@ -120,7 +120,7 @@ fun GuideScreen() {
         tick++
         onStopOrDispose { }
     }
-    val visibleRows = listState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
+    fun visibleRows() = listState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
 
     fun channelAt(row: Int) = if (row in 0 until items.itemCount) items.peek(row) else null
     fun rowProgrammes(row: Int) = channelAt(row)?.epgRef?.let { vm.programmes[it] }.orEmpty()
@@ -226,9 +226,9 @@ fun GuideScreen() {
             AndroidKeyEvent.KEYCODE_DPAD_UP -> state.moveRow(-1, rows, rowProgrammes((state.row - 1).coerceAtLeast(0)))
             AndroidKeyEvent.KEYCODE_DPAD_DOWN -> state.moveRow(+1, rows, rowProgrammes((state.row + 1).coerceAtMost(rows - 1)))
             AndroidKeyEvent.KEYCODE_CHANNEL_UP, AndroidKeyEvent.KEYCODE_PAGE_UP ->
-                state.moveRow(-visibleRows, rows, rowProgrammes((state.row - visibleRows).coerceAtLeast(0)))
+                visibleRows().let { n -> state.moveRow(-n, rows, rowProgrammes((state.row - n).coerceAtLeast(0))) }
             AndroidKeyEvent.KEYCODE_CHANNEL_DOWN, AndroidKeyEvent.KEYCODE_PAGE_DOWN ->
-                state.moveRow(visibleRows, rows, rowProgrammes((state.row + visibleRows).coerceAtMost(rows - 1)))
+                visibleRows().let { n -> state.moveRow(n, rows, rowProgrammes((state.row + n).coerceAtMost(rows - 1))) }
             AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> state.moveTime(+1, rowProgrammes(state.row))
             AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD, AndroidKeyEvent.KEYCODE_MEDIA_NEXT -> state.jumpHours(2, rowProgrammes(state.row))
             AndroidKeyEvent.KEYCODE_MEDIA_REWIND, AndroidKeyEvent.KEYCODE_MEDIA_PREVIOUS -> state.jumpHours(-2, rowProgrammes(state.row))
@@ -259,6 +259,8 @@ fun GuideScreen() {
         }
     }
     LaunchedEffect(details, side, sheet) { if (details == null && sheet == null && side == SideNav.GRID && initialised) focusSoon(gridFocus) }
+    // The group browsed to is saved once the groups column closes (not on every move).
+    LaunchedEffect(side) { if (side == SideNav.GRID) vm.rememberGroup() }
     KeepScreenOn()
 
     // Overlay mode: the guide sits over the full-screen video instead of next to a preview window.
@@ -274,7 +276,7 @@ fun GuideScreen() {
         val c = browsing ?: return@LaunchedEffect
         kotlinx.coroutines.delay(300)
         if (c != category) {
-            vm.selectCategory(c)
+            vm.selectCategory(c, save = false)
             state.focusRow(0, emptyList())
             listState.scrollToItem(0)
             tick++
@@ -293,7 +295,9 @@ fun GuideScreen() {
             }
             GroupsColumn(
                 playlistName = playlist?.name,
-                entries = groupEntries(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup),
+                entries = remember(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup) {
+                    groupEntries(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup)
+                },
                 selected = category,
                 onPick = { picked ->
                     browsing = null
@@ -349,6 +353,10 @@ fun GuideScreen() {
             Column(Modifier.fillMaxSize()) {
                 GuideHeader(viewStart, state.windowMs, state.slotMs, stripWidth, dayLabel(viewStart, now) + "  ·  " + categoryLabel(category))
                 Box(Modifier.fillMaxSize()) {
+                    // Read once here: rows that are not focused get the same inputs as before and skip redrawing.
+                    val focusedRow = withTick(tick) { state.row }
+                    val focusedBlock = withTick(tick) { state.focused }
+                    val windowMs = state.windowMs
                     LazyColumn(
                         state = listState,
                         userScrollEnabled = false,
@@ -360,19 +368,20 @@ fun GuideScreen() {
                     ) {
                         items(count = items.itemCount, key = { i -> channelAt(i)?.id ?: -i.toLong() - 1 }, contentType = { "row" }) { i ->
                             val channel = items[i]
-                            val isFocusedRow = withTick(tick) { i == state.row }
+                            val isFocusedRow = i == focusedRow
                             val rowList = channel?.epgRef?.let { vm.programmes[it] }.orEmpty()
+                            val empty = remember(rowList, viewStart, windowMs) { state.emptyBlocks(rowList, viewStart, viewStart + windowMs) }
                             GuideRow(
                                 channel = channel,
                                 programmes = rowList,
-                                emptyBlocks = state.emptyBlocks(rowList, viewStart, viewStart + state.windowMs),
+                                emptyBlocks = empty,
                                 viewStartMs = viewStart,
                                 windowMs = state.windowMs,
                                 nowMs = now,
                                 stripWidth = stripWidth,
                                 isPlaying = channel != null && channel.stableKey == current?.stableKey,
                                 showNumber = settings.showChannelNumbers,
-                                focused = if (isFocusedRow) withTick(tick) { state.focused } else null,
+                                focused = if (isFocusedRow) focusedBlock else null,
                                 highlight = settings.guideHighlight,
                             )
                         }
