@@ -18,6 +18,9 @@ class FixtureServer {
     /** When true every stream answers 404, so tests can bring up the error card. */
     @Volatile var failStreams = false
 
+    /** When true the guide answers 404, so tests can deliver it later. */
+    @Volatile var failGuide = false
+
     fun start(): FixtureServer {
         server.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
@@ -37,7 +40,7 @@ class FixtureServer {
                     }
                     path == "/list.m3u" -> MockResponse().setBody(playlist())
                     path == "/big.m3u" -> MockResponse().setBody(bigPlaylist())
-                    path == "/epg.xml" -> MockResponse().setBody(guide())
+                    path == "/epg.xml" -> if (failGuide) MockResponse().setResponseCode(404) else MockResponse().setBody(guide())
                     path.startsWith("/hls/") -> if (failStreams) MockResponse().setResponseCode(404) else asset("fixture" + path)
                     else -> MockResponse().setResponseCode(404)
                 }

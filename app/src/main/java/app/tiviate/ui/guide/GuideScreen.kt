@@ -120,11 +120,12 @@ fun GuideScreen() {
         focusSoon(gridFocus)
     }
 
-    // Load programmes for the rows on screen and the window being shown.
-    LaunchedEffect(tick, listState.firstVisibleItemIndex, items.itemCount) {
-        val first = listState.firstVisibleItemIndex
-        val refs = (first until minOf(first + 12, items.itemCount)).mapNotNull { channelAt(it)?.epgRef }
-        vm.ensureProgrammes(refs, state.viewStartMs, state.viewStartMs + state.windowMs)
+    // Load programmes for the rows on screen and the window being shown. Keyed on the rows' guide
+    // links too: after login the guide opens before its data arrives, and channels get linked later.
+    val firstRow = listState.firstVisibleItemIndex
+    val visibleRefs = (firstRow until minOf(firstRow + 12, items.itemCount)).mapNotNull { channelAt(it)?.epgRef }
+    LaunchedEffect(tick, visibleRefs) {
+        vm.ensureProgrammes(visibleRefs, state.viewStartMs, state.viewStartMs + state.windowMs)
     }
 
     // When the focused row's programmes arrive after the focus was set, snap onto the real programme.
