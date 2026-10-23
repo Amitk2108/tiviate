@@ -1,5 +1,7 @@
 package app.tiviate.ui.guide
 
+import app.tiviate.ui.player.backgroundWithHole
+import app.tiviate.ui.player.VideoSlot
 import android.text.format.DateUtils
 import android.view.KeyEvent as AndroidKeyEvent
 import androidx.activity.compose.BackHandler
@@ -254,15 +256,22 @@ fun GuideScreen() {
 
     // Overlay mode: the guide sits over the full-screen video instead of next to a preview window.
     if (settings.guideOverlay) {
-        val playback by graph.player.engine.state.collectAsStateWithLifecycle()
-        VideoSurface(graph.player.engine, settings.displayModeFor(current?.let { "${it.playlistId}:${it.stableKey}" }), settings.zoomPercent, playback.videoWidth, playback.videoHeight, Modifier.fillMaxSize())
+        VideoSlot(settings.displayModeFor(current?.let { "${it.playlistId}:${it.stableKey}" }), settings.zoomPercent, Modifier.fillMaxSize())
     }
-    Column(Modifier.fillMaxSize().background(if (settings.guideOverlay) Tokens.Background.copy(alpha = 0.82f) else Tokens.Background).testTag("guide_screen")) {
+    var previewRect by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
+    Column(
+        Modifier.fillMaxSize()
+            .then(
+                if (settings.guideOverlay) Modifier.background(Tokens.Background.copy(alpha = 0.82f))
+                else Modifier.backgroundWithHole(Tokens.Background, { previewRect }, cornerRadius = 10.dp),
+            )
+            .testTag("guide_screen"),
+    ) {
         // Top: live preview of the playing channel and details of the focused programme.
         Row(Modifier.fillMaxWidth().weight(0.4f).padding(start = Tokens.SafeMargin, end = Tokens.SafeMargin, top = 24.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
-            if (!settings.guideOverlay) Box(Modifier.fillMaxHeight().aspectRatio(16f / 9f).background(Color.Black, Tokens.SmallShape), contentAlignment = Alignment.Center) {
+            if (!settings.guideOverlay) Box(Modifier.fillMaxHeight().aspectRatio(16f / 9f), contentAlignment = Alignment.Center) {
                 val playback by graph.player.engine.state.collectAsStateWithLifecycle()
-                VideoSurface(graph.player.engine, DisplayMode.FIT, 100, playback.videoWidth, playback.videoHeight, Modifier.fillMaxSize())
+                VideoSlot(DisplayMode.FIT, 100, Modifier.fillMaxSize(), onBounds = { previewRect = it })
                 when {
                     playback.issue != null -> Text(t(playback.issue!!.title), modifier = Modifier.padding(16.dp), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
                     playback.isBuffering -> app.tiviate.ui.components.Spinner(32.dp)

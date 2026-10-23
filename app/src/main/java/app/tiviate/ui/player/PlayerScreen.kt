@@ -101,6 +101,7 @@ fun PlayerScreen() {
     }
 
     val inFullscreen = overlay == Overlay.None || overlay == Overlay.Banner
+    var videoRect by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
     DisposableEffect(inFullscreen) {
         graph.player.fullscreenVisible = inFullscreen
         onDispose { graph.player.fullscreenVisible = false }
@@ -206,7 +207,7 @@ fun PlayerScreen() {
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .backgroundWithHole(Color.Black, { videoRect })
             .testTag("player_screen")
             .focusRequester(rootFocus)
             .onPreviewKeyEvent { lastInputAt = SystemClock.uptimeMillis(); false }
@@ -228,11 +229,11 @@ fun PlayerScreen() {
         // Channel list in preview mode: the video moves into a window at the top right.
         val preview = settings.listPreview && overlay is Overlay.Panel
         val videoModifier = if (preview) {
-            Modifier.align(Alignment.TopEnd).padding(Tokens.SafeMargin).fillMaxWidth(0.42f).aspectRatio(16f / 9f).background(Color.Black, Tokens.SmallShape)
+            Modifier.align(Alignment.TopEnd).padding(Tokens.SafeMargin).fillMaxWidth(0.42f).aspectRatio(16f / 9f)
         } else {
             Modifier.fillMaxSize()
         }
-        VideoSurface(engine, settings.displayModeFor(channelKey), settings.zoomPercent, playback.videoWidth, playback.videoHeight, videoModifier, blackOnSwitch = settings.blackOnSwitch)
+        VideoSlot(settings.displayModeFor(channelKey), settings.zoomPercent, videoModifier, blackOnSwitch = settings.blackOnSwitch, onBounds = { videoRect = it })
         if (showStats) StatsOverlay(engine)
 
         if (playback.isBuffering && !playback.isPaused && playback.error == null) BufferingIndicator(playback.retrying, playback.notice)
