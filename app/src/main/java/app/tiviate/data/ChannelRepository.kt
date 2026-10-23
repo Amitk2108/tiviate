@@ -22,6 +22,9 @@ sealed interface Category {
 
 data class NowNext(val now: ProgrammeEntity?, val next: ProgrammeEntity?)
 
+data class ProgrammeHit(val programme: ProgrammeEntity, val channel: ChannelEntity)
+data class SearchResult(val channels: List<ChannelEntity>, val programmes: List<ProgrammeHit>)
+
 class ChannelRepository(private val db: TiviateDatabase, private val clock: () -> Long = System::currentTimeMillis) {
 
     fun groups(playlistId: Long): Flow<List<CategoryRow>> =
@@ -72,6 +75,14 @@ class ChannelRepository(private val db: TiviateDatabase, private val clock: () -
         return list[Math.floorMod(i + if (forward) 1 else -1, list.size)]
     }
 
+    companion object {
+        /** "Star  Sp!" → "star* sp*": every typed word as a prefix match. */
+        fun ftsQuery(text: String): String? =
+            text.lowercase().split(NON_WORD).filter { it.isNotEmpty() }.takeIf { it.isNotEmpty() }?.joinToString(" ") { "$it*" }
+
+        private val NON_WORD = Regex("""[^\p{L}\p{N}]+""")
+    }
+
     suspend fun byKey(playlistId: Long, key: String) = db.channels().byKey(playlistId, key)
     suspend fun byNumber(playlistId: Long, number: Int) = db.channels().byNumber(playlistId, number)
 
@@ -89,6 +100,18 @@ class ChannelRepository(private val db: TiviateDatabase, private val clock: () -
             val next = list.firstOrNull { it.startMs >= (current?.stopMs ?: now) && it !== current }
             NowNext(current, next)
         }
+    }
+
+    /** Channels whose name starts with the typed words, and programmes on now or in the next 3 hours. */
+    suspend fun search(playlistId: Long, text: String): SearchResult {
+        val fts = ftsQuery(text) ?: return SearchResult(emptyList(), emptyList())
+        val channels = db.channels().search(playlistId, fts)
+        val now = clock()
+        val programmes = db.epg().searchProgrammes(text.trim(), now, now + 3 * 3_600_000L, limit = 60)
+        val byRef = chunkedIn(programmes.map { it.epgRef }.distinct()) { db.channels().byEpgRefs(playlistId, it) }
+            .groupBy { it.epgRef }
+        val hits = programmes.mapNotNull { p -> byRef[p.epgRef]?.firstOrNull()?.let { ProgrammeHit(p, it) } }
+        return SearchResult(channels, hits)
     }
 
     /** Programmes for the guide grid window. */

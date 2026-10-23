@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import app.tiviate.data.sync.SyncScheduler
 import app.tiviate.ui.guide.GuideScreen
 import app.tiviate.ui.player.PlayerScreen
+import app.tiviate.ui.search.SearchScreen
 import app.tiviate.ui.theme.Tokens
 import app.tiviate.ui.welcome.AddPlaylistScreen
 import app.tiviate.ui.welcome.SyncingScreen
@@ -49,7 +50,8 @@ fun AppRoot() {
                 is Screen.Syncing -> SyncingScreen(screen.playlistId)
                 Screen.Player -> PlayerScreen()
                 Screen.Guide -> GuideScreen()
-                Screen.Search, Screen.Settings -> PlayerScreen()
+                Screen.Search -> SearchScreen()
+                Screen.Settings -> PlayerScreen()
             }
         }
     }

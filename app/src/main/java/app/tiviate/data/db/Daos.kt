@@ -94,6 +94,9 @@ interface ChannelDao {
     @Query("UPDATE channel SET epgRef = :epgRef, logoFallback = :logoFallback WHERE id = :id")
     suspend fun setEpg(id: Long, epgRef: String?, logoFallback: String?)
 
+    @Query("SELECT * FROM channel WHERE playlistId = :playlistId AND epgRef IN (:refs) ORDER BY sortIndex")
+    suspend fun byEpgRefs(playlistId: Long, refs: List<String>): List<ChannelEntity>
+
     @Query("SELECT DISTINCT epgRef FROM channel WHERE playlistId = :playlistId AND epgRef IS NOT NULL")
     suspend fun epgRefs(playlistId: Long): List<String>
 }
