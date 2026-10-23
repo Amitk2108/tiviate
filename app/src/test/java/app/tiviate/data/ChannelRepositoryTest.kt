@@ -10,9 +10,13 @@ import app.tiviate.data.db.ProgrammeEntity
 import app.tiviate.data.db.EpgSourceEntity
 import app.tiviate.data.db.EpgOrigin
 import app.tiviate.data.db.TiviateDatabase
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -125,5 +129,27 @@ class ChannelRepositoryTest {
         assertEquals("C", result.programmes.single().channel.name)
         assertEquals(emptyList<String>(), result.channels.map { it.name })
         assertEquals(listOf("A"), repo.search(pid, "a").channels.map { it.name })
+    }
+
+    private fun prog(start: Long, stop: Long, title: String) =
+        ProgrammeEntity(sourceId = 1, epgRef = "1:x", startMs = start, stopMs = stop, title = title, generation = 0)
+
+    @Test
+    fun nowNextGoesStaleWhenTheProgrammeOnAirEnds() {
+        val entry = NowNext(prog(900, 2_000, "Now"), prog(2_000, 3_000, "Next"))
+        assertFalse(entry.isStaleAt(1_999))
+        assertTrue(entry.isStaleAt(2_000))
+        val gap = NowNext(null, prog(5_000, 6_000, "Later"))
+        assertFalse(gap.isStaleAt(4_999))
+        assertTrue("the next programme has started", gap.isStaleAt(5_000))
+        assertFalse("nothing known: refreshed when the guide updates instead", NowNext(null, null).isStaleAt(Long.MAX_VALUE))
+    }
+
+    @Test
+    fun guideVersionChangesWhenARefreshSwapsInNewProgrammes() = runBlocking {
+        val src = db.epg().insertSource(EpgSourceEntity(url = "e", name = "E", origin = EpgOrigin.MANUAL))
+        val before = repo.guideVersion().first()
+        db.epg().swapGeneration(src, 1)
+        assertNotEquals(before, repo.guideVersion().first())
     }
 }

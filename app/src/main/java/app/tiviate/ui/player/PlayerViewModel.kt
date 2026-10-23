@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -147,17 +148,34 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
         }
     }
 
+    /** Loads now/next for [refs] that aren't cached yet or whose programme has since ended. */
     fun loadNowNext(refs: Collection<String>) {
-        val missing = refs.filter { it !in nowNext }
-        if (missing.isEmpty()) return
+        val now = System.currentTimeMillis()
+        val missing = refs.filter { nowNext[it]?.isStaleAt(now) ?: true }
+        if (missing.isNotEmpty()) reloadNowNext(missing)
+    }
+
+    /** Replaces cached entries in place (no blank flash while the new info loads). */
+    private fun reloadNowNext(refs: Collection<String>) {
+        if (refs.isEmpty()) return
+        val wanted = refs.toList()
         viewModelScope.launch {
-            val result = repo.nowNext(missing)
-            for (ref in missing) nowNext[ref] = result[ref] ?: NowNext(null, null)
+            val result = repo.nowNext(wanted)
+            for (ref in wanted) nowNext[ref] = result[ref] ?: NowNext(null, null)
         }
     }
 
-    /** Drops cached programme info so it refreshes as programmes change. */
-    fun refreshNowNext() = nowNext.clear()
+    init {
+        // Programmes end while the banner or list is on screen; a guide refresh brings new data.
+        viewModelScope.launch {
+            while (true) {
+                delay(NOW_NEXT_CHECK_MS)
+                val now = System.currentTimeMillis()
+                reloadNowNext(nowNext.filterValues { it.isStaleAt(now) }.keys)
+            }
+        }
+        viewModelScope.launch { repo.guideVersion().drop(1).collect { reloadNowNext(nowNext.keys.toList()) } }
+    }
 
     fun toggleFavorite(channel: ChannelEntity) {
         viewModelScope.launch {
@@ -229,13 +247,14 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     fun refreshGuide() {
         val pid = _playlist.value?.id ?: return
         graph.appScope.launch {
-            runCatching { graph.playlists.refreshGuide(pid) }
-            nowNext.clear()
+            runCatching { graph.playlists.refreshGuide(pid) } // cached info reloads on the guide version change
         }
         showToast("Updating the TV guide…")
     }
 
     companion object {
+        private const val NOW_NEXT_CHECK_MS = 30_000L
+
         fun factory(graph: AppGraph): ViewModelProvider.Factory = viewModelFactory { initializer { PlayerViewModel(graph) } }
     }
 }
