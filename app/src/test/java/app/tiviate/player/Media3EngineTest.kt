@@ -1,0 +1,28 @@
+package app.tiviate.player
+
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.tiviate.data.AppSettings
+import app.tiviate.data.BufferPreset
+import app.tiviate.data.sync.HttpClients
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.annotation.LooperMode
+
+@RunWith(AndroidJUnit4::class)
+@LooperMode(LooperMode.Mode.PAUSED)
+class Media3EngineTest {
+
+    @Test
+    fun constructsWithIdleStateAndRebuildsOnSettingsChange() {
+        val engine = Media3Engine(ApplicationProvider.getApplicationContext(), HttpClients.create(), AppSettings())
+        assertFalse(engine.state.value.isPlaying)
+        assertEquals(null, engine.state.value.channelKey)
+        val before = engine.player
+        engine.reconfigure(AppSettings(bufferPreset = BufferPreset.STABLE))
+        assertFalse("buffer preset change must rebuild the player", before === engine.player)
+        engine.release()
+    }
+}

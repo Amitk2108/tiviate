@@ -26,6 +26,10 @@ androidxJunit = "1.3.0"
 kxml2 = "2.3.0"
 xmlpull = "1.1.3.1"
 profileinstaller = "1.4.1"
+orchestrator = "1.6.1"
+testServices = "1.6.0"
+espresso = "3.7.0"
+uiautomator = "2.4.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -73,6 +77,9 @@ androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "android
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 androidx-test-junit = { module = "androidx.test.ext:junit-ktx", version.ref = "androidxJunit" }
 profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
+androidx-test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "orchestrator" }
+androidx-test-services = { module = "androidx.test.services:test-services", version.ref = "testServices" }
+androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

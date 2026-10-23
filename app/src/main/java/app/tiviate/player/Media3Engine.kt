@@ -65,9 +65,6 @@ class Media3Engine(
     private var pausedAtMs: Long? = null
     private var boundView: PlayerView? = null
 
-    var player: ExoPlayer = buildPlayer(settings)
-        private set
-
     private val retryRunnable = Runnable { startCurrent() }
     private val tick = object : Runnable {
         override fun run() {
@@ -103,6 +100,10 @@ class Media3Engine(
 
         override fun onPlayerError(error: PlaybackException) = handleError(error)
     }
+
+    // Declared after the listener/runnables above: Kotlin initialises properties in order.
+    var player: ExoPlayer = buildPlayer(settings)
+        private set
 
     init {
         main.post(tick)
