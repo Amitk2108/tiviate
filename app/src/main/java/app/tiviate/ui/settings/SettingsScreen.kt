@@ -456,10 +456,11 @@ private fun AboutSection() {
     SectionColumn {
         Heading("Tiviate ${BuildConfig.VERSION_NAME}")
         Caption("A player for your own IPTV playlists. Tiviate doesn't provide any channels or content.")
-        Text("Licence: Apache License 2.0", style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
+        Text("Licence: GNU GPL v3.0", style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
         Caption(
             "Open-source components: AndroidX Media3 (ExoPlayer), Jetpack Compose & Compose for TV, Room, WorkManager, " +
-                "DataStore, Paging (Apache-2.0); OkHttp & Okio, Moshi (Apache-2.0); Coil (Apache-2.0); XZ for Java (0BSD); Kotlin (Apache-2.0).",
+                "DataStore, Paging (Apache-2.0); OkHttp & Okio, Moshi (Apache-2.0); Coil (Apache-2.0); XZ for Java (0BSD); Kotlin (Apache-2.0); " +
+                "Jellyfin FFmpeg decoder and FFmpeg (GPL-3.0).",
         )
     }
 }

@@ -94,6 +94,8 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     implementation(libs.room.paging)
+    // AC3/E-AC3/DTS/MP2 audio the TV chip cannot decode (GPL-3.0; see NOTICE).
+    implementation(libs.media3.ffmpeg.decoder)
     ksp(libs.room.compiler)
     androidTestImplementation(libs.room.testing)
     implementation(libs.paging.runtime)

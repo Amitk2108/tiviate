@@ -154,7 +154,8 @@ class Media3Engine(
     private fun buildPlayer(s: AppSettings): ExoPlayer {
         val renderers = DefaultRenderersFactory(context)
             .setEnableDecoderFallback(true)
-            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+            // FFmpeg audio only when the device has no decoder for the track (AC3/DTS on many TV chips).
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
         if (s.preferSoftwareDecoder) renderers.setMediaCodecSelector(SOFTWARE_FIRST)
 
         val preset = s.bufferPreset
