@@ -2,6 +2,18 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.2.1 — 2026-10-24
+
+### Changed
+- The groups column (Left in the guide) sits beside the guide and pushes it right, instead of covering
+  the channels.
+- Moving through the groups shows each group's channels right away, in the guide and in the player's
+  channel list; no OK needed.
+
+### Fixed
+- Xtream groups now show in the provider's category order (as the provider lists them), not in the order
+  their first channel appears. Update the playlist once to apply it.
+
 ## 0.2.0 — 2026-10-24
 
 ### Added
