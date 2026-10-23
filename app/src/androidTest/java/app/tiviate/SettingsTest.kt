@@ -10,6 +10,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.tiviate.core.xtream.XtreamCredentials
 import app.tiviate.data.BufferPreset
 import app.tiviate.data.SyncProgress
+import app.tiviate.data.UpDownMode
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -113,6 +114,34 @@ class SettingsTest {
         val p = runBlocking { graph.db.playlists().all().single() }
         assertEquals("login is kept unless changed", "p", p.xtreamPass)
         rule.waitUntil(15_000) { runBlocking { graph.db.playlists().all().single().lastSyncAt != null } }
+    }
+
+    @Test
+    fun remoteControlModeSwitchesUpDown() {
+        launchWith(xtream = false)
+        rule.onNodeWithTag("section_remote").activate()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("setting_updown") }
+        rule.onNodeWithTag("setting_updown").activate()
+        rule.waitUntil(3_000) { runBlocking { graph.settings.settings.first().upDownMode == UpDownMode.ZAP } }
+        rule.waitUntil(3_000) { rule.textExists("Up and Down: change channel") }
+    }
+
+    @Test
+    fun confirmExitCanBeTurnedOff() {
+        launchWith(xtream = false)
+        rule.onNodeWithTag("section_general").activate()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("setting_confirm_exit") }
+        rule.onNodeWithTag("setting_confirm_exit").activate()
+        rule.waitUntil(3_000) { runBlocking { !graph.settings.settings.first().confirmExit } }
+    }
+
+    @Test
+    fun guideKeepsTheChosenNumberOfPastDays() {
+        launchWith(xtream = false)
+        rule.onNodeWithTag("section_guide").activate()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("setting_epg_past_days") }
+        rule.onNodeWithTag("setting_epg_past_days").activate() // 1 → 2 days
+        rule.waitUntil(3_000) { runBlocking { graph.settings.settings.first().epgPastDays == 2 } }
     }
 
     @Test

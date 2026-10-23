@@ -38,7 +38,7 @@ fun AppRoot() {
         if (settings.activePlaylistId != active.id) graph.settings.update { it.copy(activePlaylistId = active.id) }
         nav.replaceAll(Screen.Player)
         if (!settings.startFullscreen) nav.push(Screen.Guide) // start on the TV guide; Back goes fullscreen
-        if (graph.playlists.isStale(SyncScheduler.STALE_MS)) SyncScheduler.syncNow(context)
+        if (graph.playlists.needsStartSync(settings.updateOnStart)) SyncScheduler.syncNow(context)
     }
 
     BackHandler(enabled = nav.canGoBack) { nav.back() }

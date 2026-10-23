@@ -115,4 +115,13 @@ class GuideStateTest {
         val empty = state(now).apply { focusRow(0, emptyList()) }
         assertTrue("no guide data → groups", empty.leftOpensGroups(now))
     }
+
+    @Test
+    fun pastWindowFollowsTheDaysKept() {
+        val now = t10 + 40 * min
+        val s = state(now)
+        assertEquals(s.floorToSlot(now - 24 * hour), s.minStartMs)
+        s.pastDays = 3
+        assertEquals(s.floorToSlot(now - 72 * hour), s.minStartMs)
+    }
 }

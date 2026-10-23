@@ -162,4 +162,28 @@ class EpgSyncerTest {
         assertEquals(listOf("M A", "M B"), titlesFor(a))
         assertEquals(listOf("M S"), titlesFor(b))
     }
+
+    @Test
+    fun pastDaysSettingControlsWhatIsKept() = runBlocking {
+        val day = 86_400_000L
+        fun xmltvTime(ms: Long) = java.text.SimpleDateFormat("yyyyMMddHHmmss Z", java.util.Locale.US)
+            .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(ms))
+        val xml = buildString {
+            append("""<tv><channel id="news.one"><display-name>News One</display-name></channel>""")
+            for ((title, endsAgo) in listOf("Two days ago" to 2 * day, "Four days ago" to 4 * day, "Now" to -day / 24)) {
+                val stop = h.now - endsAgo
+                append("""<programme start="${xmltvTime(stop - 3_600_000L)}" stop="${xmltvTime(stop)}" channel="news.one"><title>$title</title></programme>""")
+            }
+            append("</tv>")
+        }
+        h.routes["/epg.xml.gz"] = { gzipOctet(xml) }
+        val id = setUpPlaylist()
+        suspend fun ref() = h.db.channels().allInPlaylist(id).first { it.name == "News One HD" }.epgRef!!
+
+        EpgSyncer(h.db, h.http, newPullParser = { android.util.Xml.newPullParser() }, clock = { h.now }, pastDays = { 3 }).syncForPlaylist(id)
+        assertEquals(listOf("Two days ago", "Now"), h.db.epg().programmesFor(listOf(ref()), 0, Long.MAX_VALUE).map { it.title })
+
+        EpgSyncer(h.db, h.http, newPullParser = { android.util.Xml.newPullParser() }, clock = { h.now }, pastDays = { 1 }).syncForPlaylist(id)
+        assertEquals(listOf("Now"), h.db.epg().programmesFor(listOf(ref()), 0, Long.MAX_VALUE).map { it.title })
+    }
 }
