@@ -36,6 +36,7 @@ class FixtureServer {
                         if (rest.matches(Regex("""\d+\.m3u8"""))) asset("fixture/hls/master.m3u8") else asset("fixture/hls/$rest")
                     }
                     path == "/list.m3u" -> MockResponse().setBody(playlist())
+                    path == "/big.m3u" -> MockResponse().setBody(bigPlaylist())
                     path == "/epg.xml" -> MockResponse().setBody(guide())
                     path.startsWith("/hls/") -> if (failStreams) MockResponse().setResponseCode(404) else asset("fixture" + path)
                     else -> MockResponse().setResponseCode(404)
@@ -58,6 +59,15 @@ class FixtureServer {
             val group = if (i < 2) "News & Sports" else "Entertainment"
             appendLine("""#EXTINF:-1 tvg-id="ch$i" tvg-chno="${i + 1}" group-title="$group",$name""")
             appendLine(url("/hls/master.m3u8") + "?ch=$i")
+        }
+    }
+
+    /** [BIG_COUNT] channels in one list ("Big 1"…), all on the bundled HLS stream. */
+    private fun bigPlaylist() = buildString {
+        appendLine("#EXTM3U")
+        for (i in 1..BIG_COUNT) {
+            appendLine("""#EXTINF:-1 tvg-chno="$i",Big $i""")
+            appendLine(url("/hls/master.m3u8") + "?big=$i")
         }
     }
 
@@ -95,5 +105,9 @@ class FixtureServer {
         MockResponse().setHeader("Content-Type", type).setBody(Buffer().write(bytes))
     } catch (e: java.io.IOException) {
         MockResponse().setResponseCode(404)
+    }
+
+    companion object {
+        const val BIG_COUNT = 400
     }
 }
