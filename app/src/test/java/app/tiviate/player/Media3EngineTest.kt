@@ -7,6 +7,7 @@ import app.tiviate.data.BufferPreset
 import app.tiviate.data.sync.HttpClients
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.LooperMode
@@ -23,6 +24,30 @@ class Media3EngineTest {
         val before = engine.player
         engine.reconfigure(AppSettings(bufferPreset = BufferPreset.STABLE))
         assertFalse("buffer preset change must rebuild the player", before === engine.player)
+        engine.release()
+    }
+
+    @Test
+    fun audioLanguageForAllChannelsIsPreferred() {
+        val engine = Media3Engine(ApplicationProvider.getApplicationContext(), HttpClients.create(), AppSettings())
+        assertEquals(emptyList<String>(), engine.player.trackSelectionParameters.preferredAudioLanguages)
+        val before = engine.player
+        engine.reconfigure(AppSettings(preferredAudioLanguage = "hi"))
+        assertEquals(listOf("hi"), engine.player.trackSelectionParameters.preferredAudioLanguages)
+        assertTrue("a language change must not rebuild the player", before === engine.player)
+        engine.reconfigure(AppSettings(preferredAudioLanguage = null))
+        assertEquals(emptyList<String>(), engine.player.trackSelectionParameters.preferredAudioLanguages)
+        engine.release()
+    }
+
+    @Test
+    fun subtitlesForAllChannelsTurnTextOnWithTheLanguage() {
+        val engine = Media3Engine(ApplicationProvider.getApplicationContext(), HttpClients.create(), AppSettings(subtitlesForAll = true, preferredTextLanguage = "en"))
+        val p = engine.player.trackSelectionParameters
+        assertFalse(androidx.media3.common.C.TRACK_TYPE_TEXT in p.disabledTrackTypes)
+        assertEquals(listOf("en"), p.preferredTextLanguages)
+        engine.reconfigure(AppSettings(subtitlesForAll = false))
+        assertTrue(androidx.media3.common.C.TRACK_TYPE_TEXT in engine.player.trackSelectionParameters.disabledTrackTypes)
         engine.release()
     }
 }

@@ -47,6 +47,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.tv.material3.Text
 import app.tiviate.data.AppSettings
 import app.tiviate.data.Category
+import app.tiviate.data.DisplayMode
 import app.tiviate.ui.LocalGraph
 import app.tiviate.ui.LocalNavigator
 import app.tiviate.ui.Screen
@@ -58,7 +59,6 @@ import app.tiviate.ui.components.ProgressLine
 import app.tiviate.ui.components.formatTime
 import app.tiviate.ui.components.progressOf
 import app.tiviate.ui.components.rememberNow
-import app.tiviate.ui.player.AspectMode
 import app.tiviate.ui.player.KeepScreenOn
 import app.tiviate.ui.player.VideoSurface
 import app.tiviate.ui.player.categoryLabel
@@ -221,8 +221,8 @@ fun GuideScreen() {
         // Top: live preview of the playing channel and details of the focused programme.
         Row(Modifier.fillMaxWidth().weight(0.4f).padding(start = Tokens.SafeMargin, end = Tokens.SafeMargin, top = 24.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
             Box(Modifier.fillMaxHeight().aspectRatio(16f / 9f).background(Color.Black, Tokens.SmallShape), contentAlignment = Alignment.Center) {
-                VideoSurface(graph.player.engine, AspectMode.FIT, Modifier.fillMaxSize())
                 val playback by graph.player.engine.state.collectAsStateWithLifecycle()
+                VideoSurface(graph.player.engine, DisplayMode.FIT, 100, playback.videoWidth, playback.videoHeight, Modifier.fillMaxSize())
                 when {
                     playback.issue != null -> Text(playback.issue!!.title, modifier = Modifier.padding(16.dp), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
                     playback.isBuffering -> app.tiviate.ui.components.Spinner(32.dp)

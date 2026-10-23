@@ -1,5 +1,7 @@
 package app.tiviate.ui.player
 
+import androidx.compose.ui.unit.IntSize
+import app.tiviate.data.DisplayMode
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -47,4 +49,25 @@ object DisplayModeMatcher {
         val n = ratio.roundToInt()
         return n >= 1 && abs(ratio - n) < 0.01f
     }
+}
+
+/**
+ * Size of the picture for a display mode and zoom, centred in the container (anything larger is
+ * cropped by the screen). The video is drawn stretched into this frame.
+ */
+fun videoFrame(mode: DisplayMode, zoomPercent: Int, containerW: Int, containerH: Int, videoW: Int, videoH: Int): IntSize {
+    val cw = containerW.toFloat()
+    val ch = containerH.toFloat()
+    fun boxOf(aspect: Float): Pair<Float, Float> = if (cw / ch > aspect) (ch * aspect) to ch else cw to (cw / aspect)
+    val known = videoW > 0 && videoH > 0
+    val videoAspect = if (known) videoW.toFloat() / videoH else cw / ch
+    val (w, h) = when (mode) {
+        DisplayMode.FIT -> boxOf(videoAspect)
+        DisplayMode.FILL -> cw to ch
+        DisplayMode.ZOOM -> if (cw / ch > videoAspect) cw to (cw / videoAspect) else (ch * videoAspect) to ch
+        DisplayMode.RATIO_16_9 -> boxOf(16f / 9f)
+        DisplayMode.RATIO_4_3 -> boxOf(4f / 3f)
+    }
+    val z = zoomPercent.coerceIn(50, 300) / 100f
+    return IntSize(Math.round(w * z), Math.round(h * z))
 }

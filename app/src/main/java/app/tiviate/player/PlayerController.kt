@@ -38,6 +38,16 @@ class PlayerController(
     val current: StateFlow<ChannelEntity?> = _current
 
     private var historyJob: Job? = null
+
+    /** Sleep timer: app-wide, so it keeps counting in the guide too. */
+    val sleep = SleepTimer()
+    private val _sleepMinutes = MutableStateFlow<Int?>(null)
+    /** Minutes left (null = off), refreshed while the timer runs. */
+    val sleepMinutes: StateFlow<Int?> = _sleepMinutes
+    private val _sleepDue = MutableStateFlow(false)
+    /** True once the timer fired: playback is stopped and the app should close. */
+    val sleepDue: StateFlow<Boolean> = _sleepDue
+    private var sleepJob: Job? = null
     private var rowJob: Job? = null
 
     /**
@@ -85,6 +95,35 @@ class PlayerController(
                 engineOrNull?.updateUrl(row.stableKey, row.streamUrl)
             }
         }
+    }
+
+    /** Starts the sleep timer for [minutes], or turns it off when null. */
+    fun setSleepTimer(minutes: Int?) {
+        sleepJob?.cancel()
+        if (minutes == null) {
+            sleep.cancel()
+            _sleepMinutes.value = null
+            return
+        }
+        sleep.start(minutes)
+        _sleepMinutes.value = sleep.minutesLeft()
+        sleepJob = scope.launch {
+            while (isActive) {
+                delay(15_000)
+                _sleepMinutes.value = sleep.minutesLeft()
+                if (sleep.isDue()) {
+                    sleep.cancel()
+                    _sleepMinutes.value = null
+                    stop()
+                    _sleepDue.value = true
+                    break
+                }
+            }
+        }
+    }
+
+    fun consumeSleepDue() {
+        _sleepDue.value = false
     }
 
     fun stop() {
