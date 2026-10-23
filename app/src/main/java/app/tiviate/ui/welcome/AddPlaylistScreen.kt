@@ -37,6 +37,7 @@ import app.tiviate.ui.LocalGraph
 import app.tiviate.ui.LocalNavigator
 import app.tiviate.ui.Screen
 import app.tiviate.ui.components.ActionButton
+import app.tiviate.ui.components.ToggleRow
 import app.tiviate.ui.components.TvTextField
 import app.tiviate.ui.theme.Tokens
 import kotlinx.coroutines.launch
@@ -56,6 +57,7 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var fileUri by remember { mutableStateOf<String?>(null) }
+    var preferHls by remember { mutableStateOf(false) }
     var showBrowser by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val firstField = remember { FocusRequester() }
@@ -72,6 +74,7 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
         server = p.xtreamServer.orEmpty()
         username = p.xtreamUser.orEmpty()
         password = p.xtreamPass.orEmpty()
+        preferHls = p.preferHls
         if (type == PlaylistType.M3U_FILE) fileUri = p.url else url = p.url.orEmpty()
     }
 
@@ -96,7 +99,7 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
                 when (type) {
                     PlaylistType.M3U_URL -> repo.updateM3uUrl(editId, name, url, epgUrl, userAgent)
                     PlaylistType.M3U_FILE -> repo.updateM3uFile(editId, name, fileUri!!, epgUrl)
-                    PlaylistType.XTREAM -> repo.updateXtream(editId, name, XtreamCredentials(server, username, password))
+                    PlaylistType.XTREAM -> repo.updateXtream(editId, name, XtreamCredentials(server, username, password), preferHls, userAgent)
                 }
                 nav.push(Screen.Syncing(editId)) // reload with the new details
                 return@launch
@@ -104,7 +107,7 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
             val id = when (type) {
                 PlaylistType.M3U_URL -> repo.addM3uUrl(name.ifBlank { defaultName(url) }, url, epgUrl, userAgent)
                 PlaylistType.M3U_FILE -> repo.addM3uFile(name.ifBlank { "Local playlist" }, fileUri!!, epgUrl)
-                PlaylistType.XTREAM -> repo.addXtream(name.ifBlank { defaultName(server) }, XtreamCredentials(server, username, password), preferHls = false)
+                PlaylistType.XTREAM -> repo.addXtream(name.ifBlank { defaultName(server) }, XtreamCredentials(server, username, password), preferHls, userAgent)
             }
             nav.push(Screen.Syncing(id))
         }
@@ -127,7 +130,9 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
                     TvTextField("Server", server, { server = it }, Modifier.focusRequester(firstField), tag = "field_server", hint = "http://provider.example:8080")
                     TvTextField("Username", username, { username = it }, tag = "field_username", keyboardType = KeyboardType.Text)
                     TvTextField("Password", password, { password = it }, tag = "field_password", password = true)
-                    TvTextField("Name (optional)", name, { name = it }, toSave, tag = "field_name", keyboardType = KeyboardType.Text)
+                    TvTextField("Name (optional)", name, { name = it }, tag = "field_name", keyboardType = KeyboardType.Text)
+                    TvTextField("User-Agent (optional)", userAgent, { userAgent = it }, tag = "field_ua", keyboardType = KeyboardType.Text)
+                    ToggleRow("Prefer HLS (.m3u8) streams", preferHls, { preferHls = !preferHls }, toSave, tag = "field_hls")
                 }
                 PlaylistType.M3U_FILE -> {
                     ActionButton(

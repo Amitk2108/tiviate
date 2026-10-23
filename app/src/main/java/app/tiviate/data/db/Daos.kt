@@ -173,7 +173,7 @@ interface HistoryDao {
            AND channel.stableKey = history.stableKey WHERE history.playlistId = :playlistId
            ORDER BY history.lastWatchedAt DESC LIMIT :limit""",
     )
-    fun recent(playlistId: Long, limit: Int = 50): Flow<List<ChannelEntity>>
+    fun recent(playlistId: Long, limit: Int = 500): Flow<List<ChannelEntity>>
 
     @Query("SELECT * FROM history WHERE playlistId = :playlistId ORDER BY lastWatchedAt DESC LIMIT 1")
     suspend fun lastWatched(playlistId: Long): HistoryEntity?

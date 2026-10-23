@@ -25,7 +25,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
@@ -98,6 +100,8 @@ fun ChannelPanel(
     favorites: Set<String>,
     nowNext: Map<String, NowNext>,
     showNumbers: Boolean,
+    showProgramme: Boolean,
+    showDescription: Boolean,
     initialIndex: Int,
     requestNowNext: (Collection<String>) -> Unit,
     onTune: (ChannelEntity) -> Unit,
@@ -109,6 +113,8 @@ fun ChannelPanel(
     val rowFocus = remember { FocusRequester() }
     var focused by remember { mutableStateOf<ChannelEntity?>(current) }
     val now = rememberNow()
+    val focusManager = LocalFocusManager.current
+    fun pageRows() = (listState.layoutInfo.visibleItemsInfo.size - 1).coerceAtLeast(1)
 
     LaunchedEffect(listState, channels) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.map { it.index } }
@@ -148,7 +154,14 @@ fun ChannelPanel(
                 modifier = Modifier
                     .fillMaxSize()
                     .onPreviewKeyEvent { e ->
-                        if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) { onOpenRail(); true } else false
+                        if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                        when (e.key) {
+                            Key.DirectionLeft -> { onOpenRail(); true }
+                            // A page at a time: CH±, Pg± and RW/FF move the focus by one screen of rows.
+                            Key.PageDown, Key.ChannelDown, Key.MediaFastForward -> { repeat(pageRows()) { focusManager.moveFocus(FocusDirection.Down) }; true }
+                            Key.PageUp, Key.ChannelUp, Key.MediaRewind -> { repeat(pageRows()) { focusManager.moveFocus(FocusDirection.Up) }; true }
+                            else -> false
+                        }
                     },
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp),
@@ -160,7 +173,7 @@ fun ChannelPanel(
                         channel = channel,
                         isPlaying = channel != null && channel.stableKey == current?.stableKey,
                         isFavorite = channel != null && channel.stableKey in favorites,
-                        info = channel?.epgRef?.let(nowNext::get),
+                        info = if (showProgramme) channel?.epgRef?.let(nowNext::get) else null,
                         now = now,
                         showNumber = showNumbers,
                         modifier = (if (isTarget || (index == initialIndex && current == null)) Modifier.focusRequester(rowFocus) else Modifier)
@@ -170,7 +183,7 @@ fun ChannelPanel(
                 }
             }
         }
-        if (!categoriesFocused) focused?.let { DetailsCard(it, it.epgRef?.let(nowNext::get), now, Modifier.weight(1f)) }
+        if (!categoriesFocused) focused?.let { DetailsCard(it, it.epgRef?.let(nowNext::get), now, showDescription, Modifier.weight(1f)) }
     }
 }
 
@@ -210,7 +223,7 @@ private fun ChannelRow(
 }
 
 @Composable
-private fun DetailsCard(channel: ChannelEntity, info: NowNext?, now: Long, modifier: Modifier) {
+private fun DetailsCard(channel: ChannelEntity, info: NowNext?, now: Long, showDescription: Boolean, modifier: Modifier) {
     Box(modifier.fillMaxHeight().padding(Tokens.SafeMargin), contentAlignment = Alignment.BottomEnd) {
         Column(
             Modifier.width(440.dp).background(Tokens.Scrim, Tokens.Shape).padding(20.dp),
@@ -225,7 +238,7 @@ private fun DetailsCard(channel: ChannelEntity, info: NowNext?, now: Long, modif
                 Text(p.title, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text("${formatTime(p.startMs)} – ${formatTime(p.stopMs)}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
                 ProgressLine(progressOf(p.startMs, p.stopMs, now))
-                p.description?.let { Text(it, style = TextStyle(color = Tokens.Text, fontSize = Tokens.CaptionSize), maxLines = 4, overflow = TextOverflow.Ellipsis) }
+                if (showDescription) p.description?.let { Text(it, style = TextStyle(color = Tokens.Text, fontSize = Tokens.CaptionSize), maxLines = 4, overflow = TextOverflow.Ellipsis) }
                 info.next?.let { Text("Next  ${formatTime(it.startMs)}  ${it.title}", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize), maxLines = 1, overflow = TextOverflow.Ellipsis) }
             } else {
                 Text("No programme information", style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))

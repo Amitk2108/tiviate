@@ -16,6 +16,8 @@
         android:maxSdkVersion="32" />
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Android 10+: needed to open Tiviate at boot ("Start Tiviate when the TV turns on"). -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:name=".TiviateApp"

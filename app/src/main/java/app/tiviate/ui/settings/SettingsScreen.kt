@@ -39,6 +39,8 @@ import app.tiviate.core.xtream.XtreamUrls
 import app.tiviate.data.AppSettings
 import app.tiviate.data.BufferPreset
 import app.tiviate.data.DisplayMode
+import app.tiviate.data.GuideHighlight
+import app.tiviate.AutoStart
 import app.tiviate.data.UpDownMode
 import app.tiviate.data.sync.SyncScheduler
 import app.tiviate.data.db.EpgOrigin
@@ -137,8 +139,13 @@ private fun GeneralSection() {
         ToggleRow("Open last channel fullscreen on start", settings.startFullscreen, { update { it.copy(startFullscreen = !it.startFullscreen) } }, tag = "setting_start_fullscreen")
         Caption("When off, Tiviate starts on the TV guide with the channel playing in the preview.")
         ToggleRow("Confirm exit with a second Back", settings.confirmExit, { update { it.copy(confirmExit = !it.confirmExit) } }, tag = "setting_confirm_exit")
-        ToggleRow("Start Tiviate when the TV turns on", settings.autoStartOnBoot, { update { it.copy(autoStartOnBoot = !it.autoStartOnBoot) } }, tag = "setting_autostart")
-        Caption("Works on Fire TV and on Android TV up to Android 9; newer Android TV may not allow it.")
+        val context = androidx.compose.ui.platform.LocalContext.current
+        ToggleRow("Start Tiviate when the TV turns on", settings.autoStartOnBoot, {
+            val turningOn = !settings.autoStartOnBoot
+            update { it.copy(autoStartOnBoot = turningOn) }
+            if (turningOn) AutoStart.askPermissionIfNeeded(context)
+        }, tag = "setting_autostart")
+        Caption("On Android 10 and newer, allow \"Display over other apps\" for Tiviate when asked — the TV needs it to open Tiviate at start-up.")
         TvTextField("Default User-Agent (optional)", ua, { ua = it }, tag = "setting_ua", hint = "Leave empty to use Tiviate's")
         ActionButton("Save User-Agent", { update { it.copy(defaultUserAgent = ua.trim().ifEmpty { null }) } })
     }
@@ -294,7 +301,16 @@ private fun GuideSection() {
                 Text(XtreamUrls.redact(s.url), maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
                 Caption(s.lastSyncAt?.let { "Updated ${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it))}" } ?: "Not updated yet")
                 s.lastError?.let { Text(it, style = TextStyle(color = Tokens.Danger, fontSize = Tokens.CaptionSize)) }
-                if (s.origin == EpgOrigin.MANUAL) ActionButton("Remove", { scope.launch { graph.playlists.deleteEpgSource(s.id) } })
+                var renaming by remember(s.id) { mutableStateOf(false) }
+                var newName by remember(s.id, s.name) { mutableStateOf(s.name) }
+                if (renaming) {
+                    TvTextField("Source name", newName, { newName = it }, tag = "epg_name_${s.id}")
+                    ActionButton("Save name", { renaming = false; scope.launch { graph.playlists.renameEpgSource(s.id, newName) } }, tag = "epg_name_save_${s.id}")
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (!renaming) ActionButton("Rename", { renaming = true }, tag = "epg_rename_${s.id}")
+                    if (s.origin == EpgOrigin.MANUAL) ActionButton("Remove", { scope.launch { graph.playlists.deleteEpgSource(s.id) } })
+                }
             }
         }
         TvTextField("Add a guide link", url, { url = it }, tag = "epg_url", hint = "http://…/guide.xml.gz")
@@ -335,18 +351,14 @@ private fun PlayerSection() {
     fun update(transform: (AppSettings) -> AppSettings) = scope.launch { graph.settings.update(transform) }
     SectionColumn {
         Heading("Playback")
-        val label = when (settings.bufferPreset) {
-            BufferPreset.FAST -> "Fast start (smaller buffer)"
-            BufferPreset.NORMAL -> "Balanced"
-            BufferPreset.STABLE -> "Stable (bigger buffer)"
-        }
+        val label = settings.bufferPreset.label
         FocusSurface(onClick = { update { it.copy(bufferPreset = nextPreset(it.bufferPreset)) } }, modifier = Modifier.fillMaxWidth().testTag("setting_buffer")) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Buffer", modifier = Modifier.weight(1f), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
+                Text("Buffer size", modifier = Modifier.weight(1f), style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize))
                 Text(label, style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
             }
         }
-        Caption("Choose Stable if channels often pause to buffer; Fast start for quicker channel changes on a good connection.")
+        Caption("A bigger buffer helps if channels often pause to load; a smaller one changes channels faster on a good connection.")
         ToggleRow("Prefer software video decoder", settings.preferSoftwareDecoder, { update { it.copy(preferSoftwareDecoder = !it.preferSoftwareDecoder) } }, tag = "setting_software")
         ToggleRow("Tunneled playback", settings.tunneling, { update { it.copy(tunneling = !it.tunneling) } }, tag = "setting_tunneling")
         ToggleRow("Match TV refresh rate to video", settings.matchRefreshRate, { update { it.copy(matchRefreshRate = !it.matchRefreshRate) } }, tag = "setting_afr")
@@ -374,6 +386,16 @@ private fun AppearanceSection() {
     fun update(transform: (AppSettings) -> AppSettings) = scope.launch { graph.settings.update(transform) }
     SectionColumn {
         Heading("Appearance")
+        ToggleRow("Show what's on in the channel list", settings.listShowProgramme, { update { it.copy(listShowProgramme = !it.listShowProgramme) } }, tag = "setting_list_programme")
+        ToggleRow("Show programme descriptions", settings.listShowDescription, { update { it.copy(listShowDescription = !it.listShowDescription) } }, tag = "setting_list_description")
+        ValueRow("Highlight in the TV guide", settings.guideHighlight.label, "setting_guide_highlight") {
+            update { it.copy(guideHighlight = GuideHighlight.entries.after(it.guideHighlight)) }
+        }
+        ValueRow(
+            "Close the channel list and options after",
+            if (settings.panelTimeoutSec == 0) "Never" else "${settings.panelTimeoutSec} s",
+            "setting_panel_timeout",
+        ) { update { it.copy(panelTimeoutSec = listOf(0, 10, 20, 30).after(it.panelTimeoutSec)) } }
         ToggleRow("Show channel numbers", settings.showChannelNumbers, { update { it.copy(showChannelNumbers = !it.showChannelNumbers) } })
         ToggleRow("Show clock", settings.showClock, { update { it.copy(showClock = !it.showClock) } })
         val seconds = settings.bannerTimeoutMs / 1000
@@ -395,8 +417,13 @@ private fun OtherSection() {
     val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
     var done by remember { mutableStateOf(false) }
     SectionColumn {
-        Heading("History")
-        Caption("Tiviate remembers the last 50 channels you watched for the Recent list.")
+        Heading("Recent channels")
+        ValueRow("Channels to keep", "${settings.recentCount}", "setting_recent_count") {
+            scope.launch { graph.settings.update { it.copy(recentCount = listOf(20, 50, 100).after(it.recentCount)) } }
+        }
+        ValueRow("Add a channel after watching for", "${settings.recentDelaySec} s", "setting_recent_delay") {
+            scope.launch { graph.settings.update { it.copy(recentDelaySec = listOf(3, 5, 10, 30).after(it.recentDelaySec)) } }
+        }
         ActionButton(if (done) "History cleared" else "Clear history", {
             settings.activePlaylistId?.let { pid -> scope.launch { graph.playlists.clearHistory(pid); done = true } }
         }, tag = "clear_history")

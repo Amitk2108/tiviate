@@ -56,7 +56,7 @@ class PlaylistRepository(
     suspend fun addM3uFile(name: String, uri: String, epgUrl: String?): Long =
         db.playlists().insert(PlaylistEntity(name = name, type = PlaylistType.M3U_FILE, url = uri, epgUrl = epgUrl.blankToNull()))
 
-    suspend fun addXtream(name: String, creds: XtreamCredentials, preferHls: Boolean): Long =
+    suspend fun addXtream(name: String, creds: XtreamCredentials, preferHls: Boolean, userAgent: String? = null): Long =
         db.playlists().insert(
             PlaylistEntity(
                 name = name,
@@ -65,6 +65,7 @@ class PlaylistRepository(
                 xtreamUser = creds.username.trim(),
                 xtreamPass = creds.password,
                 preferHls = preferHls,
+                userAgent = userAgent.blankToNull(),
             ),
         )
 
@@ -77,12 +78,15 @@ class PlaylistRepository(
         it.copy(name = name.trim().ifEmpty { it.name }, url = uri, epgUrl = epgUrl.blankToNull())
     }
 
-    suspend fun updateXtream(id: Long, name: String, creds: XtreamCredentials) = edit(id) {
+    /** [preferHls] / [userAgent] null = keep as is; a blank User-Agent clears it. */
+    suspend fun updateXtream(id: Long, name: String, creds: XtreamCredentials, preferHls: Boolean? = null, userAgent: String? = null) = edit(id) {
         it.copy(
             name = name.trim().ifEmpty { it.name },
             xtreamServer = XtreamUrls.normalizeServer(creds.server),
             xtreamUser = creds.username.trim(),
             xtreamPass = creds.password,
+            preferHls = preferHls ?: it.preferHls,
+            userAgent = if (userAgent == null) it.userAgent else userAgent.blankToNull(),
         )
     }
 
@@ -117,6 +121,11 @@ class PlaylistRepository(
         val name = clean.substringAfter("://").substringBefore('/').ifBlank { "Guide" }
         val priority = (db.epg().observeSources().first().filter { it.origin == EpgOrigin.MANUAL }.maxOfOrNull { it.priority } ?: -1) + 1
         return db.epg().insertSource(EpgSourceEntity(url = clean, name = name, origin = EpgOrigin.MANUAL, priority = priority))
+    }
+
+    suspend fun renameEpgSource(id: Long, name: String) {
+        val clean = name.trim().takeIf { it.isNotEmpty() } ?: return
+        db.epg().source(id)?.let { db.epg().updateSource(it.copy(name = clean)) }
     }
 
     suspend fun deleteEpgSource(id: Long) {

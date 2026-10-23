@@ -54,4 +54,16 @@ class DeepListTest {
         Remote.ok() // tunes the focused row: only right if focus started on Big 350
         rule.waitUntil(8_000) { graph.player.current.value?.name == "Big 351" }
     }
+
+    @Test
+    fun pageDownJumpsAScreenOfChannels() {
+        Remote.ok()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("channel_panel") }
+        rule.waitUntil(5_000) { rule.textExists("Big 350") }
+        Thread.sleep(500)
+        Remote.press(android.view.KeyEvent.KEYCODE_PAGE_DOWN)
+        Remote.ok()
+        rule.waitUntil(8_000) { (graph.player.current.value?.number ?: 0) >= 353 }
+    }
+
 }

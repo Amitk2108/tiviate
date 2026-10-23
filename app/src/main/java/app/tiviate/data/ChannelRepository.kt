@@ -94,7 +94,7 @@ class ChannelRepository(private val db: TiviateDatabase, private val clock: () -
 
     fun favoriteKeys(playlistId: Long): Flow<Set<String>> = db.favorites().observeKeys(playlistId).map { it.toSet() }
     suspend fun toggleFavorite(playlistId: Long, key: String): Boolean = db.favorites().toggle(playlistId, key, clock())
-    suspend fun recordWatch(playlistId: Long, key: String, watchedSec: Int) = db.history().record(playlistId, key, clock(), watchedSec)
+    suspend fun recordWatch(playlistId: Long, key: String, watchedSec: Int, keep: Int = 50) = db.history().record(playlistId, key, clock(), watchedSec, keep)
     suspend fun lastWatched(playlistId: Long) = db.history().lastWatched(playlistId)
 
     /** Changes whenever a guide source swaps in a refresh (or is added or removed). */
