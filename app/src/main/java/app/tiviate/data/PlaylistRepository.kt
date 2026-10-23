@@ -1,6 +1,7 @@
 package app.tiviate.data
 
 import androidx.room.withTransaction
+import app.tiviate.core.match.NameEditor
 import app.tiviate.core.xtream.XtreamAccount
 import app.tiviate.core.xtream.XtreamCredentials
 import app.tiviate.core.xtream.XtreamJson
@@ -72,6 +73,21 @@ class PlaylistRepository(
     /** Saves edited details; the next sync uses them (favorites and history follow the channels' stable keys). */
     suspend fun updateM3uUrl(id: Long, name: String, url: String, epgUrl: String?, userAgent: String?) = edit(id) {
         it.copy(name = name.trim().ifEmpty { it.name }, url = url.trim(), epgUrl = epgUrl.blankToNull(), userAgent = userAgent.blankToNull())
+    }
+
+    /** Names editor: saves the lists and renames the playlist's channels right away. */
+    suspend fun setNameEditor(id: Long, prefixes: String?, suffixes: String?) {
+        edit(id) { it.copy(namePrefixes = prefixes.blankToNull(), nameSuffixes = suffixes.blankToNull()) }
+        val p = db.playlists().get(id) ?: return
+        val pre = NameEditor.parse(p.namePrefixes)
+        val suf = NameEditor.parse(p.nameSuffixes)
+        db.withTransaction {
+            for (row in db.channels().nameRows(id)) {
+                if (row.renamed) continue
+                val cleaned = NameEditor.clean(row.originalName ?: row.name, pre, suf)
+                if (cleaned != row.name) db.channels().setName(row.id, cleaned, renamed = false)
+            }
+        }
     }
 
     suspend fun updateM3uFile(id: Long, name: String, uri: String, epgUrl: String?) = edit(id) {
@@ -158,6 +174,9 @@ class PlaylistRepository(
                 db.epg().deleteSource(src.id)
             }
             db.channels().deleteAll(playlistId)
+            db.organise().clearMembersOfPlaylist(playlistId)
+            db.organise().clearCustomGroups(playlistId)
+            db.organise().clearGroupPrefs(playlistId)
             db.favorites().clear(playlistId)
             db.history().clear(playlistId)
             db.playlists().delete(playlistId)

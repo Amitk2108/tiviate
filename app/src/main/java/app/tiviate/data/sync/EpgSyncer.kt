@@ -203,7 +203,7 @@ class EpgLinker(private val db: TiviateDatabase) {
             }
         }
         val updates = db.channels().matchRows(playlistId).mapNotNull { row ->
-            val ref = matcher.match(row.tvgId, listOfNotNull(row.tvgName, row.name))?.encode()
+            val ref = row.epgOverride ?: matcher.match(row.tvgId, listOfNotNull(row.tvgName, row.name))?.encode()
             val icon = ref?.let(icons::get)
             if (ref == row.epgRef && icon == row.logoFallback) null else Triple(row.id, ref, icon)
         }

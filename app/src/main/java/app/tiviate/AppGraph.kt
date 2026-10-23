@@ -14,6 +14,7 @@ import app.tiviate.player.PlayerController
 import java.io.File
 import java.io.InputStream
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,7 +28,7 @@ class AppGraph(context: Context) {
     val http: OkHttpClient by lazy { HttpClients.create() }
     val settings: SettingsStore by lazy { SettingsStore.create(appContext) }
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    val channels: ChannelRepository by lazy { ChannelRepository(db) }
+    val channels: ChannelRepository by lazy { ChannelRepository(db, sortSetting = settings.settings.map { it.channelSort }) }
     val player: PlayerController by lazy { PlayerController(appContext, http, settings, channels, appScope) }
 
     val playlists: PlaylistRepository by lazy {
