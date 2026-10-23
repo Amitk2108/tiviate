@@ -98,6 +98,8 @@ fun PlayerScreen() {
 
     fun handleKey(native: AndroidKeyEvent): Boolean {
         val down = native.action == AndroidKeyEvent.ACTION_DOWN
+        // The error card's buttons sit in a row: Left/Right move between them (Up/Down still zap).
+        if (playback.issue != null && (native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_LEFT || native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_RIGHT)) return false
         when (native.keyCode) {
             AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER, AndroidKeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 when (okPress.onKey(native)) {

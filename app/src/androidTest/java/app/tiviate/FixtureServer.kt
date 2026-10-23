@@ -15,6 +15,9 @@ class FixtureServer {
     private val server = MockWebServer()
     private val assets = InstrumentationRegistry.getInstrumentation().context.assets
 
+    /** When true every stream answers 404, so tests can bring up the error card. */
+    @Volatile var failStreams = false
+
     fun start(): FixtureServer {
         server.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
@@ -34,7 +37,7 @@ class FixtureServer {
                     }
                     path == "/list.m3u" -> MockResponse().setBody(playlist())
                     path == "/epg.xml" -> MockResponse().setBody(guide())
-                    path.startsWith("/hls/") -> asset("fixture" + path)
+                    path.startsWith("/hls/") -> if (failStreams) MockResponse().setResponseCode(404) else asset("fixture" + path)
                     else -> MockResponse().setResponseCode(404)
                 }
             }
