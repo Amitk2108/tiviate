@@ -2,6 +2,19 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## Unreleased
+
+### Added
+- Updates inside the app from GitHub Releases: daily check (can be turned off), "Check for updates" in About,
+  download with progress, install; "Later" skips that version. Fire TV gets a hint for allowing installs.
+- Backup and restore (Settings → Other): playlists with logins, favorites, recent, own groups, channel choices,
+  guide links and settings, saved to `Download/Tiviate`; restore from the list or any file.
+- Automatic TS ↔ HLS fallback when a channel fails, remembered per channel for the session.
+- Baseline profile: cold start on a Fire TV went from about 0.69 s to about 0.49 s.
+
+### Fixed
+- Pressing Install in the update dialog no longer changes the channel behind it.
+
 ## 0.1.0 — 2026-10-24
 
 First public release, by Amit Kumar.
