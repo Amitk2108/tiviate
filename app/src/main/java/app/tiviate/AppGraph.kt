@@ -27,7 +27,11 @@ class AppGraph(context: Context) {
     val db: TiviateDatabase by lazy { TiviateDatabase.create(appContext) }
     val http: OkHttpClient by lazy { HttpClients.create() }
     val settings: SettingsStore by lazy { SettingsStore.create(appContext) }
-    val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    val appScope: CoroutineScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Main.immediate +
+            // e.g. storage full while saving watch history: log it, keep playing.
+            kotlinx.coroutines.CoroutineExceptionHandler { _, e -> android.util.Log.w("Tiviate", "Background task failed", e) },
+    )
     val channels: ChannelRepository by lazy { ChannelRepository(db, sortSetting = settings.settings.map { it.channelSort }) }
     /** Long press of Back: return to fullscreen from anywhere (TiviMate's "Long Back"). */
     val longBack = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)

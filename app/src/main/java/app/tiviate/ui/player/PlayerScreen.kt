@@ -79,6 +79,7 @@ fun PlayerScreen() {
     val groups by vm.groups.collectAsStateWithLifecycle()
     val favorites by vm.favoriteKeys.collectAsStateWithLifecycle()
     val customGroups by vm.customGroups.collectAsStateWithLifecycle()
+    app.tiviate.ui.guide.FollowCustomGroup(category, customGroups) { vm.selectCategory(it) }
     var sheet by remember { mutableStateOf<SheetTarget?>(null) }
     val numberText by vm.numberText.collectAsStateWithLifecycle()
     val toast by vm.toast.collectAsStateWithLifecycle()
@@ -94,7 +95,11 @@ fun PlayerScreen() {
     LaunchedEffect(browsing) {
         val c = browsing ?: return@LaunchedEffect
         delay(300)
-        if (c != category) { vm.selectCategory(c, save = false); panelIndex = 0 }
+        if (c != category) {
+            vm.selectCategory(c, save = false)
+            // Start on the playing channel if this group has it, else on the first row.
+            panelIndex = current?.let { vm.positionOf(c, it) } ?: 0
+        }
     }
 
     KeepScreenOn()
@@ -295,13 +300,32 @@ fun PlayerScreen() {
                             is RailEntry.Pick -> {
                                 browsing = null
                                 vm.selectCategory(entry.category)
-                                panelIndex = 0
-                                vm.open(Overlay.Panel(categoriesFocused = false))
+                                val ch = current
+                                if (ch == null) panelIndex = 0
+                                graph.appScope.launch {
+                                    if (ch != null) panelIndex = vm.positionOf(entry.category, ch)
+                                    vm.open(Overlay.Panel(categoriesFocused = false))
+                                }
                             }
                         }
                     },
                     onOpenRail = { vm.open(Overlay.Panel(categoriesFocused = true)) },
-                    onCloseRail = { browsing = null; vm.rememberGroup(); vm.open(Overlay.Panel(categoriesFocused = false)) },
+                    onCloseRail = {
+                        // Right straight after moving to a group: show that group (the debounce hadn't fired yet).
+                        val c = browsing
+                        browsing = null
+                        if (c != null && c != category) {
+                            vm.selectCategory(c)
+                            val ch = current
+                            graph.appScope.launch {
+                                panelIndex = ch?.let { vm.positionOf(c, it) } ?: 0
+                                vm.open(Overlay.Panel(categoriesFocused = false))
+                            }
+                        } else {
+                            vm.rememberGroup()
+                            vm.open(Overlay.Panel(categoriesFocused = false))
+                        }
+                    },
                     onBrowse = { browsing = it },
                 )
             }

@@ -32,6 +32,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -58,6 +60,23 @@ import app.tiviate.ui.player.focusSoon
 import app.tiviate.ui.theme.Tokens
 import app.tiviate.ui.t
 import app.tiviate.ui.tf
+
+/**
+ * Keeps the shown group in step with the viewer's own groups: a renamed group shows its new name, a
+ * deleted one falls back to All channels (instead of an empty list pointing at a group that is gone).
+ */
+@Composable
+fun FollowCustomGroup(category: Category, customGroups: List<CustomGroupEntity>, select: (Category) -> Unit) {
+    var seen by androidx.compose.runtime.saveable.rememberSaveable(category) { androidx.compose.runtime.mutableStateOf(false) }
+    LaunchedEffect(category, customGroups) {
+        val c = category as? Category.Custom ?: return@LaunchedEffect
+        val g = customGroups.firstOrNull { it.id == c.id }
+        when {
+            g != null -> { seen = true; if (g.name != c.name) select(Category.Custom(g.id, g.name)) }
+            seen -> select(Category.All) // it was there, now it's deleted (an empty list at start isn't "deleted")
+        }
+    }
+}
 
 /** Where focus is on the guide screen: the grid, the groups column (Left), or the side menu (Left again). */
 enum class SideNav { GRID, GROUPS, RAIL }

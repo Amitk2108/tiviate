@@ -84,8 +84,15 @@ class PlayerController(
         }
     }
 
+    /**
+     * False while the app is off screen (Home, TV standby). A zap, number entry or list autoplay that was
+     * still pending then must not start a stream behind the TV's home screen (and hold the connection).
+     */
+    @Volatile var foreground = true
+
     /** Tunes [channel]. Re-tuning the channel that is already playing is a no-op (no reconnect). */
     fun tune(channel: ChannelEntity, playlistUserAgent: String?) {
+        if (!foreground) return
         val already = _current.value?.stableKey == channel.stableKey && _current.value?.playlistId == channel.playlistId
         if (already && engine.state.value.error == null && engine.state.value.channelKey == channel.stableKey) return
         _current.value?.takeIf { it.stableKey != channel.stableKey }?.let { _previous.value = it }
@@ -137,6 +144,14 @@ class PlayerController(
 
     fun consumeSleepDue() {
         _sleepDue.value = false
+    }
+
+    /** The app left the screen: playback stops, and so does the sleep timer (it would close the app next time). */
+    fun onAppHidden() {
+        foreground = false
+        setSleepTimer(null)
+        consumeSleepDue()
+        stop()
     }
 
     fun stop() {

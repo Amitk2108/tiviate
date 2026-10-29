@@ -1,5 +1,6 @@
 package app.tiviate.ui
 
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -87,18 +88,32 @@ fun AppRoot() {
             // Only the player and the guide let the video show through; every other screen is opaque.
             val opaque = nav.current != Screen.Player && nav.current != Screen.Guide
             val dialogOpen = app.tiviate.ui.components.UpdatePrompt.release != null
+            // The dialog kept the focus away from the screen; when it closes, hand the focus back
+            // (otherwise nothing is focused and the first key press is lost).
+            val screensFocus = remember { androidx.compose.ui.focus.FocusRequester() }
+            var wasOpen by remember { mutableStateOf(false) }
+            LaunchedEffect(dialogOpen) {
+                if (wasOpen && !dialogOpen) {
+                    for (i in 0 until 10) {
+                        if (runCatching { screensFocus.requestFocus() }.isSuccess) break
+                        kotlinx.coroutines.delay(16)
+                    }
+                }
+                wasOpen = dialogOpen
+            }
             Box(
                 Modifier.fillMaxSize().then(if (opaque) Modifier.background(Tokens.Background) else Modifier).graphicsLayer { alpha = fade.value }
                     // While the update dialog is open the screen behind it gets no focus and no keys.
                     .onPreviewKeyEvent { dialogOpen }
                     .focusProperties { onEnter = { if (dialogOpen) cancelFocusChange() } }
+                    .focusRequester(screensFocus)
                     .focusGroup(),
             ) {
             when (val screen = nav.current) {
                 Screen.Loading -> Unit
                 Screen.Welcome -> WelcomeScreen()
                 is Screen.AddPlaylist -> AddPlaylistScreen(screen.type, screen.editId)
-                is Screen.Syncing -> SyncingScreen(screen.playlistId)
+                is Screen.Syncing -> SyncingScreen(screen.playlistId, screen.isEdit)
                 Screen.Player -> PlayerScreen()
                 Screen.Guide -> GuideScreen()
                 Screen.Search -> SearchScreen()

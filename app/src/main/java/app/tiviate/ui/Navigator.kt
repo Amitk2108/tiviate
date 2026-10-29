@@ -10,7 +10,8 @@ sealed interface Screen {
     data object Welcome : Screen
     /** Adds a playlist, or edits the one with [editId]. */
     data class AddPlaylist(val type: PlaylistType, val editId: Long? = null) : Screen
-    data class Syncing(val playlistId: Long) : Screen
+    /** [isEdit]: reloading a playlist the viewer edited (it must never be deleted from here). */
+    data class Syncing(val playlistId: Long, val isEdit: Boolean = false) : Screen
     data object Player : Screen
     data object Guide : Screen
     data object Search : Screen
