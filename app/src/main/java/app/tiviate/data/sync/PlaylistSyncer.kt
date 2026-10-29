@@ -48,17 +48,18 @@ class PlaylistSyncer(
                 PlaylistType.XTREAM -> syncXtream(playlist, writer)
             }
             writer.flush()
+            // An empty answer (expired account page, provider hiccup) must not wipe the viewer's channels
+            // and everything set up on them: keep what is stored and report it.
+            if (writer.count == 0) throw SyncException("The provider sent no channels. Your channels were kept; try again later.")
             db.channels().deleteStale(playlist.id, keepStamp = stamp)
-            db.playlists().update(
-                playlist.copy(lastSyncAt = stamp, lastError = null, detectedEpgUrl = result.detectedEpgUrl ?: playlist.detectedEpgUrl),
-            )
+            db.playlists().markSynced(playlist.id, stamp, result.detectedEpgUrl)
             EpgLinker(db).relink(playlist.id)
             result
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             val error = e as? SyncException ?: SyncException(e.message ?: e.javaClass.simpleName, e)
-            db.playlists().get(playlist.id)?.let { db.playlists().update(it.copy(lastError = error.message)) }
+            db.playlists().setError(playlist.id, error.message)
             throw error
         }
     }
@@ -107,6 +108,11 @@ class PlaylistSyncer(
 
         val categoryList = http.getOrThrow(XtreamUrls.api(creds, "get_live_categories"), p.userAgent, "Categories")
             .use { XtreamJson.categories(it.body.source()) }
+        // No groups this time although the playlist had them: a provider error page, not a real change.
+        // Going on would strip every channel of its group (and bring back channels of hidden groups).
+        if (categoryList.isEmpty() && db.channels().hasGroupsBlocking(p.id)) {
+            throw SyncException("The provider didn't send its groups. Your channels were kept; try again later.")
+        }
         val categories = categoryList.associate { it.id to it.name }
         // Groups show in the provider's category order (not where their first channel happens to be):
         // each category gets a band of sort positions, and channels keep the provider's order inside it.

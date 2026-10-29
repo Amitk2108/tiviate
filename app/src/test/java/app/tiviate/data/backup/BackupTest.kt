@@ -95,6 +95,26 @@ class BackupTest {
     }
 
     @Test
+    fun aBackupThatCantBeWrittenLeavesEverythingAsItWas() = runBlocking {
+        val pid = target.playlists().insert(PlaylistEntity(name = "Mine", type = PlaylistType.M3U_URL, url = "http://x/list.m3u"))
+        target.favorites().toggle(pid, "A", nowMs = 1)
+        // A playlist row without its name (NOT NULL): the insert fails half-way through the restore.
+        val broken = """{"app":"Tiviate","format":1,"tables":{"playlist":[{"id":7,"type":"M3U_URL"}]},"settings":{}}"""
+        assertTrue(runCatching { Backup(target, newSettings(), "0.2.3").restore(broken) {} }.isFailure)
+        assertEquals(listOf("Mine"), target.playlists().all().map { it.name })
+        assertEquals(setOf("A"), target.favorites().observeKeys(pid).first().toSet())
+    }
+
+    @Test
+    fun aBackupFromANewerVersionWithExtraColumnsStillRestores() = runBlocking {
+        val pid = source.playlists().insert(PlaylistEntity(name = "My IPTV", type = PlaylistType.M3U_URL, url = "http://x/list.m3u"))
+        val json = JSONObject(Backup(source, newSettings(), "0.2.3").toJson())
+        json.getJSONObject("tables").getJSONArray("playlist").getJSONObject(0).put("someFutureColumn", 5)
+        Backup(target, newSettings(), "0.2.3").restore(json.toString()) {}
+        assertEquals("My IPTV", target.playlists().get(pid)!!.name)
+    }
+
+    @Test
     fun otherFilesAreRefused() = runBlocking {
         val r = runCatching { Backup(target, newSettings(), "0.1.0").restore("""{"app":"Other"}""") {} }
         assertTrue(r.isFailure)

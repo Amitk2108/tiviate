@@ -101,7 +101,9 @@ class EpgSyncer(
         val generation = source.activeGeneration + 1
         db.epg().deleteGeneration(source.id, generation)
         val now = clock()
-        val handler = Writer(source, generation, wanted, onProgress)
+        // Channels assigned to this guide by hand are always wanted, even when no name or tvg-id matches.
+        val assigned = db.channels().overridesForSource(source.id).map { it.substringAfter(':') }.toSet()
+        val handler = Writer(source, generation, wanted, onProgress, assigned)
         http.getOrThrow(source.url, userAgent, "Guide").use { response ->
             XmltvParser(newPullParser, windowStartMs = now - pastMs, windowEndMs = now + futureMs)
                 .parse(Decompress.wrap(response.body.byteStream()), handler)
@@ -120,9 +122,10 @@ class EpgSyncer(
         private val generation: Int,
         private val wanted: WantedChannels,
         private val onProgress: (Int) -> Unit,
+        assigned: Set<String> = emptySet(),
     ) : XmltvHandler {
         val channels = ArrayList<EpgChannelEntity>()
-        private val wantedIds = HashSet<String>()
+        private val wantedIds = HashSet<String>(assigned)
         private val buffer = ArrayList<ProgrammeEntity>(BATCH)
         private val offsetMs = source.timeOffsetMin * 60_000L
         var count = 0

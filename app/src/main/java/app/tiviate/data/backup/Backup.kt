@@ -32,6 +32,9 @@ class Backup(private val db: TiviateDatabase, private val settings: SettingsStor
         // Only the guide links the viewer added: the playlists' own guides come back with the playlists.
         t.put("epg_source", rows(sql.query("SELECT * FROM epg_source WHERE origin = 'MANUAL'")))
         out.put("tables", t)
+        // The playlists' own guide sources are recreated (with new ids) when they reload; hand-assigned guide
+        // channels point at them by id, so keep which old id belonged to which playlist.
+        out.put("autoSources", rows(sql.query("SELECT id, playlistId FROM epg_source WHERE origin = 'AUTO' AND playlistId IS NOT NULL")))
         out.put(
             "channels",
             rows(
@@ -55,10 +58,11 @@ class Backup(private val db: TiviateDatabase, private val settings: SettingsStor
         require(root.optInt("format") in 1..FORMAT) { "This backup was made by a newer Tiviate" }
         val t = root.getJSONObject("tables")
         withContext(Dispatchers.IO) {
-            db.clearAllTables()
             val sql = db.openHelper.writableDatabase
+            // One transaction for clearing and filling: if any row can't be written, nothing is lost.
             sql.beginTransaction()
             try {
+                for (table in CLEAR_ORDER) sql.execSQL("DELETE FROM `$table`")
                 for (table in tables) insertAll(sql, table, t.optJSONArray(table))
                 insertAll(sql, "epg_source", t.optJSONArray("epg_source")) { it.put("activeGeneration", 0); it.putNull("lastSyncAt") }
                 sql.setTransactionSuccessful()
@@ -72,11 +76,14 @@ class Backup(private val db: TiviateDatabase, private val settings: SettingsStor
         for (id in playlistIds) runCatching { reloadPlaylist(id) }
 
         val channels = root.optJSONArray("channels") ?: JSONArray()
+        val oldAutoSource = HashMap<Long, Long>() // old guide source id -> its playlist
+        root.optJSONArray("autoSources")?.let { a -> for (i in 0 until a.length()) a.getJSONObject(i).let { oldAutoSource[it.getLong("id")] = it.getLong("playlistId") } }
         withContext(Dispatchers.IO) {
             val sql = db.openHelper.writableDatabase
             for (i in 0 until channels.length()) {
                 val c = channels.getJSONObject(i)
                 val override = c.optString("epgOverride").takeIf { !c.isNull("epgOverride") && it.isNotEmpty() }
+                    ?.let { remapGuideRef(it, oldAutoSource) }
                 sql.execSQL(
                     "UPDATE channel SET hidden = ?, customSort = ?, renamed = ?, " +
                         "name = CASE WHEN ? = 1 THEN ? ELSE name END, epgOverride = ?, epgRef = COALESCE(?, epgRef) " +
@@ -110,12 +117,23 @@ class Backup(private val db: TiviateDatabase, private val settings: SettingsStor
         arr
     }
 
+    /** "oldSourceId:xmltvId" pointing at a playlist's own guide → the same channel in that guide's new source. */
+    private suspend fun remapGuideRef(ref: String, oldAutoSource: Map<Long, Long>): String {
+        val sourceId = ref.substringBefore(':').toLongOrNull() ?: return ref
+        val playlistId = oldAutoSource[sourceId] ?: return ref
+        val newId = db.epg().autoSource(playlistId)?.id ?: return ref
+        return "$newId:${ref.substringAfter(':')}"
+    }
+
     private fun insertAll(sql: androidx.sqlite.db.SupportSQLiteDatabase, table: String, arr: JSONArray?, adjust: (ContentValues) -> Unit = {}) {
         if (arr == null) return
+        // Columns this version has: a backup from a newer Tiviate may carry extra ones.
+        val columns = sql.query("PRAGMA table_info(`$table`)").use { c -> buildSet { while (c.moveToNext()) add(c.getString(c.getColumnIndexOrThrow("name"))) } }
         for (i in 0 until arr.length()) {
             val o = arr.getJSONObject(i)
             val cv = ContentValues()
             for (k in o.keys()) {
+                if (k !in columns) continue
                 when (val v = o.get(k)) {
                     JSONObject.NULL -> cv.putNull(k)
                     is Int -> cv.put(k, v.toLong())
@@ -132,6 +150,12 @@ class Backup(private val db: TiviateDatabase, private val settings: SettingsStor
 
     companion object {
         const val FORMAT = 1
+
+        /** Every table, children before parents, cleared before a restore. */
+        private val CLEAR_ORDER = listOf(
+            "custom_group_member", "custom_group", "group_pref", "history", "favorite",
+            "programme", "epg_channel", "epg_source", "channel", "playlist",
+        )
 
         /** Settings with their types, so numbers come back as the same kind (Int vs Long). */
         fun encodeSettings(values: Map<String, Any>): JSONObject {

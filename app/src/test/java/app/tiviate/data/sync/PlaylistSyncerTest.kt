@@ -100,6 +100,41 @@ class PlaylistSyncerTest {
     }
 
     @Test
+    fun anEmptyOrHtmlAnswerKeepsTheChannelsAndTheirSetUp() = runBlocking {
+        h.routes["/list.m3u"] = { text(m3u("a")) }
+        val id = addM3u()
+        h.playlistSyncer().sync(id)
+        val first = h.db.channels().allInPlaylist(id).first()
+        h.db.channels().setHidden(id, listOf(first.stableKey), true)
+        // The provider serves an "account expired" page, then an empty body, instead of the playlist.
+        val page = "<!DOCTYPE html>\n<html><body>Account expired. <a href=\"https://provider.example/renew\">Renew</a></body></html>"
+        for (body in listOf(page, "")) {
+            h.routes["/list.m3u"] = { text(body) }
+            assertTrue(runCatching { h.playlistSyncer().sync(id) }.isFailure)
+            assertEquals(3, h.db.channels().count(id))
+            assertTrue("set-up kept", h.db.channels().byKey(id, first.stableKey)!!.hidden)
+            assertNotNull(h.db.playlists().get(id)!!.lastError)
+        }
+    }
+
+    @Test
+    fun xtreamWithoutItsGroupListKeepsTheGroups() = runBlocking {
+        val streams = """[{"name":"A","stream_id":1,"category_id":"1"},{"name":"B","stream_id":2,"category_id":"2"}]"""
+        h.routes["/player_api.php?username=u&password=p&action=get_live_categories"] = {
+            text("""[{"category_id":"1","category_name":"News"},{"category_id":"2","category_name":"Sports"}]""")
+        }
+        h.routes["/player_api.php?username=u&password=p&action=get_live_streams"] = { text(streams) }
+        h.routes["/player_api.php?username=u&password=p"] = { text("""{"user_info":{"auth":1,"allowed_output_formats":["ts"]}}""") }
+        val id = h.db.playlists().insert(
+            PlaylistEntity(name = "X", type = PlaylistType.XTREAM, xtreamServer = h.url("/").trimEnd('/'), xtreamUser = "u", xtreamPass = "p"),
+        )
+        h.playlistSyncer().sync(id)
+        h.routes["/player_api.php?username=u&password=p&action=get_live_categories"] = { text("""{"error":"busy"}""") }
+        assertTrue(runCatching { h.playlistSyncer().sync(id) }.isFailure)
+        assertEquals(setOf("News", "Sports"), h.db.channels().allInPlaylist(id).map { it.groupName }.toSet())
+    }
+
+    @Test
     fun failedDownloadReportsErrorAndKeepsOldChannels() = runBlocking {
         h.routes["/list.m3u"] = { text(m3u("a")) }
         val id = addM3u()
