@@ -7,6 +7,9 @@ import okio.BufferedSource
  * independent of playlist size. Malformed entries are skipped and counted.
  */
 object M3uParser {
+    /** A stream link on its own line: a scheme, "://", no spaces (so HTML and other text are not channels). */
+    private val BARE_URL = Regex("""^[A-Za-z][A-Za-z0-9+.-]*://\S+$""")
+
 
     private val EPG_HEADER_KEYS = listOf("url-tvg", "x-tvg-url", "tvg-url")
 
@@ -38,6 +41,9 @@ object M3uParser {
                 line.startsWith("#EXTGRP:") -> pending?.extGroup = line.removePrefix("#EXTGRP:").trim().ifEmpty { null }
                 line.startsWith("#EXTVLCOPT:") -> pending?.let { applyVlcOpt(it, line.removePrefix("#EXTVLCOPT:")) }
                 line.startsWith("#") -> Unit // Other directives (#KODIPROP, #EXTHTTP…) are not used yet.
+                // A line without #EXTINF counts only if it is a link: an HTML error page or other text served
+                // instead of the playlist must not turn into "channels".
+                pending == null && !BARE_URL.matches(line) -> skipped++
                 else -> {
                     onEntry((pending ?: Pending.forBareUrl(line)).toEntry(line))
                     entries++

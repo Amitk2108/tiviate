@@ -17,6 +17,13 @@ interface PlaylistDao {
     @Update suspend fun update(p: PlaylistEntity)
     @Query("DELETE FROM playlist WHERE id = :id") suspend fun delete(id: Long)
     @Query("SELECT * FROM playlist WHERE id = :id") suspend fun get(id: Long): PlaylistEntity?
+
+    /** Marks a finished sync without rewriting the rest of the row (the viewer may have edited it meanwhile). */
+    @Query("UPDATE playlist SET lastSyncAt = :stamp, lastError = NULL, detectedEpgUrl = COALESCE(:epgUrl, detectedEpgUrl) WHERE id = :id")
+    suspend fun markSynced(id: Long, stamp: Long, epgUrl: String?)
+
+    @Query("UPDATE playlist SET lastError = :error WHERE id = :id")
+    suspend fun setError(id: Long, error: String?)
     @Query("SELECT * FROM playlist ORDER BY sortIndex, id") fun observeAll(): Flow<List<PlaylistEntity>>
     @Query("SELECT * FROM playlist ORDER BY sortIndex, id") suspend fun all(): List<PlaylistEntity>
 }
@@ -68,6 +75,13 @@ interface ChannelDao {
 
     @Query("DELETE FROM channel WHERE playlistId = :playlistId AND syncStamp != :keepStamp")
     suspend fun deleteStale(playlistId: Long, keepStamp: Long): Int
+
+    /** Guide channels the viewer assigned by hand ("<sourceId>:<xmltvId>") for one guide source. */
+    @Query("SELECT DISTINCT epgOverride FROM channel WHERE epgOverride LIKE :sourceId || ':%'")
+    suspend fun overridesForSource(sourceId: Long): List<String>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM channel WHERE playlistId = :playlistId AND groupName IS NOT NULL)")
+    fun hasGroupsBlocking(playlistId: Long): Boolean
 
     @Query("DELETE FROM channel WHERE playlistId = :playlistId") suspend fun deleteAll(playlistId: Long)
 
