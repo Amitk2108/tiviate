@@ -105,15 +105,20 @@ fun GroupsColumn(
     onLeft: () -> Unit,
     onRight: () -> Unit,
     onBrowse: (Category) -> Unit = {},
+    /** False while the side menu (Left again) has the focus; coming back puts it on the current group. */
+    active: Boolean = true,
 ) {
     val first = remember { FocusRequester() }
     // Focus starts on the group the column opened on; moving through the groups then shows each one's
     // channels (onBrowse) without pulling the focus back here.
     val openedOn = remember { selected }
-    val selectedIndex = entries.indexOfFirst { it is GroupEntry.Pick && it.category == openedOn }.coerceAtLeast(0)
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = (selectedIndex - 4).coerceAtLeast(0))
+    val openedIndex = entries.indexOfFirst { it is GroupEntry.Pick && it.category == openedOn }.coerceAtLeast(0)
+    val selectedIndex = entries.indexOfFirst { it is GroupEntry.Pick && it.category == selected }.coerceAtLeast(0)
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = (openedIndex - 4).coerceAtLeast(0))
     // Keyed on the index: the groups often arrive after the column opens, which moves the current group.
-    LaunchedEffect(selectedIndex) { focusSoon(first) }
+    // Not keyed on the selection (it trails the focus while browsing, and would pull the focus back).
+    // Coming back from the side menu, the focus returns to the group being shown, not the first one.
+    LaunchedEffect(openedIndex, active) { if (active) focusSoon(first) }
     Column(
         Modifier
             .width(280.dp)
