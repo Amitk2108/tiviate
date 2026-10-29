@@ -71,7 +71,11 @@ fun GuideRow(
     highlight: GuideHighlight = GuideHighlight.ON_AIR,
     emptyBlocks: List<FocusBlock> = emptyList(),
 ) {
-    Row(Modifier.fillMaxWidth().height(GUIDE_ROW_HEIGHT).padding(vertical = 2.dp)) {
+    Row(
+        Modifier.fillMaxWidth().height(GUIDE_ROW_HEIGHT).padding(vertical = 2.dp)
+            // The selected row: one big yellow frame around the channel and its programmes (drawn over them).
+            .then(if (focused != null) Modifier.border(3.dp, Tokens.Selector, Tokens.SmallShape).testTag("guide_selected_row") else Modifier),
+    ) {
         ChannelCell(channel, isPlaying, showNumber, rowFocused = focused != null)
         Box(Modifier.width(stripWidth).fillMaxHeight().clipToBounds()) {
             val viewEnd = viewStartMs + windowMs
@@ -100,7 +104,8 @@ private fun ChannelCell(channel: ChannelEntity?, isPlaying: Boolean, showNumber:
             .fillMaxHeight()
             .padding(end = 4.dp)
             .background(if (rowFocused) Tokens.Raised else Tokens.Surface, Tokens.SmallShape)
-            .then(if (isPlaying) Modifier.border(2.dp, Tokens.Live, Tokens.SmallShape) else Modifier)
+            // The playing channel: a light green outline (the selected row gets the yellow frame instead).
+            .then(if (isPlaying && !rowFocused) Modifier.border(1.5.dp, Tokens.LiveSoft, Tokens.SmallShape) else Modifier)
             .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -108,7 +113,14 @@ private fun ChannelCell(channel: ChannelEntity?, isPlaying: Boolean, showNumber:
         if (channel == null) return@Row
         if (showNumber) Text("${channel.number}", modifier = Modifier.width(34.dp), style = TextStyle(color = if (isPlaying) Tokens.Cyan else Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.SemiBold))
         ChannelLogo(channel, 40.dp)
-        Text(channel.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = if (isPlaying) Tokens.Cyan else Tokens.Text, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Medium))
+        Text(
+            channel.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis,
+            style = TextStyle(
+                color = when { rowFocused -> Tokens.Selector; isPlaying -> Tokens.Cyan; else -> Tokens.Text },
+                fontSize = Tokens.CaptionSize,
+                fontWeight = if (rowFocused) FontWeight.SemiBold else FontWeight.Medium,
+            ),
+        )
         if (isPlaying) Text("▶", style = TextStyle(color = Tokens.Live, fontSize = Tokens.CaptionSize)) // playing now
     }
 }
@@ -152,7 +164,7 @@ private fun ProgrammeBlock(
             .clip(Tokens.SmallShape)
             .background(bg)
             .drawBehind { if (elapsed > 0f) drawRect(ELAPSED, size = size.copy(width = size.width * elapsed)) }
-            .then(if (focused) Modifier.border(Tokens.FocusBorder, Tokens.Cyan, Tokens.SmallShape).testTag("guide_focused") else Modifier)
+            .then(if (focused) Modifier.border(1.dp, Tokens.Selector.copy(alpha = 0.45f), Tokens.SmallShape).testTag("guide_focused") else Modifier)
             .padding(horizontal = 10.dp),
         contentAlignment = Alignment.CenterStart,
     ) {

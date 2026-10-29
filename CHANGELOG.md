@@ -2,6 +2,15 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.2.3 — 2026-10-29
+
+### Changed
+- The channel selected with Up/Down in the guide has a big yellow frame around its name and programmes,
+  and its name turns yellow, so it is noticed at once. The playing channel's outline is a lighter green.
+
+### Fixed
+- Pressing Back from the side menu no longer switches the guide to Favorites; it returns to the group you were on.
+
 ## 0.2.2 — 2026-10-24
 
 ### Added

@@ -81,6 +81,10 @@ object Tokens {
     val Danger = Color(0xFFFF5A6E)
     /** The playing ("live") channel: its own colour, different from the focus. */
     val Live = Color(0xFF3DDC84)
+    /** The playing channel's outline: a light green, so the yellow selection stands out over it. */
+    val LiveSoft = Color(0xFF9BEFC0).copy(alpha = 0.6f)
+    /** The channel the viewer is moving through with Up/Down in the guide: yellow, noticed at once. */
+    val Selector = Color(0xFFFFD23F)
 
     /** Panel backgrounds over video; "UI transparency" makes them more see-through. */
     // Neutral black (not the navy background) so panels over the video never tint the picture blue.

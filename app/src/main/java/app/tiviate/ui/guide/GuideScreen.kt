@@ -313,6 +313,7 @@ fun GuideScreen() {
                 onLeft = { side = SideNav.RAIL },
                 onRight = { browsing = null; side = SideNav.GRID },
                 onBrowse = { browsing = it },
+                active = side == SideNav.GROUPS,
             )
         }
     }

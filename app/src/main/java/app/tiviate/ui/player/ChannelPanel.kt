@@ -226,7 +226,7 @@ private fun ChannelRow(
 ) {
     FocusSurface(
         onClick = onClick, onLongClick = onLongClick,
-        modifier = modifier.fillMaxWidth().height(64.dp).then(if (isPlaying) Modifier.border(2.dp, Tokens.Live, Tokens.Shape) else Modifier),
+        modifier = modifier.fillMaxWidth().height(64.dp).then(if (isPlaying) Modifier.border(1.5.dp, Tokens.LiveSoft, Tokens.Shape) else Modifier),
         container = androidx.compose.ui.graphics.Color.Transparent, scale = 1.02f,
     ) {
         if (channel == null) return@FocusSurface
