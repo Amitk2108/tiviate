@@ -58,6 +58,10 @@ class Media3Engine(
         val forcedMime: String? = null,
         /** The other format (.ts <-> .m3u8) was already tried for this channel. */
         val triedOtherFormat: Boolean = false,
+        /** The channel's own link from the playlist (url may be the other format, after a fallback). */
+        val originalUrl: String = url,
+        /** The stream has played at least once: later errors reconnect to the same link, no format guessing. */
+        val played: Boolean = false,
     )
 
     /** Channels that only played in the other format: later tunes go straight to it (this run of the app). */
@@ -144,10 +148,18 @@ class Media3Engine(
     private val listener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             _state.update { it.copy(isBuffering = playbackState == Player.STATE_BUFFERING) }
+            // Live TV never "ends": the provider closed the connection (or the HLS list ended), so reconnect
+            // instead of leaving a frozen picture with no spinner.
+            if (playbackState == Player.STATE_ENDED && request != null && pausedAtMs == null) {
+                reconnector.onIssue(PlaybackIssue.NO_CONNECTION, "Stream ended")
+            }
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            if (isPlaying) reconnector.onPlaying()
+            if (isPlaying) {
+                reconnector.onPlaying()
+                request?.let { if (!it.played) request = it.copy(played = true) }
+            }
             _state.update {
                 it.copy(
                     isPlaying = isPlaying,
@@ -267,7 +279,7 @@ class Media3Engine(
 
     override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String) {
         main.removeCallbacks(retryRunnable)
-        request = Request(workingUrl[channelKey]?.takeIf { StreamFallback.otherFormat(it) == url } ?: url, headers, userAgent, channelKey)
+        request = Request(workingUrl[channelKey]?.takeIf { StreamFallback.otherFormat(it) == url } ?: url, headers, userAgent, channelKey, originalUrl = url)
         reconnector.reset()
         pausedAtMs = null
         applyPreferences(settings) // a new channel starts from the "for all channels" choices
@@ -293,7 +305,7 @@ class Media3Engine(
         val source = DefaultMediaSourceFactory(dataSource, EXTRACTORS).createMediaSource(item)
         player.setMediaSource(source, /* resetPosition = */ true)
         player.prepare()
-        player.play()
+        if (pausedAtMs == null) player.play() else player.pause()
     }
 
     private fun handleError(error: PlaybackException) {
@@ -304,7 +316,7 @@ class Media3Engine(
                 player.prepare()
                 return
             }
-            error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED && r.forcedMime == null -> {
+            error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED && r.forcedMime == null && !r.played -> {
                 // URL without an extension that is actually HLS: retry once as HLS.
                 request = r.copy(forcedMime = MimeTypes.APPLICATION_M3U8)
                 startCurrent()
@@ -314,13 +326,17 @@ class Media3Engine(
         val status = httpStatus(error)
         val issue = PlaybackIssue.classify(status, error.errorCode)
         val other = StreamFallback.otherFormat(r.url)
-        if (other != null && StreamFallback.worthTrying(issue, r.triedOtherFormat)) {
+        if (other != null && !r.played && StreamFallback.worthTrying(issue, r.triedOtherFormat)) {
             request = r.copy(url = other, forcedMime = null, triedOtherFormat = true)
             workingUrl[r.channelKey] = other // kept only if it plays (cleared below on a second failure)
             startCurrent()
             return
         }
-        if (r.triedOtherFormat) workingUrl.remove(r.channelKey)
+        if (r.triedOtherFormat && !r.played) {
+            // The other format failed too: reconnect attempts (and "Try again") use the channel's own link.
+            workingUrl.remove(r.channelKey)
+            request = r.copy(url = r.originalUrl, forcedMime = null)
+        }
         reconnector.onIssue(issue, status?.let { "HTTP $it" } ?: error.errorCodeName)
     }
 
@@ -342,7 +358,10 @@ class Media3Engine(
     /** A resync changed the playing channel's link (e.g. a rotated token): later reconnects use it. */
     fun updateUrl(channelKey: String, url: String) {
         val r = request ?: return
-        if (r.channelKey == channelKey && r.url != url) request = r.copy(url = url)
+        if (r.channelKey != channelKey || r.originalUrl == url) return
+        // Playing on the other format: follow the new link in that same format.
+        val onFallback = r.url != r.originalUrl
+        request = r.copy(url = if (onFallback) StreamFallback.otherFormat(url) ?: url else url, originalUrl = url, forcedMime = null)
     }
 
     /** Leaves a pause and rejoins the live edge with a fresh connection. */
@@ -354,6 +373,10 @@ class Media3Engine(
     }
 
     override fun retryNow() {
+        // "Try again" starts over from the best known link, with format guessing allowed again.
+        request = request?.let { r ->
+            r.copy(url = workingUrl[r.channelKey] ?: r.originalUrl, forcedMime = null, triedOtherFormat = false, played = false)
+        }
         reconnector.reset()
         _state.update { it.copy(error = null, issue = null, issueDetail = null, isBuffering = true) }
         startCurrent()
@@ -386,7 +409,7 @@ class Media3Engine(
             builder.clearOverridesOfType(C.TRACK_TYPE_VIDEO)
         } else {
             val group = player.currentTracks.groups.getOrNull(option.groupIndex) ?: return
-            builder.setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, option.trackIndex))
+            builder.setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, option.trackIndex.takeIf { it < group.length } ?: return))
         }
         player.trackSelectionParameters = builder.build()
     }
@@ -419,7 +442,7 @@ class Media3Engine(
         val group = player.currentTracks.groups.getOrNull(option.groupIndex) ?: return
         player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
             .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
-            .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, option.trackIndex))
+            .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, option.trackIndex.takeIf { it < group.length } ?: return))
             .build()
     }
 
@@ -430,7 +453,7 @@ class Media3Engine(
         } else {
             val group = player.currentTracks.groups.getOrNull(option.groupIndex) ?: return
             builder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
-                .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, option.trackIndex))
+                .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, option.trackIndex.takeIf { it < group.length } ?: return))
         }
         player.trackSelectionParameters = builder.build()
     }

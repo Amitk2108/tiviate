@@ -93,9 +93,14 @@ class MainActivity : ComponentActivity() {
         const val LONG_BACK_MS = 600L
     }
 
+    override fun onStart() {
+        super.onStart()
+        graph.player.foreground = true
+    }
+
     override fun onStop() {
         super.onStop()
         // Free the provider connection (many accounts allow only one) whenever the app leaves the screen.
-        if (!isChangingConfigurations) graph.player.stop()
+        if (!isChangingConfigurations) graph.player.onAppHidden()
     }
 }

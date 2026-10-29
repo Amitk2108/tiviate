@@ -2,6 +2,32 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.2.4 — 2026-10-29
+
+### Fixed — your data
+- An empty answer or an error page from the provider no longer wipes the playlist: channels, hidden/renamed
+  channels and favourites are kept and the error is shown. Xtream without its group list keeps the groups.
+- "Change details" after a failed edit no longer deletes the playlist.
+- A failed restore changes nothing (it used to leave the app empty); backups from newer versions restore.
+- Editing a playlist while it updates is no longer undone. Deleting a playlist always finishes.
+- Channels assigned to a guide by hand now get their programmes, also after a restore.
+
+### Fixed — playback
+- A stream the provider closes is reconnected (it used to freeze on the last picture).
+- A short error no longer locks a channel onto a link that doesn't work; "Try again" starts fresh.
+- A playlist update no longer undoes a working .ts/.m3u8 choice.
+- Pressing Home during a channel change no longer starts sound behind the home screen.
+- The sleep timer no longer closes the app the next time it opens.
+- Fast CH+/CH- presses land on the right channel; CH+/CH- follow the group picked in the guide.
+- Pause during "Reconnecting…" stays paused. A failed save (storage full) no longer crashes the app.
+
+### Fixed — remote and focus
+- The channel list keeps the focus after choosing a group without the playing channel.
+- The guide has focus on an empty group (no favourites yet, Recent cleared).
+- Right or Back straight after moving to a group shows that group; switching playlist starts on All channels.
+- A renamed custom group keeps its place; a deleted one falls back to All channels.
+- The focus comes back after closing the update dialog.
+
 ## 0.2.3 — 2026-10-29
 
 ### Changed

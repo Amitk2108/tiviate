@@ -34,7 +34,7 @@ import app.tiviate.ui.t
  * background so the user is watching within seconds.
  */
 @Composable
-fun SyncingScreen(playlistId: Long) {
+fun SyncingScreen(playlistId: Long, isEdit: Boolean = false) {
     val graph = LocalGraph.current
     val nav = LocalNavigator.current
     var channels by remember { mutableIntStateOf(0) }
@@ -77,7 +77,8 @@ fun SyncingScreen(playlistId: Long) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 ActionButton(t("Try again"), onClick = { attempt++ }, primary = true)
                 ActionButton(t("Change details"), onClick = {
-                    graph.appScope.launch { graph.playlists.delete(playlistId) }
+                    // Only a playlist just being added is removed; an edited one keeps its channels and set-up.
+                    if (!isEdit) graph.appScope.launch { graph.playlists.delete(playlistId) }
                     nav.back()
                 })
             }

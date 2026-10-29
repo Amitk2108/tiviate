@@ -142,9 +142,11 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
 
     /** Shows another playlist: its first (or last watched) channel starts in the preview. */
     fun switchPlaylist(id: Long) {
+        // At once, before anything can save the old playlist's group for the new one.
+        _category.value = Category.All
+        savedGroup = Category.remember(Category.All)
         viewModelScope.launch {
             graph.player.stop()
-            savedGroup = null
             graph.settings.update { it.copy(activePlaylistId = id, lastChannelKey = null, lastGroup = null) }
             open()
             if (graph.settings.settings.first().openPlaylistOn == app.tiviate.data.OpenOn.FAVORITES) selectCategory(Category.Favorites)

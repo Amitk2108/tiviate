@@ -256,7 +256,8 @@ private fun PlaylistsSection() {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ActionButton(t("Delete"), {
                     confirm = null
-                    scope.launch {
+                    // On the app's scope: leaving Settings right away must not stop a delete halfway.
+                    graph.appScope.launch {
                         graph.player.stop()
                         graph.playlists.delete(pending.id)
                         val remaining = graph.db.playlists().all()

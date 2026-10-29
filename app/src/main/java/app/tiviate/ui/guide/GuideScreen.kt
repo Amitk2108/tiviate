@@ -108,8 +108,22 @@ fun GuideScreen() {
     val okPress = remember { LongPressDetector() }
     var sheet by remember { mutableStateOf<SheetTarget?>(null) }
     val customGroups by vm.customGroups.collectAsStateWithLifecycle()
+    FollowCustomGroup(category, customGroups) { vm.selectCategory(it) }
     val listState = rememberLazyListState()
     val gridFocus = remember { FocusRequester() }
+    var browsing by remember { mutableStateOf<Category?>(null) }
+
+    /** Leaving the groups column right after moving: show (and keep) the group the viewer stopped on. */
+    fun commitBrowse() {
+        val c = browsing ?: return
+        browsing = null
+        if (c != category) {
+            vm.selectCategory(c)
+            state.focusRow(0, emptyList())
+            scope.launch { listState.scrollToItem(0) }
+            tick++
+        }
+    }
     // Every start (first open, or back from the TV home screen) refreshes the guide and its preview.
     val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
     val logoPx = with(androidx.compose.ui.platform.LocalDensity.current) { 80.dp.roundToPx() }
@@ -135,6 +149,17 @@ fun GuideScreen() {
             else -> return
         }
         scope.launch { listState.scrollToItem(target.coerceAtLeast(0)) }
+    }
+
+    // An empty group (no favourites yet, Recent cleared, a group gone after a refresh) still gets the
+    // focus, so the remote works: Left opens the groups, OK and Menu respond.
+    val loadedEmpty = ready && items.itemCount == 0 &&
+        items.loadState.refresh is androidx.paging.LoadState.NotLoading && items.loadState.append.endOfPaginationReached
+    LaunchedEffect(loadedEmpty, category) {
+        if (loadedEmpty && !initialised) {
+            initialised = true
+            if (side == SideNav.GRID) focusSoon(gridFocus)
+        }
     }
 
     // Open on the playing channel with the programme on air focused.
@@ -250,7 +275,7 @@ fun GuideScreen() {
             sheet != null -> sheet = null
             details != null -> details = null
             side == SideNav.RAIL -> side = SideNav.GROUPS
-            side == SideNav.GROUPS -> side = SideNav.GRID
+            side == SideNav.GROUPS -> { commitBrowse(); side = SideNav.GRID }
             !settings.confirmExit || System.currentTimeMillis() - lastBackAt < 2_000 -> activity?.finish()
             else -> {
                 lastBackAt = System.currentTimeMillis()
@@ -271,7 +296,6 @@ fun GuideScreen() {
     // The preview's bounds are on-screen; the guide column starts further right while the groups are open.
     var guideOrigin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
     // Moving through the groups shows that group's channels after a short pause (no OK needed).
-    var browsing by remember { mutableStateOf<Category?>(null) }
     LaunchedEffect(browsing) {
         val c = browsing ?: return@LaunchedEffect
         kotlinx.coroutines.delay(300)
@@ -309,9 +333,9 @@ fun GuideScreen() {
                         tick++
                     }
                 },
-                onSwitch = { p -> side = SideNav.GRID; vm.switchPlaylist(p.id) },
+                onSwitch = { p -> browsing = null; side = SideNav.GRID; vm.switchPlaylist(p.id) },
                 onLeft = { side = SideNav.RAIL },
-                onRight = { browsing = null; side = SideNav.GRID },
+                onRight = { commitBrowse(); side = SideNav.GRID },
                 onBrowse = { browsing = it },
                 active = side == SideNav.GROUPS,
             )

@@ -1,5 +1,6 @@
 package app.tiviate.ui.player
 
+import kotlinx.coroutines.sync.withLock
 import android.os.SystemClock
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
@@ -110,6 +111,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     private var numberJob: Job? = null
     private var toastJob: Job? = null
     private val numberEntry = NumberEntry()
+    private val zapLock = kotlinx.coroutines.sync.Mutex()
 
     /** Resumes the last watched channel (or the first one) unless something is already playing. */
     fun ensurePlaying() {
@@ -118,7 +120,9 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
             val pid = settings.activePlaylistId ?: return@launch
             val playlist = graph.playlists.get(pid) ?: return@launch
             _playlist.value = playlist
-            if (_category.value == Category.All) _category.value = Category.restore(settings.lastGroup)
+            // The group last chosen anywhere (guide or channel list), so CH+/CH- zap through what the viewer
+            // picked, also after switching playlist in the guide.
+            _category.value = Category.restore(settings.lastGroup)
             savedGroup = settings.lastGroup
             if (controller.current.value != null && controller.engine.state.value.channelKey != null) return@launch
             val channel = settings.lastChannelKey?.let { repo.byKey(pid, it) }
@@ -168,10 +172,12 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     /** Zaps within the current category. Rapid presses only move the banner; the stream follows 250 ms after the last press. */
     fun zap(forward: Boolean) {
         val pid = _playlist.value?.id ?: return
-        val from = _pending.value ?: controller.current.value ?: return
         viewModelScope.launch {
-            val next = repo.neighbor(pid, _category.value, from, forward) ?: return@launch
-            _pending.value = next
+            // One press at a time: each starts from where the previous one landed (CH+ x3 = three channels on).
+            val next = zapLock.withLock {
+                val from = _pending.value ?: controller.current.value ?: return@launch
+                repo.neighbor(pid, _category.value, from, forward)?.also { _pending.value = it }
+            } ?: return@launch
             showBanner()
             tuneJob?.cancel()
             tuneJob = viewModelScope.launch {

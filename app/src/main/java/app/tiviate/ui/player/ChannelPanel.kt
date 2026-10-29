@@ -150,7 +150,11 @@ fun ChannelPanel(
     val targetLoaded by remember(channels, initialIndex) {
         derivedStateOf { initialIndex < channels.itemCount && channels.peek(initialIndex) != null }
     }
-    LaunchedEffect(categoriesFocused, channels.itemCount, targetLoaded) {
+    // Another group (or the start row moved): bring the start row on screen so it can take the focus.
+    LaunchedEffect(category, initialIndex) {
+        listState.scrollToItem((initialIndex - 3).coerceAtLeast(0))
+    }
+    LaunchedEffect(categoriesFocused, channels.itemCount, targetLoaded, initialIndex) {
         if (!categoriesFocused && channels.itemCount > 0) {
             repeat(10) {
                 if (runCatching { rowFocus.requestFocus() }.isSuccess) return@LaunchedEffect
@@ -192,7 +196,9 @@ fun ChannelPanel(
             ) {
                 items(count = channels.itemCount, key = channels.itemKey { it.id }, contentType = { "channel" }) { index ->
                     val channel = channels[index]
-                    val isTarget = if (current != null) channel?.stableKey == current.stableKey else index == 0
+                    // The row the list starts on: the playing channel's place in this group, or the first row.
+                    // (Keyed on the playing channel only, a group without it had no focusable row at all.)
+                    val isTarget = index == initialIndex
                     ChannelRow(
                         channel = channel,
                         isPlaying = channel != null && channel.stableKey == current?.stableKey,
@@ -200,7 +206,7 @@ fun ChannelPanel(
                         info = if (showProgramme) channel?.epgRef?.let(nowNext::get) else null,
                         now = now,
                         showNumber = showNumbers,
-                        modifier = (if (isTarget || (index == initialIndex && current == null)) Modifier.focusRequester(rowFocus) else Modifier)
+                        modifier = (if (isTarget) Modifier.focusRequester(rowFocus) else Modifier)
                             .onFocusChanged { if (it.isFocused && channel != null) focused = channel },
                         onClick = { channel?.let(onTune) },
                         onLongClick = { channel?.let(onRowMenu) },

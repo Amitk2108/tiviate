@@ -102,7 +102,7 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
                     PlaylistType.M3U_FILE -> repo.updateM3uFile(editId, name, fileUri!!, epgUrl)
                     PlaylistType.XTREAM -> repo.updateXtream(editId, name, XtreamCredentials(server, username, password), preferHls, userAgent)
                 }
-                nav.push(Screen.Syncing(editId)) // reload with the new details
+                nav.push(Screen.Syncing(editId, isEdit = true)) // reload with the new details
                 return@launch
             }
             val id = when (type) {
