@@ -4,6 +4,8 @@
 
 **A fast, modern live-TV player for Android TV and Fire TV — for your own IPTV subscription.**
 
+Free and open-source IPTV player · a TiviMate alternative where every feature is free
+
 M3U links · Xtream Codes · local M3U files · full TV guide · 40 languages · every feature free
 
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue.svg)](LICENSE)
