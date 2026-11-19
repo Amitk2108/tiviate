@@ -6,6 +6,8 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -114,12 +116,13 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
         }
     }
 
-    Row(Modifier.fillMaxSize().padding(Tokens.SafeMargin).testTag("add_playlist_screen"), horizontalArrangement = Arrangement.spacedBy(40.dp)) {
-        Column(Modifier.width(260.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    val header = @Composable {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(if (editId != null) t("Edit playlist") else title(type), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
             Text(help(type), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
         }
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    }
+    val form = @Composable {
             when (type) {
                 PlaylistType.M3U_URL -> {
                     TvTextField(t("Playlist address"), url, { url = it }, Modifier.focusRequester(firstField), tag = "field_url", hint = "http://…/playlist.m3u")
@@ -156,6 +159,17 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 ActionButton(if (editId != null) t("Save changes") else t("Add playlist"), onClick = ::save, modifier = Modifier.focusRequester(saveButton), primary = true, tag = "save_playlist")
                 ActionButton(t("Cancel"), onClick = { nav.back() })
+            }
+    }
+
+    BoxWithConstraints(Modifier.fillMaxSize().padding(Tokens.SafeMargin).testTag("add_playlist_screen")) {
+        if (maxWidth < 600.dp) {
+            // Phones: the explanation on top, full-width fields below.
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) { header(); form() }
+        } else {
+            Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(40.dp)) {
+                Box(Modifier.width(260.dp)) { header() }
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) { form() }
             }
         }
     }

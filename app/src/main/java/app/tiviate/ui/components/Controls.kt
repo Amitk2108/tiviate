@@ -5,6 +5,9 @@ import androidx.tv.material3.Icon
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ContentPaste
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.offset
@@ -68,6 +71,8 @@ fun TvTextField(
     password: Boolean = false,
 ) {
     val focusManager = LocalFocusManager.current
+    // Phones and tablets: a tap goes straight into the field (the TV "OK to edit" step swallowed taps).
+    val touch = app.tiviate.ui.LocalFormFactor.current != app.tiviate.ui.FormFactor.TV
     var editing by remember { mutableStateOf(false) }
     val input = remember { FocusRequester() }
     val finish = {
@@ -77,14 +82,7 @@ fun TvTextField(
     }
     LaunchedEffect(editing) { if (editing) runCatching { input.requestFocus() } }
 
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(label, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Medium))
-        FocusSurface(
-            onClick = { editing = true },
-            modifier = modifier.fillMaxWidth().then(if (tag != null) Modifier.testTag(tag) else Modifier),
-            shape = Tokens.SmallShape,
-            scale = 1f,
-        ) {
+    val field = @Composable { fieldModifier: Modifier ->
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
@@ -98,10 +96,9 @@ fun TvTextField(
                     autoCorrectEnabled = false,
                 ),
                 keyboardActions = KeyboardActions(onNext = { finish() }, onDone = { finish() }),
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = fieldModifier
                     .focusRequester(input)
-                    .focusProperties { canFocus = editing }
+                    .focusProperties { canFocus = editing || touch }
                     .onFocusChanged { if (!it.isFocused && editing) editing = false }
                     .then(if (tag != null) Modifier.testTag("${tag}_input") else Modifier)
                     // While editing without the keyboard shown, Up/Down still leave the field.
@@ -119,6 +116,43 @@ fun TvTextField(
                     inner()
                 },
             )
+    }
+
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Medium))
+        if (touch) {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+            Row(
+                modifier.fillMaxWidth().background(Tokens.Surface, Tokens.SmallShape).then(if (tag != null) Modifier.testTag(tag) else Modifier),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                field(Modifier.weight(1f))
+                // Paste replaces the field with the copied text (links and logins are usually copied whole).
+                Box(
+                    Modifier.size(48.dp)
+                        .focusProperties { canFocus = false }
+                        .clickable(onClickLabel = t("Paste")) {
+                            val clip = context.getSystemService(android.content.ClipboardManager::class.java)
+                                ?.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
+                            if (!clip.isNullOrEmpty()) {
+                                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.VirtualKey)
+                                onValueChange(if (password) clip else clip.trim())
+                            }
+                        }
+                        .then(if (tag != null) Modifier.testTag("${tag}_paste") else Modifier),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Rounded.ContentPaste, contentDescription = t("Paste"), tint = Tokens.TextSecondary, modifier = Modifier.size(22.dp))
+                }
+            }
+        } else {
+            FocusSurface(
+                onClick = { editing = true },
+                modifier = modifier.fillMaxWidth().then(if (tag != null) Modifier.testTag(tag) else Modifier),
+                shape = Tokens.SmallShape,
+                scale = 1f,
+            ) { field(Modifier.fillMaxWidth()) }
         }
     }
 }

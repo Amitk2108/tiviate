@@ -39,6 +39,9 @@ class MainActivity : ComponentActivity() {
                 statusBarStyle = androidx.activity.SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
                 navigationBarStyle = androidx.activity.SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             )
+            // The screens shrink above the on-screen keyboard instead of being covered by it.
+            @Suppress("DEPRECATION")
+            window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         }
         setContent {
             val settings by graph.settings.screenSettings.collectAsState(initial = app.tiviate.data.AppSettings())

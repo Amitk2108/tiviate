@@ -2,6 +2,17 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.3.1 — 2026-11-19
+
+### Fixed on phones and tablets
+- Tapping a text box now opens the keyboard everywhere (adding a playlist, Search, Settings). Before, taps on
+  text boxes did nothing.
+- The M3U link, Xtream Codes and Local file screens fit a phone: the explanation on top, full-width boxes below.
+- The screen moves up above the keyboard, so the box you type in stays visible.
+
+### Added
+- A Paste button at the end of every text box on phones and tablets: copy a playlist link or login, tap Paste.
+
 ## 0.3.0 — 2026-11-19
 
 ### Added: phones and tablets (GitHub issue #1)

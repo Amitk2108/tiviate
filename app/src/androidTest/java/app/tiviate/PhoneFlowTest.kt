@@ -2,8 +2,12 @@ package app.tiviate
 
 import android.app.UiAutomation
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -45,6 +49,40 @@ class PhoneFlowTest {
         ui.executeShellCommand("mkdir -p /sdcard/tiviate-phone").close()
         ui.executeShellCommand("screencap -p /sdcard/tiviate-phone/$name.png").close()
         Thread.sleep(600)
+    }
+
+    @Test
+    fun aTapTypesIntoAFieldAndPasteFillsIt() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("phone") == "true")
+        ui.setRotation(UiAutomation.ROTATION_FREEZE_0)
+        runBlocking {
+            graph.playlists.playlists.first().forEach { graph.playlists.delete(it.id) }
+            graph.settings.update { it.copy(activePlaylistId = null) }
+        }
+        scenario = ActivityScenario.launch(MainActivity::class.java)
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("welcome_screen") }
+        rule.onNodeWithText("M3U link").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("field_url") }
+
+        // Phones: the fields use the full width, not a narrow column beside the explanation.
+        val screen = rule.onNodeWithTag("add_playlist_screen").fetchSemanticsNode().size.width
+        org.junit.Assert.assertTrue(rule.onNodeWithTag("field_url").fetchSemanticsNode().size.width > screen * 0.8f)
+
+        // A tap goes into the field (this is what opens the keyboard).
+        rule.onNodeWithTag("field_name_input").performClick()
+        rule.onNodeWithTag("field_name_input").assertIsFocused()
+        rule.onNodeWithTag("field_name_input").performTextInput("Home")
+        rule.onNodeWithTag("field_name_input").assertTextEquals("Home")
+
+        // Paste fills the field with the copied link.
+        val link = fixtures.url("/list.m3u")
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            ApplicationProvider.getApplicationContext<TiviateApp>().getSystemService(android.content.ClipboardManager::class.java)
+                .setPrimaryClip(android.content.ClipData.newPlainText("link", " $link\n"))
+        }
+        rule.onNodeWithTag("field_url_paste").performClick()
+        rule.onNodeWithTag("field_url_input").assertTextEquals(link)
+        shot("10-add-playlist")
     }
 
     @Test
