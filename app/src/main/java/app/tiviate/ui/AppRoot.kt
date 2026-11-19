@@ -15,6 +15,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -37,6 +38,22 @@ fun AppRoot() {
     val graph = LocalGraph.current
     val context = LocalContext.current
     val nav = remember { Navigator(Screen.Loading) }
+    // Which layouts to use: TV, or the touch layouts on phones and upright tablets.
+    val config = androidx.compose.ui.platform.LocalConfiguration.current
+    val formFactor = forcedFormFactor ?: remember(config.smallestScreenWidthDp) { formFactorOf(isTvDevice(context), config.smallestScreenWidthDp) }
+    val portrait = config.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
+    val phoneLayout = usesPhoneLayout(formFactor, portrait)
+    // Fullscreen video on a phone or tablet (the Live screen held sideways): no system bars.
+    val immersive = formFactor != FormFactor.TV && nav.current == Screen.Player && !(phoneLayout && portrait)
+    LaunchedEffect(immersive, formFactor) {
+        if (formFactor == FormFactor.TV) return@LaunchedEffect
+        val window = (context as? android.app.Activity)?.window ?: return@LaunchedEffect
+        androidx.core.view.WindowCompat.getInsetsController(window, window.decorView).apply {
+            systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            val bars = androidx.core.view.WindowInsetsCompat.Type.systemBars()
+            if (immersive) hide(bars) else show(bars)
+        }
+    }
 
     LaunchedEffect(Unit) {
         val playlists = graph.db.playlists().all()
@@ -48,7 +65,8 @@ fun AppRoot() {
         val active = playlists.firstOrNull { it.id == settings.activePlaylistId } ?: playlists.first()
         if (settings.activePlaylistId != active.id) graph.settings.update { it.copy(activePlaylistId = active.id) }
         nav.replaceAll(Screen.Player)
-        if (!settings.startFullscreen && settings.guideScreen) nav.push(Screen.Guide) // start on the TV guide; Back goes fullscreen
+        // TV: start on the guide (Back goes fullscreen). Phones open on their Live screen (video and list).
+        if (!settings.startFullscreen && settings.guideScreen && !phoneLayout) nav.push(Screen.Guide)
         if (graph.playlists.needsStartSync(settings.playlistUpdate, settings.updateOnStart)) {
             // A playlist that never loaded goes now; a routine refresh waits until the viewer has settled in.
             SyncScheduler.syncNow(context, atStart = true, delaySec = if (playlists.any { it.lastSyncAt == null }) 0 else 45)
@@ -82,7 +100,7 @@ fun AppRoot() {
             fade.animateTo(1f, androidx.compose.animation.core.tween(160, easing = androidx.compose.animation.core.FastOutSlowInEasing))
         }
     }
-    CompositionLocalProvider(LocalNavigator provides nav, app.tiviate.ui.player.LocalVideoLayout provides videoLayout) {
+    CompositionLocalProvider(LocalNavigator provides nav, app.tiviate.ui.player.LocalVideoLayout provides videoLayout, LocalFormFactor provides formFactor) {
         Box(Modifier.fillMaxSize().background(Tokens.Background)) {
             app.tiviate.ui.player.VideoHost(graph.player.engine)
             // Only the player and the guide let the video show through; every other screen is opaque.
@@ -107,15 +125,17 @@ fun AppRoot() {
                     .onPreviewKeyEvent { dialogOpen }
                     .focusProperties { onEnter = { if (dialogOpen) cancelFocusChange() } }
                     .focusRequester(screensFocus)
-                    .focusGroup(),
+                    .focusGroup()
+                    // Phones and tablets: keep clear of the status bar, navigation bar and camera cut-out.
+                    .then(if (formFactor != FormFactor.TV && !immersive) Modifier.safeDrawingPadding() else Modifier),
             ) {
             when (val screen = nav.current) {
                 Screen.Loading -> Unit
                 Screen.Welcome -> WelcomeScreen()
                 is Screen.AddPlaylist -> AddPlaylistScreen(screen.type, screen.editId)
                 is Screen.Syncing -> SyncingScreen(screen.playlistId, screen.isEdit)
-                Screen.Player -> PlayerScreen()
-                Screen.Guide -> GuideScreen()
+                Screen.Player -> if (phoneLayout && portrait) app.tiviate.ui.phone.PhoneHome() else PlayerScreen()
+                Screen.Guide -> if (phoneLayout) app.tiviate.ui.phone.PhoneGuide() else GuideScreen()
                 Screen.Search -> SearchScreen()
                 is Screen.ManageChannels -> app.tiviate.ui.organise.ManageChannelsScreen(screen.playlistId, screen.category, screen.reorder)
                 is Screen.ManageGroups -> app.tiviate.ui.organise.ManageGroupsScreen(screen.playlistId)

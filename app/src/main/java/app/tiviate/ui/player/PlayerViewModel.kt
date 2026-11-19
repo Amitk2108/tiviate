@@ -113,8 +113,11 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     private val numberEntry = NumberEntry()
     private val zapLock = kotlinx.coroutines.sync.Mutex()
 
-    /** Resumes the last watched channel (or the first one) unless something is already playing. */
-    fun ensurePlaying() {
+    /**
+     * Resumes the last watched channel (or the first one) unless something is already playing.
+     * [autoplay] = false only loads the playlist and group (the phone screen waits for a tap).
+     */
+    fun ensurePlaying(autoplay: Boolean = true) {
         viewModelScope.launch {
             val settings = graph.settings.settings.first()
             val pid = settings.activePlaylistId ?: return@launch
@@ -124,7 +127,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
             // picked, also after switching playlist in the guide.
             _category.value = Category.restore(settings.lastGroup)
             savedGroup = settings.lastGroup
-            if (controller.current.value != null && controller.engine.state.value.channelKey != null) return@launch
+            if (!autoplay || (controller.current.value != null && controller.engine.state.value.channelKey != null)) return@launch
             val channel = settings.lastChannelKey?.let { repo.byKey(pid, it) }
                 ?: repo.first(pid, Category.All)
                 ?: return@launch
@@ -213,7 +216,17 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     }
 
     /** Loads now/next for [refs] that aren't cached yet or whose programme has since ended. */
+    /** The guide links recently on screen (newest last); only these are kept and refreshed. */
+    private val recentRefs = LinkedHashSet<String>()
+
     fun loadNowNext(refs: Collection<String>) {
+        for (r in refs) { recentRefs.remove(r); recentRefs.add(r) }
+        if (recentRefs.size > RECENT_REFS) {
+            val drop = recentRefs.size - RECENT_REFS
+            val iter = recentRefs.iterator()
+            repeat(drop) { iter.next(); iter.remove() }
+            nowNext.keys.retainAll(recentRefs)
+        }
         val now = System.currentTimeMillis()
         val missing = refs.filter { nowNext[it]?.isStaleAt(now) ?: true }
         if (missing.isNotEmpty()) reloadNowNext(missing)
@@ -238,7 +251,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
                 reloadNowNext(nowNext.filterValues { it.isStaleAt(now) }.keys)
             }
         }
-        viewModelScope.launch { repo.guideVersion().drop(1).collect { reloadNowNext(nowNext.keys.toList()) } }
+        viewModelScope.launch { repo.guideVersion().drop(1).collect { reloadNowNext(nowNext.keys.filter { it in recentRefs }) } }
     }
 
     fun toggleFavorite(channel: ChannelEntity) {
@@ -332,6 +345,8 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
     }
 
     companion object {
+        /** Channels scrolled past long ago are dropped: refreshing thousands every half hour stalled zapping. */
+        private const val RECENT_REFS = 200
         private const val NOW_NEXT_CHECK_MS = 30_000L
 
         fun factory(graph: AppGraph): ViewModelProvider.Factory = viewModelFactory { initializer { PlayerViewModel(graph) } }

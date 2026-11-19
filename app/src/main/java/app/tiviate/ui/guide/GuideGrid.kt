@@ -39,9 +39,9 @@ val GUIDE_CHANNEL_WIDTH = 250.dp
 
 /** Time ruler over the programme columns: one label per slot. */
 @Composable
-fun GuideHeader(viewStartMs: Long, windowMs: Long, slotMs: Long, stripWidth: Dp, dayLabel: String) {
+fun GuideHeader(viewStartMs: Long, windowMs: Long, slotMs: Long, stripWidth: Dp, dayLabel: String, channelWidth: Dp = GUIDE_CHANNEL_WIDTH) {
     Row(Modifier.fillMaxWidth().height(36.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(dayLabel, modifier = Modifier.width(GUIDE_CHANNEL_WIDTH).padding(start = 16.dp), style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+        Text(dayLabel, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(channelWidth).padding(start = if (channelWidth < 120.dp) 4.dp else 16.dp), style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
         Box(Modifier.width(stripWidth).fillMaxHeight().clipToBounds()) {
             var t = viewStartMs
             while (t < viewStartMs + windowMs) {
@@ -70,13 +70,14 @@ fun GuideRow(
     focused: FocusBlock?,
     highlight: GuideHighlight = GuideHighlight.ON_AIR,
     emptyBlocks: List<FocusBlock> = emptyList(),
+    channelWidth: Dp = GUIDE_CHANNEL_WIDTH,
 ) {
     Row(
         Modifier.fillMaxWidth().height(GUIDE_ROW_HEIGHT).padding(vertical = 2.dp)
             // The selected row: one big yellow frame around the channel and its programmes (drawn over them).
             .then(if (focused != null) Modifier.border(3.dp, Tokens.Selector, Tokens.SmallShape).testTag("guide_selected_row") else Modifier),
     ) {
-        ChannelCell(channel, isPlaying, showNumber, rowFocused = focused != null)
+        ChannelCell(channel, isPlaying, showNumber, rowFocused = focused != null, width = channelWidth)
         Box(Modifier.width(stripWidth).fillMaxHeight().clipToBounds()) {
             val viewEnd = viewStartMs + windowMs
             for (p in programmes) {
@@ -97,20 +98,22 @@ fun GuideRow(
 }
 
 @Composable
-private fun ChannelCell(channel: ChannelEntity?, isPlaying: Boolean, showNumber: Boolean, rowFocused: Boolean) {
+private fun ChannelCell(channel: ChannelEntity?, isPlaying: Boolean, showNumber: Boolean, rowFocused: Boolean, width: Dp = GUIDE_CHANNEL_WIDTH) {
+    val logoOnly = width < 120.dp // phones: a narrow column with just the logo
     Row(
         Modifier
-            .width(GUIDE_CHANNEL_WIDTH)
+            .width(width)
             .fillMaxHeight()
             .padding(end = 4.dp)
             .background(if (rowFocused) Tokens.Raised else Tokens.Surface, Tokens.SmallShape)
             // The playing channel: a light green outline (the selected row gets the yellow frame instead).
             .then(if (isPlaying && !rowFocused) Modifier.border(1.5.dp, Tokens.LiveSoft, Tokens.SmallShape) else Modifier)
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = if (logoOnly) 6.dp else 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = if (logoOnly) Arrangement.Center else Arrangement.spacedBy(10.dp),
     ) {
         if (channel == null) return@Row
+        if (logoOnly) { ChannelLogo(channel, 40.dp); return@Row }
         if (showNumber) Text("${channel.number}", modifier = Modifier.width(34.dp), style = TextStyle(color = if (isPlaying) Tokens.Cyan else Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.SemiBold))
         ChannelLogo(channel, 40.dp)
         Text(
@@ -187,9 +190,9 @@ private fun ProgrammeBlock(
 
 /** Vertical line marking the current time across the programme columns. */
 @Composable
-fun NowLine(viewStartMs: Long, windowMs: Long, nowMs: Long, stripWidth: Dp) {
+fun NowLine(viewStartMs: Long, windowMs: Long, nowMs: Long, stripWidth: Dp, channelWidth: Dp = GUIDE_CHANNEL_WIDTH) {
     if (nowMs < viewStartMs || nowMs >= viewStartMs + windowMs) return
-    val x = GUIDE_CHANNEL_WIDTH + stripWidth * ((nowMs - viewStartMs).toFloat() / windowMs)
+    val x = channelWidth + stripWidth * ((nowMs - viewStartMs).toFloat() / windowMs)
     Box(Modifier.fillMaxSize()) {
         Box(Modifier.offset(x = x).width(2.dp).fillMaxHeight().background(Tokens.Cyan))
     }

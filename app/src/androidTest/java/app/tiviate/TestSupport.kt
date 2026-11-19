@@ -36,3 +36,6 @@ object Remote {
         Thread.sleep(200)
     }
 }
+
+fun SemanticsNodeInteractionsProvider.onAllNodesWithContentDescriptionExists(text: String): Boolean =
+    onAllNodes(androidx.compose.ui.test.hasContentDescription(text)).fetchSemanticsNodes().isNotEmpty()

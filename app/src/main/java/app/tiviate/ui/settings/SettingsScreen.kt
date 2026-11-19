@@ -1,5 +1,6 @@
 package app.tiviate.ui.settings
 
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import kotlinx.coroutines.flow.first
 import app.tiviate.data.SyncProgress
 import androidx.compose.material.icons.rounded.Restore
@@ -110,9 +111,19 @@ private enum class Section(val tag: String, val english: String, val icon: Image
     val label: String get() = t(english)
 }
 
-/** Two-pane settings: sections on the left drive the content on the right. */
+/**
+ * Two-pane settings: sections on the left drive the content on the right. On a phone (narrower than
+ * 600 dp) it is two pages instead: the list of sections, then the chosen section full width.
+ */
 @Composable
 fun SettingsScreen() {
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+        if (maxWidth < 600.dp) PhoneSettings() else TwoPaneSettings()
+    }
+}
+
+@Composable
+private fun TwoPaneSettings() {
     var section by remember { mutableStateOf(Section.GENERAL) }
     val first = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusSoon(first) }
@@ -120,23 +131,55 @@ fun SettingsScreen() {
     Row(Modifier.fillMaxSize().padding(horizontal = Tokens.SafeMargin, vertical = 20.dp).testTag("settings_screen"), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
         Column(Modifier.width(210.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(t("Settings"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.Bold), modifier = Modifier.padding(start = 12.dp, bottom = 14.dp))
+            SectionList(section, first) { section = it }
+        }
+        Box(Modifier.weight(1f).fillMaxHeight()) { SectionContent(section) }
+    }
+}
+
+/** Phones: the sections as a list; a tap opens one full width, Back (or the edge swipe) returns. */
+@Composable
+private fun PhoneSettings() {
+    var open by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<Section?>(null) }
+    androidx.activity.compose.BackHandler(enabled = open != null) { open = null }
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp).testTag("settings_screen"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        val s = open
+        if (s == null) {
+            Text(t("Settings"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.Bold), modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
+            SectionList(null, remember { FocusRequester() }) { open = it }
+        } else {
+            FocusSurface(onClick = { open = null }, container = Color.Transparent, shape = Tokens.SmallShape, scale = 1f, modifier = Modifier.testTag("settings_back")) {
+                Row(Modifier.padding(horizontal = 4.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = t("Back"), tint = Tokens.Text, modifier = Modifier.size(24.dp))
+                    Text(s.label, style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.Bold))
+                }
+            }
+            Box(Modifier.weight(1f).fillMaxWidth()) { SectionContent(s) }
+        }
+    }
+}
+
+@Composable
+private fun SectionList(selectedSection: Section?, first: FocusRequester, onPick: (Section) -> Unit) {
             Section.entries.forEachIndexed { i, s ->
-                val selected = s == section
+                val selected = s == selectedSection
                 FocusSurface(
-                    onClick = { section = s },
+                    onClick = { onPick(s) },
                     modifier = (if (i == 0) Modifier.focusRequester(first) else Modifier).fillMaxWidth().testTag(s.tag),
                     container = if (selected) Tokens.Selected else Color.Transparent,
                     shape = Tokens.SmallShape,
                     scale = 1.02f,
                 ) {
-                    Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(Modifier.padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Icon(s.icon, contentDescription = null, tint = if (selected) Tokens.Cyan else Tokens.TextSecondary, modifier = Modifier.size(20.dp))
                         Text(s.label, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = if (selected) Tokens.Cyan else Tokens.Text, fontSize = Tokens.BodySize, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium))
                     }
                 }
             }
-        }
-        Box(Modifier.weight(1f).fillMaxHeight()) {
+}
+
+@Composable
+private fun SectionContent(section: Section) {
             when (section) {
                 Section.GENERAL -> GeneralSection()
                 Section.PLAYLISTS -> PlaylistsSection()
@@ -147,8 +190,6 @@ fun SettingsScreen() {
                 Section.OTHER -> OtherSection()
                 Section.ABOUT -> AboutSection()
             }
-        }
-    }
 }
 
 @Composable

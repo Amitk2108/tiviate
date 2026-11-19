@@ -81,7 +81,7 @@
 "Play": "Відтворити",
 "Pause": "Пауза",
 "Paused": "На паузі",
-"Live": "Прямий ефір",
+"Live": "Ефір",
 "Back to live": "Повернутися до ефіру",
 "Default": "За замовчуванням",
 "Previous channel": "Попередній канал",
@@ -367,5 +367,11 @@
 "Show the TV guide": "Показувати телегід",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Коли вимкнено, Tiviate відкривається на весь екран, Праворуч відкриває список каналів, а «Назад» закриває застосунок.",
 "Always highest quality": "Завжди найвища якість",
-"Off: automatic — the quality follows your connection.": "Вимк.: автоматично — якість підлаштовується під ваше з’єднання."
+"Off: automatic — the quality follows your connection.": "Вимк.: автоматично — якість підлаштовується під ваше з’єднання.",
+"Back": "Назад",
+"Exit fullscreen": "Згорнути",
+"Fullscreen": "На весь екран",
+"Now": "Зараз",
+"Tap a channel to start watching": "Торкніться каналу, щоб почати перегляд",
+"Watch": "Дивитися"
 }

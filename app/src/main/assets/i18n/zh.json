@@ -367,5 +367,11 @@
 "Show the TV guide": "显示电视节目指南",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "关闭后，Tiviate 以全屏打开，按右键打开频道列表，按返回键退出应用。",
 "Always highest quality": "始终使用最高画质",
-"Off: automatic — the quality follows your connection.": "关：自动 — 画质随网络连接调整。"
+"Off: automatic — the quality follows your connection.": "关：自动 — 画质随网络连接调整。",
+"Back": "返回",
+"Exit fullscreen": "退出全屏",
+"Fullscreen": "全屏",
+"Now": "现在",
+"Tap a channel to start watching": "点按频道即可开始观看",
+"Watch": "观看"
 }

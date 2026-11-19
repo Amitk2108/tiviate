@@ -8,6 +8,7 @@ import android.util.Rational
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,6 +29,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // TVs stay landscape; phones and tablets turn freely (upright = video and list, sideways = fullscreen).
+        if (app.tiviate.ui.forcedFormFactor == app.tiviate.ui.FormFactor.TV || app.tiviate.ui.isTvDevice(this)) {
+            requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        } else {
+            requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            // Draw under see-through system bars (the screens keep clear of them); light icons on the dark app.
+            enableEdgeToEdge(
+                statusBarStyle = androidx.activity.SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+                navigationBarStyle = androidx.activity.SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            )
+        }
         setContent {
             val settings by graph.settings.screenSettings.collectAsState(initial = app.tiviate.data.AppSettings())
             TiviateTheme(settings) {
@@ -93,6 +105,11 @@ class MainActivity : ComponentActivity() {
         const val LONG_BACK_MS = 600L
     }
 
+    override fun onDestroy() {
+        app.tiviate.ui.phone.Rotation.release()
+        super.onDestroy()
+    }
+
     override fun onStart() {
         super.onStart()
         graph.player.foreground = true
@@ -100,6 +117,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        app.tiviate.ui.phone.Rotation.release()
         // Free the provider connection (many accounts allow only one) whenever the app leaves the screen.
         if (!isChangingConfigurations) graph.player.onAppHidden()
     }

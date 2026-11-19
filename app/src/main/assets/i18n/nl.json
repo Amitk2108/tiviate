@@ -352,5 +352,12 @@
 "Show the TV guide": "Tv-gids tonen",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Indien uit, opent Tiviate op volledig scherm, Rechts opent de zenderlijst en Terug sluit de app.",
 "Always highest quality": "Altijd hoogste kwaliteit",
-"Off: automatic — the quality follows your connection.": "Uit: automatisch — de kwaliteit past zich aan je verbinding aan."
+"Off: automatic — the quality follows your connection.": "Uit: automatisch — de kwaliteit past zich aan je verbinding aan.",
+"Back": "Terug",
+"Exit fullscreen": "Volledig scherm sluiten",
+"Fullscreen": "Volledig scherm",
+"Live": "Live",
+"Now": "Nu",
+"Tap a channel to start watching": "Tik op een zender om te beginnen met kijken",
+"Watch": "Kijken"
 }

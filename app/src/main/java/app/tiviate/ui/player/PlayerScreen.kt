@@ -68,6 +68,13 @@ fun PlayerScreen() {
     val context = LocalContext.current
     val vm: PlayerViewModel = viewModel(factory = PlayerViewModel.factory(graph))
     val engine = graph.player.engine
+    // On a phone this screen is the sideways fullscreen view; Back and "Exit fullscreen" turn it upright.
+    // (Tablets held sideways work like a TV, unless Tiviate's fullscreen button turned the screen.)
+    val formFactor = app.tiviate.ui.LocalFormFactor.current
+    val phoneFullscreen = formFactor == app.tiviate.ui.FormFactor.PHONE ||
+        (formFactor == app.tiviate.ui.FormFactor.TABLET && app.tiviate.ui.phone.Rotation.buttonFullscreen)
+    fun leaveFullscreen() { (context as? Activity)?.let { app.tiviate.ui.phone.Rotation.fullscreen(it, on = false) } }
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     val playback by engine.state.collectAsStateWithLifecycle()
     val overlay by vm.overlay.collectAsStateWithLifecycle()
@@ -229,6 +236,7 @@ fun PlayerScreen() {
             overlay is Overlay.Picker -> vm.open(Overlay.Options)
             !inFullscreen -> vm.close()
             overlay == Overlay.Banner -> vm.close()
+            phoneFullscreen -> leaveFullscreen()
             settings.guideScreen -> nav.push(Screen.Guide)
             !settings.confirmExit || SystemClock.uptimeMillis() - lastBackAt < 2_000 -> (context as? Activity)?.finish()
             else -> {
@@ -255,7 +263,12 @@ fun PlayerScreen() {
                 var total = 0f
                 detectVerticalDragGestures(
                     onDragStart = { total = 0f },
-                    onDragEnd = { if (abs(total) > 120f) vm.zap(forward = total < 0) },
+                    onDragEnd = {
+                        if (abs(total) > 120f) {
+                            haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.GestureThresholdActivate)
+                            vm.zap(forward = total < 0)
+                        }
+                    },
                 ) { _, dy -> total += dy }
             },
     ) {
@@ -516,6 +529,7 @@ fun PlayerScreen() {
                 onGuide = { vm.close(); openGuide() },
                 onMenu = { vm.open(Overlay.Options) },
                 onPlayPause = { vm.togglePause() },
+                onExitFullscreen = if (phoneFullscreen) ({ vm.close(); leaveFullscreen() }) else null,
             )
         }
 
@@ -551,13 +565,14 @@ fun PlayerScreen() {
 }
 
 @Composable
-private fun TouchControls(onChannels: () -> Unit, onGuide: () -> Unit, onMenu: () -> Unit, onPlayPause: () -> Unit) {
+private fun TouchControls(onChannels: () -> Unit, onGuide: () -> Unit, onMenu: () -> Unit, onPlayPause: () -> Unit, onExitFullscreen: (() -> Unit)? = null) {
     Box(Modifier.fillMaxSize().padding(Tokens.SafeMargin), contentAlignment = Alignment.BottomCenter) {
         Row(Modifier.background(Tokens.Scrim, Tokens.Shape).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ActionButton(t("Channels"), onChannels)
             ActionButton(t("Guide"), onGuide)
             ActionButton("⏯", onPlayPause)
             ActionButton(t("Menu"), onMenu)
+            onExitFullscreen?.let { ActionButton(t("Exit fullscreen"), it) }
         }
     }
 }

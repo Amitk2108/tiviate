@@ -367,5 +367,11 @@
 "Show the TV guide": "টিভি গাইড দেখান",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "বন্ধ থাকলে Tiviate পূর্ণ স্ক্রিনে খোলে, ডান চাপলে চ্যানেল তালিকা খোলে এবং Back চাপলে অ্যাপ বন্ধ হয়।",
 "Always highest quality": "সবসময় সর্বোচ্চ মান",
-"Off: automatic — the quality follows your connection.": "বন্ধ: স্বয়ংক্রিয় — মান আপনার সংযোগ অনুযায়ী বদলায়।"
+"Off: automatic — the quality follows your connection.": "বন্ধ: স্বয়ংক্রিয় — মান আপনার সংযোগ অনুযায়ী বদলায়।",
+"Back": "পিছনে",
+"Exit fullscreen": "ফুলস্ক্রিন থেকে বেরোন",
+"Fullscreen": "ফুলস্ক্রিন",
+"Now": "এখন",
+"Tap a channel to start watching": "দেখা শুরু করতে একটি চ্যানেলে ট্যাপ করুন",
+"Watch": "দেখুন"
 }

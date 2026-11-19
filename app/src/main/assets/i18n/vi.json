@@ -365,5 +365,11 @@
 "Show the TV guide": "Hiện lịch phát sóng",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Khi tắt, Tiviate mở toàn màn hình, Phải mở danh sách kênh và Quay lại sẽ thoát ứng dụng.",
 "Always highest quality": "Luôn chất lượng cao nhất",
-"Off: automatic — the quality follows your connection.": "Tắt: tự động — chất lượng thay đổi theo kết nối của bạn."
+"Off: automatic — the quality follows your connection.": "Tắt: tự động — chất lượng thay đổi theo kết nối của bạn.",
+"Back": "Quay lại",
+"Exit fullscreen": "Thoát toàn màn hình",
+"Fullscreen": "Toàn màn hình",
+"Now": "Bây giờ",
+"Tap a channel to start watching": "Chạm vào một kênh để bắt đầu xem",
+"Watch": "Xem"
 }

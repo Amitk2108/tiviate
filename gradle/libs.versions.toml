@@ -84,6 +84,7 @@ profileinstaller = { module = "androidx.profileinstaller:profileinstaller", vers
 androidx-test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "orchestrator" }
 androidx-test-services = { module = "androidx.test.services:test-services", version.ref = "testServices" }
 androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
+androidx-test-espresso = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

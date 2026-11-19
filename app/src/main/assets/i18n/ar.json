@@ -367,5 +367,11 @@
 "Show the TV guide": "عرض دليل التلفزيون",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "عند الإيقاف، يفتح Tiviate بملء الشاشة، ويفتح زر يمين قائمة القنوات، ويخرج زر رجوع من التطبيق.",
 "Always highest quality": "أعلى جودة دائمًا",
-"Off: automatic — the quality follows your connection.": "إيقاف: تلقائي — تتكيف الجودة مع اتصالك."
+"Off: automatic — the quality follows your connection.": "إيقاف: تلقائي — تتكيف الجودة مع اتصالك.",
+"Back": "رجوع",
+"Exit fullscreen": "الخروج من ملء الشاشة",
+"Fullscreen": "ملء الشاشة",
+"Now": "الآن",
+"Tap a channel to start watching": "انقر على قناة لبدء المشاهدة",
+"Watch": "مشاهدة"
 }

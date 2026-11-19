@@ -367,5 +367,11 @@
 "Show the TV guide": "Műsorújság megjelenítése",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Kikapcsolva a Tiviate teljes képernyőn indul, a Jobbra megnyitja a csatornalistát, a Vissza pedig kilép az alkalmazásból.",
 "Always highest quality": "Mindig a legjobb minőség",
-"Off: automatic — the quality follows your connection.": "Ki: automatikus — a minőség a kapcsolatához igazodik."
+"Off: automatic — the quality follows your connection.": "Ki: automatikus — a minőség a kapcsolatához igazodik.",
+"Back": "Vissza",
+"Exit fullscreen": "Kilépés a teljes képernyőből",
+"Fullscreen": "Teljes képernyő",
+"Now": "Most",
+"Tap a channel to start watching": "Koppintson egy csatornára a nézéshez",
+"Watch": "Megtekintés"
 }

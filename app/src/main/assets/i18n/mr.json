@@ -367,5 +367,11 @@
 "Show the TV guide": "टीव्ही गाइड दाखवा",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "बंद असताना Tiviate पूर्ण स्क्रीनमध्ये उघडते, उजवे ने चॅनेल यादी उघडते आणि Back ने अ‍ॅपमधून बाहेर पडता येते.",
 "Always highest quality": "नेहमी सर्वोत्तम गुणवत्ता",
-"Off: automatic — the quality follows your connection.": "बंद: आपोआप — गुणवत्ता तुमच्या कनेक्शननुसार बदलते."
+"Off: automatic — the quality follows your connection.": "बंद: आपोआप — गुणवत्ता तुमच्या कनेक्शननुसार बदलते.",
+"Back": "मागे",
+"Exit fullscreen": "फुलस्क्रीनमधून बाहेर पडा",
+"Fullscreen": "फुलस्क्रीन",
+"Now": "आता",
+"Tap a channel to start watching": "पाहणे सुरू करण्यासाठी चॅनेलवर टॅप करा",
+"Watch": "पाहा"
 }

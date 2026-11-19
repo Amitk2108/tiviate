@@ -367,5 +367,11 @@
 "Show the TV guide": "ტელეგიდის ჩვენება",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "გამორთვისას Tiviate სრულ ეკრანზე იხსნება, მარჯვნივ ხსნის არხების სიას, „უკან“ კი გამოდის აპიდან.",
 "Always highest quality": "ყოველთვის უმაღლესი ხარისხი",
-"Off: automatic — the quality follows your connection.": "გამორთული: ავტომატური — ხარისხი თქვენს კავშირს ერგება."
+"Off: automatic — the quality follows your connection.": "გამორთული: ავტომატური — ხარისხი თქვენს კავშირს ერგება.",
+"Back": "უკან",
+"Exit fullscreen": "სრული ეკრანიდან გასვლა",
+"Fullscreen": "სრული ეკრანი",
+"Now": "ახლა",
+"Tap a channel to start watching": "შეეხეთ არხს ყურების დასაწყებად",
+"Watch": "ყურება"
 }

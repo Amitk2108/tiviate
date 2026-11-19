@@ -2,6 +2,24 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.3.0 — 2026-11-19
+
+### Added: phones and tablets (GitHub issue #1)
+- Tiviate now works with touch. Taps, long-presses and scrolling work on every screen, with haptic feedback.
+- The right layout is picked automatically: TV, phone or tablet, and again whenever the device is turned.
+- Phones held upright: the video on top, what's on now, the groups as chips, the channel list, and a bottom
+  bar with Live, TV guide, Search and Settings. Turn the phone (or tap Fullscreen) for fullscreen video.
+- A touch TV guide: drag sideways through time, scroll through channels, tap a programme for its details and Watch.
+- Every player option (audio, subtitles, display, zoom, quality, sleep timer…) is one tap away with Options.
+- Tablets: upright they use the phone layout with what's on next beside each channel; sideways they use the
+  TV layout, with touch.
+- Settings on phones: a list of sections, each opening full width.
+- Gesture navigation and three-button navigation both work: the app draws edge to edge and keeps clear of the
+  system bars and camera cut-outs; fullscreen video hides the bars.
+
+### Unchanged
+- The TV app: same screens and remote keys. The TV test suite still passes.
+
 ## 0.2.5 — 2026-11-19
 
 ### Added (requested by viewers)

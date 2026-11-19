@@ -354,5 +354,11 @@
 "Show the TV guide": "Mostra la Guida TV",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Se disattivo, Tiviate si apre a schermo intero, Destra apre l'elenco canali e Indietro esce dall'app.",
 "Always highest quality": "Sempre la qualità massima",
-"Off: automatic — the quality follows your connection.": "Disattivo: automatica — la qualità segue la tua connessione."
+"Off: automatic — the quality follows your connection.": "Disattivo: automatica — la qualità segue la tua connessione.",
+"Back": "Indietro",
+"Exit fullscreen": "Esci da schermo intero",
+"Fullscreen": "Schermo intero",
+"Now": "Ora",
+"Tap a channel to start watching": "Tocca un canale per iniziare a guardare",
+"Watch": "Guarda"
 }

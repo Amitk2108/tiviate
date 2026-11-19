@@ -97,6 +97,20 @@ class GuideState(
         return block.startMs <= nowMs && nowMs < block.stopMs
     }
 
+    /** A finger tapped [row] at [timeMs]: focus what is on there (touch screens). */
+    fun tapAt(row: Int, timeMs: Long, programmesInRow: List<ProgrammeEntity>) {
+        followsNow = false
+        this.row = row
+        focusTimeMs = timeMs
+        focused = blockAt(programmesInRow, timeMs)
+    }
+
+    /** The timeline was dragged by [ms] (positive = later); it moves smoothly, not slot by slot. */
+    fun panBy(ms: Long) {
+        followsNow = false
+        viewStartMs = clampView(viewStartMs + ms)
+    }
+
     fun jumpHours(hours: Int, programmesInRow: List<ProgrammeEntity>) {
         followsNow = false
         viewStartMs = clampView(viewStartMs + hours * 3_600_000L)

@@ -99,6 +99,11 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
 
     /** Loads programmes for [refs] so that [fromMs, toMs] is covered, with a margin for scrolling. */
     fun ensureProgrammes(refs: Collection<String>, fromMs: Long, toMs: Long) {
+        if (loadedFrom.size > 300) {
+            // Long scrolls kept every channel's programmes in memory; keep the rows on screen.
+            val keep = refs.toSet()
+            loadedFrom.keys.retainAll(keep); loadedTo.keys.retainAll(keep); programmes.keys.retainAll(keep)
+        }
         val need = refs.filter { ref -> (loadedFrom[ref] ?: Long.MAX_VALUE) > fromMs || (loadedTo[ref] ?: Long.MIN_VALUE) < toMs }
         if (need.isEmpty()) return
         val from = fromMs - 2 * HOUR

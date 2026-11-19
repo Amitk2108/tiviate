@@ -26,6 +26,26 @@ class GuideStateTest {
     }
 
     @Test
+    fun aTapFocusesTheProgrammeUnderTheFingerAndStopsFollowingTheClock() {
+        val s = state()
+        val row = listOf(p(t10, t10 + hour, "A"), p(t10 + hour, t10 + 2 * hour, "B"))
+        s.tapAt(row = 3, timeMs = t10 + 80 * min, programmesInRow = row)
+        assertEquals(3, s.row)
+        assertEquals("B", s.focused?.programme?.title)
+        assertFalse("the clock no longer moves the focus", s.keepUpWith(t10 + 90 * min, row))
+    }
+
+    @Test
+    fun draggingTheTimelinePansWithinThePastAndFutureLimits() {
+        val s = state()
+        val start = s.viewStartMs
+        s.panBy(45 * min)
+        assertEquals(start + 45 * min, s.viewStartMs)
+        s.panBy(-100 * 24 * hour)
+        assertEquals("never before the kept past", s.minStartMs, s.viewStartMs)
+    }
+
+    @Test
     fun focusFollowsTheClockWhileTheViewerStaysOnNow() {
         val s = state()
         val row = listOf(p(t10, t10 + hour, "A"), p(t10 + hour, t10 + 2 * hour, "B"))

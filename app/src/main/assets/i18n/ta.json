@@ -367,5 +367,11 @@
 "Show the TV guide": "டிவி வழிகாட்டியைக் காட்டு",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "முடக்கத்தில் இருக்கும்போது Tiviate முழுத் திரையில் திறக்கும், வலது சேனல் பட்டியலைத் திறக்கும், Back ஆப்ஸிலிருந்து வெளியேறும்.",
 "Always highest quality": "எப்போதும் அதிகபட்சத் தரம்",
-"Off: automatic — the quality follows your connection.": "ஆஃப்: தானியங்கு — தரம் உங்கள் இணைப்பிற்கு ஏற்ப மாறும்."
+"Off: automatic — the quality follows your connection.": "ஆஃப்: தானியங்கு — தரம் உங்கள் இணைப்பிற்கு ஏற்ப மாறும்.",
+"Back": "பின்செல்",
+"Exit fullscreen": "முழுத்திரையிலிருந்து வெளியேறு",
+"Fullscreen": "முழுத்திரை",
+"Now": "இப்போது",
+"Tap a channel to start watching": "பார்க்கத் தொடங்க ஒரு சேனலைத் தட்டவும்",
+"Watch": "பார்"
 }

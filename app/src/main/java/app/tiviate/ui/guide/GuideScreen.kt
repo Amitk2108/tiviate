@@ -1,5 +1,8 @@
 package app.tiviate.ui.guide
 
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.foundation.layout.size
@@ -377,14 +380,34 @@ fun GuideScreen() {
             val viewStart = withTick(tick) { state.viewStartMs }
             Column(Modifier.fillMaxSize()) {
                 GuideHeader(viewStart, state.windowMs, state.slotMs, stripWidth, dayLabel(viewStart, now) + "  ·  " + categoryLabel(category))
-                Box(Modifier.fillMaxSize()) {
+                // Touch screens (a tablet held sideways): drag sideways through time, up and down through channels.
+                val touchable = app.tiviate.ui.LocalFormFactor.current != app.tiviate.ui.FormFactor.TV
+                val stripPx = with(androidx.compose.ui.platform.LocalDensity.current) { stripWidth.toPx() }
+                val channelPx = with(androidx.compose.ui.platform.LocalDensity.current) { GUIDE_CHANNEL_WIDTH.toPx() }
+                Box(
+                    Modifier.fillMaxSize().then(
+                        if (!touchable) Modifier else Modifier.pointerInput(stripPx) {
+                            var pending = 0f
+                            detectHorizontalDragGestures(onDragEnd = { pending = 0f }) { change, dx ->
+                                change.consume()
+                                pending += dx
+                                val ms = (-pending / stripPx * state.windowMs).toLong()
+                                if (kotlin.math.abs(ms) >= 2 * 60_000L) { // a redraw per 2 minutes, not per frame
+                                    pending = 0f
+                                    state.panBy(ms)
+                                    tick++
+                                }
+                            }
+                        },
+                    ),
+                ) {
                     // Read once here: rows that are not focused get the same inputs as before and skip redrawing.
                     val focusedRow = withTick(tick) { state.row }
                     val focusedBlock = withTick(tick) { state.focused }
                     val windowMs = state.windowMs
                     LazyColumn(
                         state = listState,
-                        userScrollEnabled = false,
+                        userScrollEnabled = touchable,
                         modifier = Modifier
                             .fillMaxSize()
                             .focusRequester(gridFocus)
@@ -396,6 +419,16 @@ fun GuideScreen() {
                             val isFocusedRow = i == focusedRow
                             val rowList = channel?.epgRef?.let { vm.programmes[it] }.orEmpty()
                             val empty = remember(rowList, viewStart, windowMs) { state.emptyBlocks(rowList, viewStart, viewStart + windowMs) }
+                            Box(
+                                if (!touchable) Modifier else Modifier.pointerInput(i, viewStart, rowList) {
+                                    // A tap selects the programme under the finger; tapping it again plays (like OK).
+                                    detectTapGestures { pos ->
+                                        val at = viewStart + ((pos.x - channelPx).coerceAtLeast(0f) / stripPx * windowMs).toLong()
+                                        val block = state.blockAt(rowList, at)
+                                        if (i == state.row && state.focused == block) onOk() else { state.tapAt(i, at, rowList); tick++ }
+                                    }
+                                },
+                            ) {
                             GuideRow(
                                 channel = channel,
                                 programmes = rowList,
@@ -409,6 +442,7 @@ fun GuideScreen() {
                                 focused = if (isFocusedRow) focusedBlock else null,
                                 highlight = settings.guideHighlight,
                             )
+                            }
                         }
                     }
                     NowLine(viewStart, state.windowMs, now, stripWidth)
@@ -428,7 +462,7 @@ fun GuideScreen() {
 @Composable
 private inline fun <T> withTick(@Suppress("UNUSED_PARAMETER") tick: Int, block: () -> T): T = block()
 
-private fun dayLabel(ms: Long, now: Long): String = when {
+internal fun dayLabel(ms: Long, now: Long): String = when {
     DateUtils.isToday(ms) -> t("Today")
     DateUtils.isToday(ms - DateUtils.DAY_IN_MILLIS) -> t("Tomorrow")
     DateUtils.isToday(ms + DateUtils.DAY_IN_MILLIS) -> t("Yesterday")

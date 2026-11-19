@@ -16,9 +16,9 @@ android {
         applicationId = "app.tiviate"
         minSdk = 24
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.2.5"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = 8
+        versionName = "0.3.0"
+        testInstrumentationRunner = "app.tiviate.TiviateTestRunner"
         // Each instrumented test runs in a fresh process with cleared app data.
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
@@ -134,6 +134,8 @@ dependencies {
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.uiautomator)
+    // Compose's test library brings Espresso 3.5, which fails on Android 16 phones; 3.7 works on both.
+    androidTestImplementation(libs.androidx.test.espresso)
     androidTestImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.coroutines.test)
     androidTestUtil(libs.androidx.test.orchestrator)

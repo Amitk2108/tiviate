@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tiviate – Free Open-Source IPTV Player for Android TV &amp; Fire TV</title>
-<meta name="description" content="Tiviate is a free, open-source IPTV player for Android TV, Fire TV and Firestick. M3U and Xtream Codes, full TV guide (EPG), every feature free. A TiviMate alternative with no premium tier.">
+<title>Tiviate – Free Open-Source IPTV Player for Android TV, Fire TV &amp; Phones</title>
+<meta name="description" content="Tiviate is a free, open-source IPTV player for Android TV, Fire TV, Firestick, Android phones and tablets. M3U and Xtream Codes, full TV guide (EPG), every feature free. A TiviMate alternative with no premium tier.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://amitk2108.github.io/tiviate/">
 <meta name="google-site-verification" content="tM62smcVRtpjbfzi-9eFJ05lM15crUf881qgHhXd1AU">
@@ -14,7 +14,7 @@
 <meta name="author" content="Amit Kumar">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Tiviate">
-<meta property="og:title" content="Tiviate – Free Open-Source IPTV Player for Android TV & Fire TV">
+<meta property="og:title" content="Tiviate – Free Open-Source IPTV Player for Android TV, Fire TV & Phones">
 <meta property="og:description" content="M3U and Xtream Codes, full TV guide, built for the remote. Every feature free, no ads, no account.">
 <meta property="og:url" content="https://amitk2108.github.io/tiviate/">
 <meta property="og:image" content="https://amitk2108.github.io/tiviate/screenshots/02-tv-guide.png">
@@ -22,7 +22,7 @@
 <meta property="og:image:height" content="1080">
 <meta property="og:image:alt" content="Tiviate TV guide with a live preview on Android TV">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Tiviate – Free Open-Source IPTV Player for Android TV & Fire TV">
+<meta name="twitter:title" content="Tiviate – Free Open-Source IPTV Player for Android TV, Fire TV & Phones">
 <meta name="twitter:description" content="M3U and Xtream Codes, full TV guide, built for the remote. Every feature free.">
 <meta name="twitter:image" content="https://amitk2108.github.io/tiviate/screenshots/02-tv-guide.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,9 +42,9 @@
     {
       "@type": "SoftwareApplication",
       "name": "Tiviate",
-      "description": "Free, open-source IPTV player for Android TV and Fire TV with M3U, Xtream Codes and a full TV guide.",
+      "description": "Free, open-source IPTV player for Android TV, Fire TV, phones and tablets with M3U, Xtream Codes and a full TV guide.",
       "applicationCategory": "MultimediaApplication",
-      "operatingSystem": "Android TV, Fire OS, Android 7.0 or newer",
+      "operatingSystem": "Android TV, Fire OS, Android phones and tablets, Android 7.0 or newer",
       "url": "https://amitk2108.github.io/tiviate/",
       "downloadUrl": "https://github.com/Amitk2108/tiviate/releases/latest",
       "softwareHelp": "https://github.com/Amitk2108/tiviate#readme",
@@ -79,7 +79,7 @@
     { "@type": "Question", "name": "Can the Left and Right buttons change channel?",
       "acceptedAnswer": { "@type": "Answer", "text": "Yes. Turn on Settings, Remote control, Left / Right change channel. You can also turn off the TV guide so Tiviate always opens fullscreen." } },
     { "@type": "Question", "name": "Which devices does Tiviate run on?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Android TV and Google TV devices and Amazon Fire TV and Firestick, on Android 7.0 or newer. It also runs on Android phones and tablets with touch." } }
+      "acceptedAnswer": { "@type": "Answer", "text": "Android TV and Google TV devices, Amazon Fire TV and Firestick, and Android phones and tablets, on Android 7.0 or newer. Each gets its own layout: the TV app with the remote, and touch layouts on phones and tablets that change when you turn the device." } }
   ]
 }
 </script>
@@ -260,6 +260,13 @@ code { font-family: var(--mono); font-size: 0.9em; background: rgba(4, 6, 13, 0.
 .groups ul { margin: 4px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 15px; }
 .groups li::marker { color: var(--cyan); }
 .groups b { color: var(--ink); font-weight: 600; }
+/* Phones and tablets gallery */
+.phones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.4fr); gap: 18px; align-items: end; }
+.phones figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.phones img { border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 30px 50px -24px rgba(0, 0, 0, 0.9); }
+.phones figcaption { font-size: 14px; color: var(--muted); }
+.phones figcaption b { color: var(--ink); }
+@media (max-width: 760px) { .phones { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* Comparison and remote tables */
 .vs td:nth-child(2), .vs th:nth-child(2) { background: rgba(56, 198, 238, 0.06); }
 td.mid { color: var(--select); font-weight: 600; }
@@ -330,6 +337,7 @@ footer p { max-width: 95ch; }
     <a class="brand" href="./"><img src="img/icon.png" alt="" width="34" height="34">Tiviate</a>
     <nav class="links" aria-label="Main">
       <a href="#features">Features</a>
+      <a href="#phones">Phones</a>
       <a href="#compare">Compare</a>
       <a href="#remote">Remote</a>
       <a href="#install">Install</a>
@@ -348,8 +356,8 @@ footer p { max-width: 95ch; }
     <div class="wrap">
       <div class="hero-copy">
         <span class="tag"><b>FREE</b> Open source · no premium tier</span>
-        <h1 id="hero-h">The <span class="grad">free IPTV player</span> for Android TV and Fire TV</h1>
-        <p class="lead">Built for the remote, smooth on a Fire TV Stick, and every feature unlocked. Add your own M3U link or Xtream Codes login and watch with a full TV guide.</p>
+        <h1 id="hero-h">The <span class="grad">free IPTV player</span> for Android TV, Fire TV, phones and tablets</h1>
+        <p class="lead">Built for the remote on TV and for touch on phones and tablets, smooth on a Fire TV Stick, and every feature unlocked. Add your own M3U link or Xtream Codes login and watch with a full TV guide.</p>
         <div class="cta">
           <a class="btn primary" href="https://github.com/Amitk2108/tiviate/releases/latest">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
@@ -361,7 +369,7 @@ footer p { max-width: 95ch; }
           </a>
         </div>
         <div class="facts" aria-label="At a glance">
-          <span>Android 7.0+</span><span>About 10 MB</span><span>GPL-3.0</span><span>40 languages</span><span>No ads · no account</span>
+          <span>TV · phone · tablet</span><span>Android 7.0+</span><span>About 10 MB</span><span>GPL-3.0</span><span>40 languages</span><span>No ads · no account</span>
         </div>
       </div>
 
@@ -458,6 +466,11 @@ footer p { max-width: 95ch; }
           <h3>Updates itself</h3>
           <p>New versions arrive inside the app. Backups move everything to a new TV.</p>
         </article>
+        <article class="card reveal" style="grid-column: 1 / -1">
+          <div class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
+          <h3>Phones and tablets too</h3>
+          <p>Touch layouts with the video on top and channels below. Turn the phone for fullscreen. Works with gesture navigation.</p>
+        </article>
       </div>
     </div>
   </section>
@@ -529,6 +542,15 @@ footer p { max-width: 95ch; }
           <li><b>Backup and restore</b> of playlists, favourites, groups and settings</li>
           <li><b>.ts / .m3u8 fallback</b> when a channel fails</li>
           <li>Quick start-up, smooth on low-memory TV sticks</li>
+        </ul></article>
+        <article class="card reveal" style="grid-column: 1 / -1"><h3>Phones and tablets</h3><ul>
+          <li><b>Touch everywhere</b>: tap, long-press and scroll, with haptic feedback</li>
+          <li>The layout follows the device: <b>TV</b>, <b>phone</b> or <b>tablet</b></li>
+          <li>Phones: video on top, groups as chips, the channel list and a bottom bar</li>
+          <li>Turn the phone for <b>fullscreen</b>; <b>Options</b> opens every player setting</li>
+          <li><b>Touch TV guide</b>: drag through time, tap a programme to watch</li>
+          <li>Tablets: like a phone upright, like the TV app sideways</li>
+          <li>Works with <b>gesture</b> and <b>three-button navigation</b></li>
         </ul></article>
       </div>
     </div>
@@ -603,6 +625,22 @@ footer p { max-width: 95ch; }
     </div>
   </section>
 
+  <section class="block lazy" id="phones" aria-labelledby="phones-h">
+    <div class="wrap">
+      <div class="head reveal">
+        <span class="eyebrow">Phones and tablets</span>
+        <h2 id="phones-h">The same app on your phone and tablet</h2>
+        <p class="muted">Touch layouts that change when you turn the device: video on top and channels below when upright, fullscreen when sideways. Works with gesture and three-button navigation.</p>
+      </div>
+      <div class="phones">
+        <figure><img src="img/phone-home.webp" width="450" height="1000" loading="lazy" alt="Tiviate on a phone: video on top, groups as chips, channel list and bottom bar"><figcaption><b>Live</b> · video, groups and channels</figcaption></figure>
+        <figure><img src="img/phone-guide.webp" width="450" height="1000" loading="lazy" alt="Tiviate touch TV guide on a phone"><figcaption><b>TV guide</b> · drag through time</figcaption></figure>
+        <figure><img src="img/phone-programme.webp" width="450" height="1000" loading="lazy" alt="Programme details with a Watch button on a phone"><figcaption><b>Tap a programme</b> · Watch</figcaption></figure>
+        <figure><img src="img/tablet-home.webp" width="625" height="1000" loading="lazy" alt="Tiviate on a tablet held upright"><figcaption><b>Tablet</b> · what's next beside each channel</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
   <section class="block lazy" id="compare" aria-labelledby="alt-h">
     <div class="wrap">
       <div class="head reveal">
@@ -670,7 +708,7 @@ footer p { max-width: 95ch; }
         <details><summary>Does Tiviate work with Xtream Codes and M3U?</summary><p>Yes. Add an Xtream Codes login (server, username and password), an M3U or M3U8 link, or a local M3U file. Tiviate loads the channels, groups and TV guide from it.</p></details>
         <details><summary>Can I add my own EPG or TV guide link?</summary><p>Yes. Tiviate finds the XMLTV guide from your playlist automatically, and you can add your own guide links in Settings. Plain, .gz and .xz files work.</p></details>
         <details><summary>Can the Left and Right buttons change channel?</summary><p>Yes. Turn on Settings, Remote control, Left / Right change channel. You can also turn off the TV guide so Tiviate always opens fullscreen.</p></details>
-        <details><summary>Which devices does Tiviate run on?</summary><p>Android TV and Google TV devices and Amazon Fire TV and Firestick, on Android 7.0 or newer. It also runs on Android phones and tablets with touch.</p></details>
+        <details><summary>Which devices does Tiviate run on?</summary><p>Android TV and Google TV devices, Amazon Fire TV and Firestick, and Android phones and tablets, on Android 7.0 or newer. Each gets its own layout: the TV app with the remote, and touch layouts on phones and tablets that change when you turn the device.</p></details>
       </div>
     </div>
   </section>

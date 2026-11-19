@@ -364,5 +364,11 @@
 "Show the TV guide": "Prikaži TV vodič",
 "When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Kad je isključeno, Tiviate se otvara preko cijelog zaslona, Desno otvara popis kanala, a Natrag izlazi iz aplikacije.",
 "Always highest quality": "Uvijek najviša kvaliteta",
-"Off: automatic — the quality follows your connection.": "Isključeno: automatski — kvaliteta se prilagođava vašoj vezi."
+"Off: automatic — the quality follows your connection.": "Isključeno: automatski — kvaliteta se prilagođava vašoj vezi.",
+"Back": "Natrag",
+"Exit fullscreen": "Izađi iz cijelog zaslona",
+"Fullscreen": "Cijeli zaslon",
+"Now": "Sada",
+"Tap a channel to start watching": "Dodirnite kanal za početak gledanja",
+"Watch": "Gledaj"
 }

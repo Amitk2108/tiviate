@@ -2,14 +2,14 @@
 
 # Tiviate
 
-**A fast, modern live-TV player for Android TV and Fire TV — for your own IPTV subscription.**
+**A fast, modern live-TV player for Android TV, Fire TV, phones and tablets — for your own IPTV subscription.**
 
 Free and open-source IPTV player · a TiviMate alternative where every feature is free
 
-M3U links · Xtream Codes · local M3U files · full TV guide · 40 languages · every feature free
+TV, phone and tablet · remote and touch · M3U links · Xtream Codes · full TV guide · 40 languages · every feature free
 
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue.svg)](LICENSE)
-![Platform: Android TV · Fire TV](https://img.shields.io/badge/platform-Android%20TV%20%C2%B7%20Fire%20TV-3ddc84.svg)
+![Platform: Android TV · Fire TV · Phone · Tablet](https://img.shields.io/badge/platform-Android%20TV%20%C2%B7%20Fire%20TV%20%C2%B7%20Phone%20%C2%B7%20Tablet-3ddc84.svg)
 ![Min Android 7.0](https://img.shields.io/badge/Android-7.0%2B-informational.svg)
 ![Made by Amit Kumar](https://img.shields.io/badge/made%20by-Amit%20Kumar-ff69b4.svg)
 
@@ -60,11 +60,29 @@ content is shown.
 
 ---
 
+### 📱 On phones and tablets
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/img/phone-home.webp" width="200" alt="Phone: video on top, groups and channel list"><br><sub><b>Phone</b> — video, groups, channels</sub></td>
+    <td align="center"><img src="docs/img/phone-guide.webp" width="200" alt="Phone TV guide"><br><sub><b>Touch TV guide</b></sub></td>
+    <td align="center"><img src="docs/img/phone-programme.webp" width="200" alt="Programme details with Watch"><br><sub><b>Tap a programme</b> → Watch</sub></td>
+    <td align="center"><img src="docs/img/phone-settings.webp" width="200" alt="Phone settings"><br><sub><b>Settings</b> on a phone</sub></td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2"><img src="docs/img/tablet-home.webp" width="300" alt="Tablet held upright"><br><sub><b>Tablet</b> — what's next beside each channel</sub></td>
+    <td align="center" colspan="2"><img src="docs/img/phone-options.webp" width="420" alt="Fullscreen with every player option"><br><sub><b>Fullscreen</b> — every player option, as on TV</sub></td>
+  </tr>
+</table>
+
+---
+
 ## 📥 Download
 
 Get the latest signed APK from the **[Releases page](https://github.com/Amitk2108/tiviate/releases)**
 (`Tiviate-<version>.apk`). One APK runs on Fire TV (Fire OS 7 and 8), Android TV / Google TV boxes and
-TVs, and Android phones and tablets (touch works too).
+TVs, and Android phones and tablets. Each gets its own layout: the TV app with the remote, and touch layouts on
+phones and tablets that change when you turn the device.
 
 ### Install on a Fire TV or Android TV
 
@@ -95,6 +113,16 @@ Your login is saved on the TV only and can be edited or removed in *Settings →
 ## ✨ Features
 
 Every feature is free. There is no premium version, no account, no activation and no ads.
+
+### 📱 Phones and tablets
+- **Touch everywhere**: tap, long-press and scroll on every screen, with haptic feedback
+- The layout follows the device: **TV**, **phone** or **tablet**, and changes when you turn it
+- **Phones**: video on top, what's on now, groups as chips, the channel list, and a bottom bar (Live, TV guide,
+  Search, Settings); turn the phone for **fullscreen**
+- **Touch TV guide**: drag through time, tap a programme for details and *Watch*
+- **Options** on the video opens every player option, as on TV
+- **Tablets**: upright like a phone with what's next beside each channel; sideways like the TV app, with touch
+- Works with **gesture navigation** and **three-button navigation**; edge to edge, clear of the camera cut-out
 
 ### 📺 Playback
 - Media3 (ExoPlayer) engine with **hardware decoding** and automatic software fallback

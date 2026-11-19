@@ -219,7 +219,7 @@ fun ChannelPanel(
 }
 
 @Composable
-private fun ChannelRow(
+internal fun ChannelRow(
     channel: ChannelEntity?,
     isPlaying: Boolean,
     isFavorite: Boolean,
