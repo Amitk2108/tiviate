@@ -2,36 +2,61 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tiviate – Free Open-Source IPTV Player for Android TV &amp; Fire TV</title>
 <meta name="description" content="Tiviate is a free, open-source IPTV player for Android TV, Fire TV and Firestick. M3U and Xtream Codes, full TV guide (EPG), every feature free. A TiviMate alternative with no premium tier.">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://amitk2108.github.io/tiviate/">
 <meta name="google-site-verification" content="tM62smcVRtpjbfzi-9eFJ05lM15crUf881qgHhXd1AU">
 <link rel="icon" type="image/png" href="img/icon.png">
-<meta name="theme-color" content="#05080f">
+<link rel="apple-touch-icon" href="img/icon.png">
+<meta name="theme-color" content="#04060d">
+<meta name="author" content="Amit Kumar">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Tiviate">
 <meta property="og:title" content="Tiviate – Free Open-Source IPTV Player for Android TV & Fire TV">
 <meta property="og:description" content="M3U and Xtream Codes, full TV guide, built for the remote. Every feature free, no ads, no account.">
 <meta property="og:url" content="https://amitk2108.github.io/tiviate/">
 <meta property="og:image" content="https://amitk2108.github.io/tiviate/screenshots/02-tv-guide.png">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1080">
+<meta property="og:image:alt" content="Tiviate TV guide with a live preview on Android TV">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tiviate – Free Open-Source IPTV Player for Android TV & Fire TV">
+<meta name="twitter:description" content="M3U and Xtream Codes, full TV guide, built for the remote. Every feature free.">
+<meta name="twitter:image" content="https://amitk2108.github.io/tiviate/screenshots/02-tv-guide.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@400;500;600;700&display=swap">
+<link rel="preload" as="image" href="img/guide.webp" type="image/webp">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Tiviate",
-  "description": "Free, open-source IPTV player for Android TV and Fire TV with M3U, Xtream Codes and a full TV guide.",
-  "applicationCategory": "MultimediaApplication",
-  "operatingSystem": "Android TV, Fire OS, Android 7.0 or newer",
-  "url": "https://amitk2108.github.io/tiviate/",
-  "downloadUrl": "https://github.com/Amitk2108/tiviate/releases/latest",
-  "softwareHelp": "https://github.com/Amitk2108/tiviate#readme",
-  "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-  "isAccessibleForFree": true,
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "screenshot": "https://amitk2108.github.io/tiviate/screenshots/02-tv-guide.png",
-  "author": { "@type": "Person", "name": "Amit Kumar", "url": "https://github.com/Amitk2108" }
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://amitk2108.github.io/tiviate/#website",
+      "name": "Tiviate",
+      "url": "https://amitk2108.github.io/tiviate/"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Tiviate",
+      "description": "Free, open-source IPTV player for Android TV and Fire TV with M3U, Xtream Codes and a full TV guide.",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Android TV, Fire OS, Android 7.0 or newer",
+      "url": "https://amitk2108.github.io/tiviate/",
+      "downloadUrl": "https://github.com/Amitk2108/tiviate/releases/latest",
+      "softwareHelp": "https://github.com/Amitk2108/tiviate#readme",
+      "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+      "isAccessibleForFree": true,
+      "inLanguage": "en",
+      "featureList": "M3U and M3U8 playlists, Xtream Codes, XMLTV TV guide (EPG), favourites and own groups, hide rename and reorder channels, AC3 E-AC3 DTS sound, auto-reconnect, picture-in-picture, sleep timer, backup and restore, 40 languages",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "screenshot": "https://amitk2108.github.io/tiviate/screenshots/02-tv-guide.png",
+      "author": { "@type": "Person", "name": "Amit Kumar", "url": "https://github.com/Amitk2108", "sameAs": ["https://github.com/Amitk2108"] }
+    }
+  ]
 }
 </script>
 <script type="application/ld+json">
@@ -47,149 +72,397 @@
       "acceptedAnswer": { "@type": "Answer", "text": "Yes. Tiviate is an independent, open-source IPTV player for the same kind of use: live TV with a TV guide on Android TV and Fire TV. All of its features are free. It is not affiliated with TiviMate." } },
     { "@type": "Question", "name": "How do I install Tiviate on a Fire TV Stick?",
       "acceptedAnswer": { "@type": "Answer", "text": "Install Downloader from the Amazon Appstore, allow it under Settings, My Fire TV, Developer options, Install unknown apps, then open github.com/Amitk2108/tiviate/releases/latest in Downloader and install the APK." } },
+    { "@type": "Question", "name": "Does Tiviate work with Xtream Codes and M3U?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Add an Xtream Codes login (server, username and password), an M3U or M3U8 link, or a local M3U file. Tiviate loads the channels, groups and TV guide from it." } },
+    { "@type": "Question", "name": "Can I add my own EPG or TV guide link?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Tiviate finds the XMLTV guide from your playlist automatically, and you can add your own guide links in Settings. Plain, .gz and .xz files work." } },
+    { "@type": "Question", "name": "Can the Left and Right buttons change channel?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Turn on Settings, Remote control, Left / Right change channel. You can also turn off the TV guide so Tiviate always opens fullscreen." } },
     { "@type": "Question", "name": "Which devices does Tiviate run on?",
       "acceptedAnswer": { "@type": "Answer", "text": "Android TV and Google TV devices and Amazon Fire TV and Firestick, on Android 7.0 or newer. It also runs on Android phones and tablets with touch." } }
   ]
 }
 </script>
 <style>
-/* One dark look, matching the app's own guide screen. */
+/* Layout: full-bleed bands; one 1180px column inside. Hero = copy left, 3D TV right over a moving grid floor. */
 :root {
-  --bg: #05080f; --band: #0a1120; --surface: #0f1a2e; --line: #1d2a42;
-  --ink: #e8eef7; --muted: #9aa8bc; --accent: #38c6ee; --accent-ink: #04121a; --select: #ffd23f; --live: #3ddc84;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bg: #04060d; --bg-2: #070c18; --panel: rgba(16, 27, 48, 0.62); --panel-solid: #0e182b;
+  --line: rgba(130, 175, 255, 0.14); --line-strong: rgba(56, 198, 238, 0.35);
+  --ink: #eaf1fb; --muted: #93a3ba; --cyan: #38c6ee; --blue: #4f7cff; --select: #ffd23f; --live: #3ddc84; --rec: #ff4d6d;
+  --display: "Unbounded", "Segoe UI", system-ui, sans-serif;
+  --body: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--font); }
-a { color: var(--accent); }
-a:focus-visible, summary:focus-visible { outline: 3px solid var(--select); outline-offset: 3px; border-radius: 6px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.65 var(--body); overflow-x: hidden; }
+a { color: var(--cyan); }
 img { max-width: 100%; height: auto; display: block; }
-.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
-h1, h2, h3 { line-height: 1.15; text-wrap: balance; margin: 0; letter-spacing: -0.015em; }
-h1 { font-size: clamp(36px, 6vw, 60px); font-weight: 800; }
-h2 { font-size: clamp(26px, 3.6vw, 36px); font-weight: 750; }
-h3 { font-size: 19px; font-weight: 650; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--select); outline-offset: 3px; border-radius: 8px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { margin: 0; line-height: 1.12; text-wrap: balance; }
+h1, h2 { font-family: var(--display); letter-spacing: -0.02em; }
+h1 { font-size: clamp(32px, 4.2vw, 54px); font-weight: 800; }
+h2 { font-size: clamp(26px, 3.4vw, 42px); font-weight: 700; }
+h3 { font-size: 19px; font-weight: 700; }
 p { margin: 0; }
 .muted { color: var(--muted); }
+.eyebrow { font: 600 12px/1 var(--body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--cyan); }
+.grad { background: linear-gradient(100deg, var(--cyan), var(--blue) 55%, var(--select)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-header.top { padding-block: 18px; }
-header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-weight: 750; font-size: 20px; }
-.brand img { width: 36px; height: 36px; border-radius: 9px; }
-nav.links { display: flex; gap: 22px; flex-wrap: wrap; }
-nav.links a { color: var(--muted); text-decoration: none; font-size: 15px; }
+/* ---------- Header ---------- */
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(4, 6, 13, 0.6); border-bottom: 1px solid var(--line); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 21; background: var(--bg); }
+header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 14px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font: 700 19px var(--display); }
+.brand img { width: 34px; height: 34px; border-radius: 9px; box-shadow: 0 0 22px rgba(56, 198, 238, 0.45); }
+nav.links { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+nav.links a { color: var(--muted); text-decoration: none; font-size: 15px; font-weight: 600; }
 nav.links a:hover { color: var(--ink); }
+nav.links a.pill { color: var(--ink); border: 1px solid var(--line-strong); padding: 7px 14px; border-radius: 999px; }
 
-.hero { padding-block: 40px 56px; }
-.hero .wrap { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 48px; align-items: center; }
-.hero-text { display: flex; flex-direction: column; gap: 20px; }
-.lead { font-size: 20px; color: var(--muted); max-width: 34ch; }
+/* ---------- Hero ---------- */
+.hero { position: relative; overflow: hidden; padding-block: 56px 96px; isolation: isolate; }
+.blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.5; z-index: -2; animation: drift 22s ease-in-out infinite alternate; }
+.blob.a { width: 520px; height: 520px; background: #0e7fb0; left: -160px; top: -120px; }
+.blob.b { width: 460px; height: 460px; background: #2a3fd6; right: -120px; top: 40px; animation-delay: -8s; }
+.blob.c { width: 300px; height: 300px; background: #b8890a; right: 22%; bottom: -160px; opacity: 0.28; animation-delay: -14s; }
+@keyframes drift { to { transform: translate(60px, 40px) scale(1.12); } }
+.floor { position: absolute; left: -25%; right: -25%; bottom: -10%; height: 55%; z-index: -1;
+  background-image: linear-gradient(var(--line-strong) 1px, transparent 1px), linear-gradient(90deg, var(--line-strong) 1px, transparent 1px);
+  background-size: 64px 64px; transform: perspective(520px) rotateX(68deg); transform-origin: center bottom;
+  -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 85%); mask-image: linear-gradient(to top, #000 10%, transparent 85%);
+  animation: floor 3.2s linear infinite; opacity: 0.55; }
+@keyframes floor { to { background-position: 0 64px, 0 0; } }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 56px; align-items: center; }
+.hero-copy { display: flex; flex-direction: column; gap: 22px; }
+.tag { align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; padding: 6px 14px 6px 8px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 14px; font-weight: 600; }
+.tag b { background: var(--live); color: #032313; border-radius: 999px; padding: 2px 8px; font-size: 12px; letter-spacing: 0.06em; }
+.lead { font-size: 19px; color: var(--muted); max-width: 40ch; }
 .cta { display: flex; gap: 12px; flex-wrap: wrap; }
-.btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 10px; font-weight: 650; text-decoration: none; font-size: 16px; }
-.btn.primary { background: var(--accent); color: var(--accent-ink); }
-.btn.ghost { border: 1px solid var(--line); color: var(--ink); }
-.btn:hover { filter: brightness(1.08); }
-.facts { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.facts span::before { content: "•"; color: var(--live); margin-right: 8px; }
-/* The screenshot sits in the guide's own yellow "selected" frame. */
-.shot { border: 3px solid var(--select); border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 16 / 9; }
+.btn { position: relative; display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; transition: transform 0.2s, box-shadow 0.2s; }
+.btn svg { width: 20px; height: 20px; }
+.btn.primary { color: #04121a; background: linear-gradient(100deg, var(--cyan), #7fe0ff); box-shadow: 0 10px 40px -8px rgba(56, 198, 238, 0.7); }
+.btn.primary:hover { transform: translateY(-2px); box-shadow: 0 16px 50px -8px rgba(56, 198, 238, 0.9); }
+.btn.ghost { color: var(--ink); background: var(--panel); border: 1px solid var(--line); }
+.btn.ghost:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.facts span { font-size: 13px; font-weight: 600; color: var(--muted); padding: 5px 11px; border: 1px solid var(--line); border-radius: 8px; background: rgba(7, 12, 24, 0.6); font-variant-numeric: tabular-nums; }
 
-.band { background: var(--band); border-block: 1px solid var(--line); padding-block: 64px; }
-section.block { padding-block: 64px; }
-.section-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; max-width: 62ch; }
-.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px 32px; }
-.feature { display: flex; flex-direction: column; gap: 6px; padding-left: 14px; border-left: 2px solid var(--line); }
-.feature p { color: var(--muted); font-size: 16px; }
+/* 3D TV */
+.stage { position: relative; perspective: 1400px; }
+.tv { --rx: 7deg; --ry: -16deg; transform: rotateX(var(--rx)) rotateY(var(--ry)); transform-style: preserve-3d; transition: transform 0.25s ease-out; position: relative; }
+.bezel { position: relative; padding: 10px; border-radius: 18px; background: linear-gradient(145deg, #1a2438, #070b14 60%); border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 50px 90px -30px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(56, 198, 238, 0.12), 0 0 80px -10px rgba(56, 198, 238, 0.35); }
+.screen { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 16 / 9; background: #000; }
+.screen img { width: 100%; height: 100%; object-fit: cover; }
+.screen::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.12) 48%, transparent 60%); transform: translateX(-120%); animation: glare 6s ease-in-out infinite 1.2s; }
+@keyframes glare { 30%, 100% { transform: translateX(120%); } }
+.stand { width: 30%; height: 14px; margin: 0 auto; background: linear-gradient(#141d2f, #070b14); border-radius: 0 0 10px 10px; transform: translateZ(-20px); }
+.glow-floor { position: absolute; left: 10%; right: 10%; bottom: -46px; height: 50px; background: radial-gradient(closest-side, rgba(56, 198, 238, 0.45), transparent); filter: blur(10px); }
+.chip { position: absolute; display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 12px; background: rgba(10, 18, 34, 0.82); border: 1px solid var(--line-strong);
+  font-size: 13px; font-weight: 700; white-space: nowrap; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.8);
+  transform: translateZ(60px); animation: bob 5s ease-in-out infinite; }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--live); box-shadow: 0 0 10px var(--live); }
+.chip.c1 { top: -18px; left: 8%; }
+.chip.c2 { top: 26%; right: -22px; animation-delay: -1.5s; }
+.chip.c3 { bottom: 16%; left: -26px; animation-delay: -3s; }
+.chip.c4 { bottom: -22px; right: 14%; animation-delay: -2.2s; }
+.chip.c2 i { background: var(--select); box-shadow: 0 0 10px var(--select); }
+.chip.c3 i { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+@keyframes bob { 50% { transform: translateZ(60px) translateY(-10px); } }
+.remote { position: absolute; width: 74px; right: -36px; bottom: -56px; transform: translateZ(110px) rotate(14deg); filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.7)); animation: float-r 6s ease-in-out infinite; }
+@keyframes float-r { 50% { transform: translateZ(110px) rotate(10deg) translateY(-12px); } }
+.remote .key { fill: #22304a; animation: press 4s steps(1) infinite; }
+.remote .k-up { animation-delay: 0s; } .remote .k-right { animation-delay: 1s; } .remote .k-down { animation-delay: 2s; } .remote .k-ok { animation-delay: 3s; }
+@keyframes press { 0% { fill: var(--cyan); } 25% { fill: #22304a; } }
 
-.gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.gallery figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
-.gallery img { border-radius: 10px; border: 1px solid var(--line); aspect-ratio: 16 / 9; }
-.gallery figcaption { font-size: 14px; color: var(--muted); }
+/* ---------- Ticker ---------- */
+.ticker { display: flex; align-items: stretch; border-block: 1px solid var(--line); background: var(--bg-2); overflow: hidden; }
+.ticker .live { flex: none; display: flex; align-items: center; gap: 8px; padding: 0 18px; background: var(--rec); color: #fff; font: 700 13px var(--display); letter-spacing: 0.08em; z-index: 1; }
+.ticker .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: blink 1.2s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.track { display: flex; gap: 0; white-space: nowrap; animation: scroll 38s linear infinite; padding-block: 14px; }
+.track span { padding: 0 26px; font-weight: 600; color: var(--muted); }
+.track span::after { content: "◆"; color: var(--cyan); margin-left: 52px; font-size: 10px; vertical-align: middle; }
+@keyframes scroll { to { transform: translateX(-50%); } }
 
-.alt { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
-.alt ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+/* ---------- Sections ---------- */
+section.block { padding-block: 96px; position: relative; }
+.head { display: flex; flex-direction: column; gap: 14px; max-width: 64ch; margin-bottom: 44px; }
+.bento { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.card { --mx: 50%; --my: 50%; position: relative; border-radius: 18px; padding: 24px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(360px circle at var(--mx) var(--my), rgba(56, 198, 238, 0.14), transparent 60%); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.card:hover::before { opacity: 1; }
+.card:hover { border-color: var(--line-strong); }
+.card p { color: var(--muted); font-size: 16px; }
+.card .ic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; background: rgba(56, 198, 238, 0.12); border: 1px solid var(--line-strong); }
+.card .ic svg { width: 22px; height: 22px; stroke: var(--cyan); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.card.wide { grid-column: span 2; }
+.card.tall { grid-row: span 2; }
 
-ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
-ol.steps li { counter-increment: s; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
-ol.steps li::before { content: "Step " counter(s); font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; text-transform: uppercase; }
-ol.steps p { color: var(--muted); font-size: 16px; }
-code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.92em; background: var(--bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere; }
+/* Mini TV guide inside the EPG card: rows, a yellow selection that steps down, and a moving "now" line. */
+.mini-epg { position: relative; margin-top: 8px; display: grid; gap: 6px; padding: 10px; border-radius: 12px; background: rgba(4, 6, 13, 0.7); border: 1px solid var(--line); }
+.mini-epg .row { display: grid; grid-template-columns: 54px 1.4fr 1fr 1.6fr; gap: 5px; height: 26px; }
+.mini-epg .row span { border-radius: 5px; background: #12203a; }
+.mini-epg .row span:first-child { background: #1b2c4c; }
+.mini-epg .row .on { background: #173055; }
+.mini-epg .sel { position: absolute; left: 7px; right: 7px; top: 7px; height: 32px; border: 2px solid var(--select); border-radius: 7px; box-shadow: 0 0 18px rgba(255, 210, 63, 0.35); animation: sel 6s steps(1) infinite; }
+@keyframes sel { 0% { transform: translateY(0); } 25% { transform: translateY(32px); } 50% { transform: translateY(64px); } 75% { transform: translateY(32px); } }
+.mini-epg .now { position: absolute; top: 4px; bottom: 4px; width: 2px; left: 38%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); animation: now 9s linear infinite alternate; }
+@keyframes now { to { left: 62%; } }
+.eq { display: flex; align-items: flex-end; gap: 4px; height: 40px; margin-top: 6px; }
+.eq span { flex: 1; background: linear-gradient(to top, var(--cyan), var(--blue)); border-radius: 3px; animation: eq 1.1s ease-in-out infinite alternate; }
+.eq span:nth-child(2) { animation-delay: -0.3s; } .eq span:nth-child(3) { animation-delay: -0.6s; } .eq span:nth-child(4) { animation-delay: -0.15s; }
+.eq span:nth-child(5) { animation-delay: -0.8s; } .eq span:nth-child(6) { animation-delay: -0.45s; } .eq span:nth-child(7) { animation-delay: -0.95s; }
+@keyframes eq { from { height: 20%; } to { height: 100%; } }
 
-.faq { display: flex; flex-direction: column; gap: 10px; max-width: 780px; }
-.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; }
-.faq summary { cursor: pointer; font-weight: 650; font-size: 18px; }
-.faq details p { margin-top: 10px; color: var(--muted); }
+/* Steps */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; position: relative; counter-reset: s; }
+.steps::before { content: ""; position: absolute; top: 34px; left: 8%; right: 8%; height: 2px; background: linear-gradient(90deg, transparent, var(--cyan), var(--blue), transparent); background-size: 200% 100%; animation: flow 4s linear infinite; z-index: 0; }
+@keyframes flow { to { background-position: -200% 0; } }
+.steps li { counter-increment: s; position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; padding: 0 6px; }
+.steps li::before { content: counter(s); width: 68px; height: 68px; display: grid; place-items: center; border-radius: 20px; font: 700 26px var(--display); color: var(--ink);
+  background: linear-gradient(145deg, #13213b, #070c18); border: 1px solid var(--line-strong); box-shadow: 0 0 30px -6px rgba(56, 198, 238, 0.6); }
+.steps p { color: var(--muted); font-size: 16px; }
 
-footer { border-top: 1px solid var(--line); padding-block: 36px 48px; font-size: 14px; color: var(--muted); }
+/* Gallery: screens in 3D that flatten when pointed at */
+.gallery { display: grid; grid-template-columns: repeat(4, minmax(240px, 1fr)); gap: 22px; perspective: 1600px; overflow-x: auto; padding: 20px 6px 30px; scroll-snap-type: x mandatory; }
+.gallery figure { margin: 0; scroll-snap-align: center; display: flex; flex-direction: column; gap: 10px; transform: rotateY(-12deg); transition: transform 0.4s; }
+.gallery figure:nth-child(even) { transform: rotateY(12deg); }
+.gallery figure:hover { transform: rotateY(0) translateY(-6px); }
+.gallery img { border-radius: 12px; border: 1px solid var(--line); aspect-ratio: 16 / 9; box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.9); }
+.gallery figcaption { font-size: 14px; color: var(--muted); font-weight: 600; }
+
+/* Comparison */
+.compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.table-wrap { overflow-x: auto; border-radius: 16px; border: 1px solid var(--line); background: var(--panel); }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font: 700 13px var(--display); letter-spacing: 0.04em; color: var(--muted); }
+th.us { color: var(--cyan); }
+td.yes { color: var(--live); font-weight: 700; }
+td.no { color: var(--muted); }
+
+/* Install */
+.install { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.install li { list-style: none; }
+.install .card { height: 100%; }
+.install .n { font: 700 13px var(--display); color: var(--cyan); letter-spacing: 0.06em; }
+code { font-family: var(--mono); font-size: 0.9em; background: rgba(4, 6, 13, 0.8); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; overflow-wrap: anywhere; }
+.copy { align-self: flex-start; margin-top: 4px; font: 700 13px var(--body); color: var(--cyan); background: rgba(56, 198, 238, 0.12); border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+
+/* FAQ */
+.faq { display: flex; flex-direction: column; gap: 10px; max-width: 840px; }
+.faq details { border-radius: 14px; background: var(--panel); border: 1px solid var(--line); padding: 18px 22px; transition: border-color 0.2s; }
+.faq details[open] { border-color: var(--line-strong); }
+.faq summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; font-weight: 700; font-size: 18px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; color: var(--cyan); font: 700 22px/1 var(--display); transition: transform 0.25s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { margin-top: 12px; color: var(--muted); }
+
+/* Final call */
+.final { text-align: center; padding: 64px 24px; border-radius: 28px; position: relative; overflow: hidden; border: 1px solid var(--line-strong);
+  background: radial-gradient(600px 300px at 50% 0%, rgba(56, 198, 238, 0.22), transparent), linear-gradient(160deg, #0d1a33, #060a14); display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.final .cta { justify-content: center; }
+
+footer { border-top: 1px solid var(--line); padding-block: 40px 56px; font-size: 14px; color: var(--muted); }
 footer .wrap { display: flex; flex-direction: column; gap: 10px; }
-footer p { max-width: 90ch; }
+footer p { max-width: 95ch; }
 
-@media (max-width: 860px) {
-  .hero .wrap, .alt { grid-template-columns: minmax(0, 1fr); }
-  .gallery { grid-template-columns: minmax(0, 1fr); }
+/* Scroll reveal where the browser supports scroll-driven animation; everything is fully visible without it. */
+@supports (animation-timeline: view()) {
+  .reveal { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% cover 22%; }
+  @keyframes rise { from { transform: translateY(36px) scale(0.98); } to { transform: none; } }
 }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+.lazy { content-visibility: auto; contain-intrinsic-size: auto 800px; }
+
+@media (max-width: 980px) {
+  .hero .wrap, .compare { grid-template-columns: minmax(0, 1fr); }
+  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .install { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stage { margin: 20px 30px 40px; }
+}
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .bento, .install, .steps { grid-template-columns: minmax(0, 1fr); }
+  .card.wide { grid-column: auto; }
+  .steps::before { display: none; }
+  .chip.c2, .chip.c4 { display: none; }
+  .chip.c3 { left: -8px; }
+  .remote { right: -10px; width: 58px; }
+  .stage { margin: 16px 6px 44px; }
+  nav.links a:not(.pill) { display: none; }
+  .gallery { grid-template-columns: repeat(4, 82%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
 </style>
 </head>
 <body>
 
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="./"><img src="img/icon.png" alt="" width="36" height="36">Tiviate</a>
+    <a class="brand" href="./"><img src="img/icon.png" alt="" width="34" height="34">Tiviate</a>
     <nav class="links" aria-label="Main">
       <a href="#features">Features</a>
       <a href="#install">Install</a>
       <a href="#faq">FAQ</a>
-      <a href="https://github.com/Amitk2108/tiviate">GitHub</a>
+      <a class="pill" href="https://github.com/Amitk2108/tiviate">GitHub</a>
     </nav>
   </div>
 </header>
 
 <main>
-  <section class="hero">
+  <section class="hero" aria-labelledby="hero-h">
+    <div class="blob a" aria-hidden="true"></div>
+    <div class="blob b" aria-hidden="true"></div>
+    <div class="blob c" aria-hidden="true"></div>
+    <div class="floor" aria-hidden="true"></div>
     <div class="wrap">
-      <div class="hero-text">
-        <h1>Free IPTV player for Android TV and Fire TV</h1>
-        <p class="lead">Open source, built for the remote, and every feature is free. Add your own M3U link or Xtream Codes login and watch with a full TV guide.</p>
+      <div class="hero-copy">
+        <span class="tag"><b>FREE</b> Open source · no premium tier</span>
+        <h1 id="hero-h">The <span class="grad">free IPTV player</span> for Android TV and Fire TV</h1>
+        <p class="lead">Built for the remote, smooth on a Fire TV Stick, and every feature unlocked. Add your own M3U link or Xtream Codes login and watch with a full TV guide.</p>
         <div class="cta">
-          <a class="btn primary" href="https://github.com/Amitk2108/tiviate/releases/latest">Download the APK</a>
-          <a class="btn ghost" href="https://github.com/Amitk2108/tiviate">Source code</a>
+          <a class="btn primary" href="https://github.com/Amitk2108/tiviate/releases/latest">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
+            Download the APK
+          </a>
+          <a class="btn ghost" href="https://github.com/Amitk2108/tiviate">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+            Source code
+          </a>
         </div>
         <div class="facts" aria-label="At a glance">
-          <span>Android 7.0+</span><span>About 10 MB</span><span>GPL-3.0</span><span>40 languages</span><span>No ads or account</span>
+          <span>Android 7.0+</span><span>About 10 MB</span><span>GPL-3.0</span><span>40 languages</span><span>No ads · no account</span>
         </div>
       </div>
-      <div class="shot">
-        <img src="img/guide.webp" width="1280" height="720" alt="Tiviate TV guide on Android TV: live preview at the top, channels with their programmes below, the selected channel framed in yellow" fetchpriority="high">
+
+      <div class="stage" aria-hidden="false">
+        <div class="tv" id="tv">
+          <div class="bezel">
+            <div class="screen">
+              <img src="img/guide.webp" width="1280" height="720" fetchpriority="high" alt="Tiviate TV guide on Android TV: live preview at the top, channels with their programmes below, the selected channel framed in yellow">
+            </div>
+          </div>
+          <div class="stand" aria-hidden="true"></div>
+          <span class="chip c1" aria-hidden="true"><i></i>Live TV guide</span>
+          <span class="chip c2" aria-hidden="true"><i></i>Xtream Codes · M3U</span>
+          <span class="chip c3" aria-hidden="true"><i></i>AC3 · DTS sound</span>
+          <span class="chip c4" aria-hidden="true"><i></i>No ads, no account</span>
+          <svg class="remote" viewBox="0 0 80 200" aria-hidden="true">
+            <rect x="4" y="4" width="72" height="192" rx="30" fill="#0d1526" stroke="#2b3b5c" stroke-width="2"/>
+            <circle cx="40" cy="62" r="28" fill="#111c31" stroke="#2b3b5c" stroke-width="2"/>
+            <path class="key k-up" d="M30 40 h20 l-10 -9 z"/>
+            <path class="key k-right" d="M62 52 v20 l9 -10 z"/>
+            <path class="key k-down" d="M30 84 h20 l-10 9 z"/>
+            <path class="key" d="M18 52 v20 l-9 -10 z" style="animation:none"/>
+            <circle class="key k-ok" cx="40" cy="62" r="11"/>
+            <circle cx="24" cy="112" r="7" fill="#1a2740"/><circle cx="56" cy="112" r="7" fill="#1a2740"/>
+            <rect x="26" y="132" width="28" height="44" rx="14" fill="#1a2740"/>
+          </svg>
+          <div class="glow-floor" aria-hidden="true"></div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="band" id="features">
+  <div class="ticker" aria-label="What Tiviate does">
+    <span class="live">LIVE</span>
+    <div class="track" aria-hidden="true">
+      <span>M3U &amp; M3U8 playlists</span><span>Xtream Codes</span><span>XMLTV TV guide</span><span>Favourites &amp; your own groups</span><span>AC3 · E-AC3 · DTS</span><span>Picture-in-picture</span><span>Backup &amp; restore</span><span>40 languages</span><span>Left / Right channel switching</span>
+      <span>M3U &amp; M3U8 playlists</span><span>Xtream Codes</span><span>XMLTV TV guide</span><span>Favourites &amp; your own groups</span><span>AC3 · E-AC3 · DTS</span><span>Picture-in-picture</span><span>Backup &amp; restore</span><span>40 languages</span><span>Left / Right channel switching</span>
+    </div>
+  </div>
+
+  <section class="block lazy" id="features" aria-labelledby="features-h">
     <div class="wrap">
-      <div class="section-head">
-        <h2>Everything a live TV player needs, without a premium tier</h2>
-        <p class="muted">Made for watching TV from the sofa with a remote, and smooth on a low-cost Fire TV Stick.</p>
+      <div class="head reveal">
+        <span class="eyebrow">Features</span>
+        <h2 id="features-h">Everything a live TV player needs, without a premium tier</h2>
+        <p class="muted">Made for watching TV from the sofa with a remote. Nothing is locked, nothing is sold.</p>
       </div>
-      <div class="features">
-        <div class="feature"><h3>Full TV guide (EPG)</h3><p>A guide grid with a live preview and minutes left. XMLTV guides are found from your playlist, and you can add your own (.gz and .xz work).</p></div>
-        <div class="feature"><h3>M3U and Xtream Codes</h3><p>Add an M3U or M3U8 link, an Xtream Codes login or a local M3U file. Playlists update on start, daily, weekly or monthly.</p></div>
-        <div class="feature"><h3>Built for the remote</h3><p>OK opens the player options, Left opens your groups, and holding Back always returns to the player.</p></div>
-        <div class="feature"><h3>Your channels, your way</h3><p>Favourites, recent channels and your own groups. Hide, rename and reorder channels, or strip "UK:" and "| FHD" from names.</p></div>
-        <div class="feature"><h3>Reliable playback</h3><p>Hardware decoding, AC3 and DTS sound on TVs that can't decode it, automatic reconnect, and a switch between .ts and .m3u8 when a channel fails.</p></div>
-        <div class="feature"><h3>Every feature free</h3><p>Audio and subtitle tracks, audio sync, sleep timer, picture-in-picture, backup and restore. Nothing is locked.</p></div>
-        <div class="feature"><h3>Private</h3><p>No account, no ads, no analytics. Your playlist logins stay on your TV.</p></div>
-        <div class="feature"><h3>Keeps itself up to date</h3><p>Tiviate tells you when a new version is out and installs it for you. You can turn the check off.</p></div>
+      <div class="bento">
+        <article class="card wide tall reveal">
+          <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg></div>
+          <h3>Full TV guide (EPG)</h3>
+          <p>A guide grid with a live preview, minutes left and the playing channel marked. XMLTV guides come from your playlist, and you can add your own links (.gz and .xz work).</p>
+          <div class="mini-epg" aria-hidden="true">
+            <div class="row"><span></span><span class="on"></span><span></span><span></span></div>
+            <div class="row"><span></span><span></span><span class="on"></span><span></span></div>
+            <div class="row"><span></span><span class="on"></span><span></span><span></span></div>
+            <div class="row"><span></span><span></span><span></span><span class="on"></span></div>
+            <div class="sel"></div><div class="now"></div>
+          </div>
+        </article>
+        <article class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+          <h3>M3U and Xtream Codes</h3>
+          <p>An M3U link, an Xtream Codes login or a local file. Playlists update on start, daily, weekly or monthly.</p>
+        </article>
+        <article class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="5"/><circle cx="12" cy="8" r="2.5"/></svg></div>
+          <h3>Built for the remote</h3>
+          <p>OK opens the options, Left the groups. Or set Left and Right to change channel.</p>
+        </article>
+        <article class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10Z"/></svg></div>
+          <h3>Your channels, your way</h3>
+          <p>Favourites, recent and your own groups. Hide, rename and reorder; strip "UK:" from names.</p>
+        </article>
+        <article class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 12h3l3-7 4 14 3-7h5"/></svg></div>
+          <h3>Smooth on a Fire TV Stick</h3>
+          <p>Guide frames dropped from about 46 ms to 14 ms on a 32-bit Fire TV, so scrolling keeps up with the remote.</p>
+        </article>
+        <article class="card wide reveal">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></div>
+          <h3>Reliable playback, surround sound</h3>
+          <p>Hardware decoding, AC3 / E-AC3 / DTS through FFmpeg on TVs that can't decode it, automatic reconnect, and a switch between .ts and .m3u8 when a channel fails.</p>
+          <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        </article>
+        <article class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+          <h3>Private</h3>
+          <p>No account, no ads, no analytics. Your logins stay on your TV.</p>
+        </article>
+        <article class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></div>
+          <h3>Updates itself</h3>
+          <p>New versions arrive inside the app. Backups move everything to a new TV.</p>
+        </article>
       </div>
     </div>
   </section>
 
-  <section class="block" aria-labelledby="shots-h">
+  <section class="block lazy" aria-labelledby="how-h">
     <div class="wrap">
-      <div class="section-head"><h2 id="shots-h">Screenshots</h2></div>
+      <div class="head reveal">
+        <span class="eyebrow">Three steps</span>
+        <h2 id="how-h">From install to live TV in a few minutes</h2>
+      </div>
+      <ol class="steps">
+        <li class="reveal"><h3>Install</h3><p>Download the APK on your Android TV, Google TV or Fire TV Stick.</p></li>
+        <li class="reveal"><h3>Add your playlist</h3><p>Enter your M3U link or Xtream Codes login. Channels, groups and the guide load by themselves.</p></li>
+        <li class="reveal"><h3>Watch</h3><p>Browse the guide, press OK, and zap with the remote.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block lazy" aria-labelledby="shots-h">
+    <div class="wrap">
+      <div class="head reveal">
+        <span class="eyebrow">Screenshots</span>
+        <h2 id="shots-h">See it on a TV</h2>
+      </div>
       <div class="gallery">
+        <figure><img src="img/guide.webp" width="1280" height="720" loading="lazy" alt="TV guide with live preview"><figcaption>TV guide with live preview</figcaption></figure>
         <figure><img src="img/channels.webp" width="1280" height="720" loading="lazy" alt="Channel list over the video with what is on now"><figcaption>Channel list over the video</figcaption></figure>
         <figure><img src="img/groups.webp" width="1280" height="720" loading="lazy" alt="Groups column beside the TV guide"><figcaption>Groups beside the guide</figcaption></figure>
         <figure><img src="img/options.webp" width="1280" height="720" loading="lazy" alt="Player options: audio, subtitles, display, sleep timer"><figcaption>Player options on OK</figcaption></figure>
@@ -197,46 +470,73 @@ footer p { max-width: 90ch; }
     </div>
   </section>
 
-  <section class="band" aria-labelledby="alt-h">
-    <div class="wrap alt">
-      <div class="section-head" style="margin-bottom:0">
+  <section class="block lazy" aria-labelledby="alt-h">
+    <div class="wrap compare">
+      <div class="head reveal" style="margin-bottom:0">
+        <span class="eyebrow">TiviMate alternative</span>
         <h2 id="alt-h">A free, open-source alternative to TiviMate</h2>
-        <p class="muted">If you like how TiviMate works on a TV but don't want to pay to unlock features, Tiviate covers the same everyday use: live TV with a guide, groups and favourites, all driven by the remote.</p>
+        <p class="muted">If you like how TiviMate works on a TV but don't want to pay to unlock features, Tiviate covers the same everyday use: live TV with a guide, groups and favourites, all driven by the remote. Tiviate is an independent project and is not affiliated with TiviMate.</p>
       </div>
-      <ul>
-        <li>Every feature is free, with no premium tier to unlock.</li>
-        <li>The source code is public, so anyone can check what the app does.</li>
-        <li>No account and no tracking.</li>
-        <li>Backups move your playlists, favourites and settings to a new TV.</li>
-        <li>Tiviate is an independent project and is not affiliated with TiviMate.</li>
-      </ul>
+      <div class="table-wrap reveal">
+        <table>
+          <thead><tr><th scope="col">What you get</th><th scope="col" class="us">Tiviate</th></tr></thead>
+          <tbody>
+            <tr><td>Every feature, no premium tier</td><td class="yes">Free</td></tr>
+            <tr><td>Source code anyone can check</td><td class="yes">Yes, GPL-3.0</td></tr>
+            <tr><td>Account needed</td><td class="yes">No</td></tr>
+            <tr><td>Ads or tracking</td><td class="yes">None</td></tr>
+            <tr><td>Backup to a new TV</td><td class="yes">Yes</td></tr>
+            <tr><td>Channels included</td><td class="no">No, bring your own</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
 
-  <section class="block" id="install" aria-labelledby="install-h">
+  <section class="block lazy" id="install" aria-labelledby="install-h">
     <div class="wrap">
-      <div class="section-head">
+      <div class="head reveal">
+        <span class="eyebrow">Install</span>
         <h2 id="install-h">Install on a Fire TV Stick or Fire TV</h2>
         <p class="muted">On Android TV and Google TV, download the APK with a browser or a file-sending app and open it.</p>
       </div>
-      <ol class="steps">
-        <li><h3>Get Downloader</h3><p>Install the free <b>Downloader</b> app from the Amazon Appstore on your Fire TV.</p></li>
-        <li><h3>Allow the install</h3><p>Settings → My Fire TV → Developer options → Install unknown apps → turn on Downloader. No Developer options? Open My Fire TV → About and press the device name 7 times.</p></li>
-        <li><h3>Download Tiviate</h3><p>In Downloader, enter <code>github.com/Amitk2108/tiviate/releases/latest</code>, choose the <code>.apk</code> file and press Install.</p></li>
-        <li><h3>Add your playlist</h3><p>Open Tiviate and add your M3U link, Xtream Codes login or M3U file. The guide fills in by itself.</p></li>
+      <ol class="install">
+        <li class="reveal"><div class="card"><span class="n">STEP 1</span><h3>Get Downloader</h3><p>Install the free <b>Downloader</b> app from the Amazon Appstore.</p></div></li>
+        <li class="reveal"><div class="card"><span class="n">STEP 2</span><h3>Allow the install</h3><p>Settings → My Fire TV → Developer options → Install unknown apps → turn on Downloader. No Developer options? Open My Fire TV → About and press the device name 7 times.</p></div></li>
+        <li class="reveal"><div class="card"><span class="n">STEP 3</span><h3>Download Tiviate</h3><p>In Downloader, enter <code id="dl-url">github.com/Amitk2108/tiviate/releases/latest</code> and install the <code>.apk</code>.</p><button class="copy" type="button" data-copy="dl-url">Copy address</button></div></li>
+        <li class="reveal"><div class="card"><span class="n">STEP 4</span><h3>Add your playlist</h3><p>Open Tiviate and add your M3U link, Xtream Codes login or M3U file.</p></div></li>
       </ol>
     </div>
   </section>
 
-  <section class="band" id="faq" aria-labelledby="faq-h">
+  <section class="block lazy" id="faq" aria-labelledby="faq-h">
     <div class="wrap">
-      <div class="section-head"><h2 id="faq-h">Questions</h2></div>
+      <div class="head reveal">
+        <span class="eyebrow">FAQ</span>
+        <h2 id="faq-h">Questions</h2>
+      </div>
       <div class="faq">
         <details><summary>Is Tiviate free?</summary><p>Yes. Every feature is free. There is no premium version, no account, no ads and no tracking. The source code is open under the GPL-3.0 licence.</p></details>
         <details><summary>Does Tiviate include channels?</summary><p>No. Tiviate is a player only. You add the M3U link, Xtream Codes login or M3U file you already have from your own provider.</p></details>
         <details><summary>Is Tiviate an alternative to TiviMate?</summary><p>Yes. Tiviate is an independent, open-source IPTV player for the same kind of use: live TV with a TV guide on Android TV and Fire TV. All of its features are free. It is not affiliated with TiviMate.</p></details>
         <details><summary>How do I install Tiviate on a Fire TV Stick?</summary><p>Install Downloader from the Amazon Appstore, allow it under Settings, My Fire TV, Developer options, Install unknown apps, then open github.com/Amitk2108/tiviate/releases/latest in Downloader and install the APK.</p></details>
+        <details><summary>Does Tiviate work with Xtream Codes and M3U?</summary><p>Yes. Add an Xtream Codes login (server, username and password), an M3U or M3U8 link, or a local M3U file. Tiviate loads the channels, groups and TV guide from it.</p></details>
+        <details><summary>Can I add my own EPG or TV guide link?</summary><p>Yes. Tiviate finds the XMLTV guide from your playlist automatically, and you can add your own guide links in Settings. Plain, .gz and .xz files work.</p></details>
+        <details><summary>Can the Left and Right buttons change channel?</summary><p>Yes. Turn on Settings, Remote control, Left / Right change channel. You can also turn off the TV guide so Tiviate always opens fullscreen.</p></details>
         <details><summary>Which devices does Tiviate run on?</summary><p>Android TV and Google TV devices and Amazon Fire TV and Firestick, on Android 7.0 or newer. It also runs on Android phones and tablets with touch.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="block lazy" aria-labelledby="final-h">
+    <div class="wrap">
+      <div class="final reveal">
+        <h2 id="final-h">Turn your TV box into a <span class="grad">free live TV player</span></h2>
+        <p class="muted">About 10 MB. No sign-up. Works with the subscription you already have.</p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/Amitk2108/tiviate/releases/latest">Download the APK</a>
+          <a class="btn ghost" href="https://github.com/Amitk2108/tiviate">Star on GitHub</a>
+        </div>
       </div>
     </div>
   </section>
@@ -249,5 +549,39 @@ footer p { max-width: 90ch; }
   </div>
 </footer>
 
+<script>
+(function () {
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var mouse = window.matchMedia('(pointer: fine)').matches;
+  // The TV turns toward the pointer.
+  var hero = document.querySelector('.hero'), tv = document.getElementById('tv');
+  if (!still && mouse && hero && tv) {
+    hero.addEventListener('pointermove', function (e) {
+      var r = hero.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      tv.style.setProperty('--ry', (-16 + x * 14).toFixed(2) + 'deg');
+      tv.style.setProperty('--rx', (7 - y * 10).toFixed(2) + 'deg');
+    });
+    hero.addEventListener('pointerleave', function () { tv.style.removeProperty('--ry'); tv.style.removeProperty('--rx'); });
+  }
+  // Cards light up under the pointer.
+  if (mouse) document.querySelectorAll('.card').forEach(function (c) {
+    c.addEventListener('pointermove', function (e) {
+      var r = c.getBoundingClientRect();
+      c.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      c.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+  // Copy the download address for Downloader.
+  document.querySelectorAll('[data-copy]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = document.getElementById(b.getAttribute('data-copy')).textContent;
+      var done = function (s) { b.textContent = s; setTimeout(function () { b.textContent = 'Copy address'; }, 1800); };
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { done('Copied'); }, function () { done('Select and copy'); });
+      else done('Select and copy');
+    });
+  });
+})();
+</script>
 </body>
 </html>
