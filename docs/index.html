@@ -228,12 +228,13 @@ section.block { padding-block: 96px; position: relative; }
 .steps p { color: var(--muted); font-size: 16px; }
 
 /* Gallery: screens in 3D that flatten when pointed at */
-.gallery { display: grid; grid-template-columns: repeat(4, minmax(240px, 1fr)); gap: 22px; perspective: 1600px; overflow-x: auto; padding: 20px 6px 30px; scroll-snap-type: x mandatory; }
-.gallery figure { margin: 0; scroll-snap-align: center; display: flex; flex-direction: column; gap: 10px; transform: rotateY(-12deg); transition: transform 0.4s; }
-.gallery figure:nth-child(even) { transform: rotateY(12deg); }
+.gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 18px; perspective: 1600px; padding: 10px 6px 20px; }
+.gallery figure { margin: 0; display: flex; flex-direction: column; gap: 8px; transform: rotateX(8deg); transition: transform 0.4s; }
 .gallery figure:hover { transform: rotateY(0) translateY(-6px); }
 .gallery img { border-radius: 12px; border: 1px solid var(--line); aspect-ratio: 16 / 9; box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.9); }
-.gallery figcaption { font-size: 14px; color: var(--muted); font-weight: 600; }
+.gallery figcaption { font-size: 14px; color: var(--muted); }
+.gallery figcaption b { color: var(--ink); }
+@media (max-width: 980px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Comparison */
 .compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
@@ -253,6 +254,23 @@ td.no { color: var(--muted); }
 .install .n { font: 700 13px var(--display); color: var(--cyan); letter-spacing: 0.06em; }
 code { font-family: var(--mono); font-size: 0.9em; background: rgba(4, 6, 13, 0.8); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; overflow-wrap: anywhere; }
 .copy { align-self: flex-start; margin-top: 4px; font: 700 13px var(--body); color: var(--cyan); background: rgba(56, 198, 238, 0.12); border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+
+/* All features */
+.groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.groups ul { margin: 4px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 15px; }
+.groups li::marker { color: var(--cyan); }
+.groups b { color: var(--ink); font-weight: 600; }
+/* Comparison and remote tables */
+.vs td:nth-child(2), .vs th:nth-child(2) { background: rgba(56, 198, 238, 0.06); }
+td.mid { color: var(--select); font-weight: 600; }
+.note { font-size: 13px; color: var(--muted); margin-top: 12px; max-width: 90ch; }
+kbd { font: 700 13px var(--mono); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line-strong); background: rgba(56, 198, 238, 0.08); color: var(--ink); white-space: nowrap; }
+.remote-table td:first-child { white-space: nowrap; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips span { font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.legal ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 10px; color: var(--muted); font-size: 15px; }
+.legal b { color: var(--ink); }
 
 /* FAQ */
 .faq { display: flex; flex-direction: column; gap: 10px; max-width: 840px; }
@@ -282,13 +300,14 @@ footer p { max-width: 95ch; }
 
 @media (max-width: 980px) {
   .hero .wrap, .compare { grid-template-columns: minmax(0, 1fr); }
-  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bento, .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .two { grid-template-columns: minmax(0, 1fr); }
   .install { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stage { margin: 20px 30px 40px; }
 }
 @media (max-width: 620px) {
   body { font-size: 16px; }
-  .bento, .install, .steps { grid-template-columns: minmax(0, 1fr); }
+  .bento, .install, .steps, .groups { grid-template-columns: minmax(0, 1fr); }
   .card.wide { grid-column: auto; }
   .steps::before { display: none; }
   .chip.c2, .chip.c4 { display: none; }
@@ -296,7 +315,7 @@ footer p { max-width: 95ch; }
   .remote { right: -10px; width: 58px; }
   .stage { margin: 16px 6px 44px; }
   nav.links a:not(.pill) { display: none; }
-  .gallery { grid-template-columns: repeat(4, 82%); }
+  .gallery { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -311,6 +330,8 @@ footer p { max-width: 95ch; }
     <a class="brand" href="./"><img src="img/icon.png" alt="" width="34" height="34">Tiviate</a>
     <nav class="links" aria-label="Main">
       <a href="#features">Features</a>
+      <a href="#compare">Compare</a>
+      <a href="#remote">Remote</a>
       <a href="#install">Install</a>
       <a href="#faq">FAQ</a>
       <a class="pill" href="https://github.com/Amitk2108/tiviate">GitHub</a>
@@ -441,6 +462,78 @@ footer p { max-width: 95ch; }
     </div>
   </section>
 
+  <section class="block lazy" id="all-features" aria-labelledby="all-h">
+    <div class="wrap">
+      <div class="head reveal">
+        <span class="eyebrow">Full list</span>
+        <h2 id="all-h">Every feature, all free</h2>
+        <p class="muted">There is no premium version, no account, no activation and no ads.</p>
+      </div>
+      <div class="groups">
+        <article class="card reveal"><h3>Playback</h3><ul>
+          <li>Media3 (ExoPlayer) with <b>hardware decoding</b> and software fallback</li>
+          <li><b>AC3 / E-AC3 / DTS</b> sound through the bundled FFmpeg decoder</li>
+          <li><b>Fast channel start</b>; the last picture stays while the next channel loads</li>
+          <li>One video surface: <b>no black flash</b> between fullscreen and the guide</li>
+          <li><b>Auto-reconnect</b>, a frozen-stream watchdog and clear error messages</li>
+          <li>Buffer size, software decoder, tunnelled playback, refresh-rate matching</li>
+          <li><b>Pause live TV</b>, then Back to live</li>
+          <li>Audio tracks, one language for all channels, <b>surround</b> preference</li>
+          <li><b>Subtitles</b> per channel or for all, in the TV's caption style</li>
+          <li><b>Audio sync</b> from −500 to +500 ms</li>
+          <li>Display mode (Fit, Stretch, Fill, 16:9, 4:3) and <b>zoom</b></li>
+          <li><b>Always highest quality</b> or automatic; stats overlay</li>
+          <li>Sleep timer, <b>picture-in-picture</b>, open in another player</li>
+        </ul></article>
+        <article class="card reveal"><h3>Browsing</h3><ul>
+          <li><b>TV guide</b> with live preview, minutes left, descriptions and images</li>
+          <li>The guide follows the clock and <b>refreshes itself</b> before it runs out</li>
+          <li>Groups column with icons and counts, beside the guide</li>
+          <li>Channel list with what's on now; autoplay while browsing</li>
+          <li>Guide over the video (overlay mode)</li>
+          <li><b>Favourites</b>, <b>Recent</b> and your own groups</li>
+          <li><b>Search</b> channels and what's on now</li>
+          <li>Previous channel; peek at other channels from the info bar</li>
+          <li>Opens on the last group you used; nothing plays until you press OK</li>
+        </ul></article>
+        <article class="card reveal"><h3>Organising</h3><ul>
+          <li><b>Hold OK</b> on a channel: hide, rename, favourite, add to a group</li>
+          <li><b>Assign a guide channel by hand</b></li>
+          <li>Hide, rename and <b>reorder</b> channels and groups</li>
+          <li><b>Names editor</b>: strip "UK:" or "| FHD" from names</li>
+          <li>Sort by playlist order, name, number, newest, most watched or your own</li>
+          <li>Choose which player option cards show, and their order</li>
+        </ul></article>
+        <article class="card reveal"><h3>Playlists and guide</h3><ul>
+          <li><b>M3U / M3U8 links</b>, <b>Xtream Codes</b> with account status and expiry, local files</li>
+          <li>Several playlists; switch from the groups column</li>
+          <li>Playlists update on start, daily, weekly or monthly; the guide every 6/12/24 hours</li>
+          <li><b>XMLTV</b> from the playlist plus your own links (plain, .gz, .xz)</li>
+          <li>Channels matched by tvg-id, then by name</li>
+          <li>Logos saved on the TV, sharp on 4K screens</li>
+          <li>Custom User-Agent per playlist</li>
+        </ul></article>
+        <article class="card reveal"><h3>Look and feel</h3><ul>
+          <li>Modern TV design with a glowing focus and a <b>yellow frame</b> on the selected channel</li>
+          <li><b>12 accent colours</b>, 3 backgrounds, font size, panel transparency</li>
+          <li>Logo style, two-line names and titles</li>
+          <li>Clock size, date and position; clock over the video</li>
+          <li>Animations on or off</li>
+          <li><b>40 languages</b></li>
+        </ul></article>
+        <article class="card reveal"><h3>System</h3><ul>
+          <li>Start with the TV; open the last channel fullscreen</li>
+          <li><b>Left / Right change channel</b> (optional); turn the TV guide off</li>
+          <li><b>Hold Back</b> on any screen to return to the player</li>
+          <li><b>Updates inside the app</b>, with what's new</li>
+          <li><b>Backup and restore</b> of playlists, favourites, groups and settings</li>
+          <li><b>.ts / .m3u8 fallback</b> when a channel fails</li>
+          <li>Quick start-up, smooth on low-memory TV sticks</li>
+        </ul></article>
+      </div>
+    </div>
+  </section>
+
   <section class="block lazy" aria-labelledby="how-h">
     <div class="wrap">
       <div class="head reveal">
@@ -455,41 +548,91 @@ footer p { max-width: 95ch; }
     </div>
   </section>
 
+  <section class="block lazy" id="remote" aria-labelledby="remote-h">
+    <div class="wrap">
+      <div class="head reveal">
+        <span class="eyebrow">Remote control</span>
+        <h2 id="remote-h">Every key does something useful</h2>
+        <p class="muted">Tiviate is made for a TV remote. This is what each key does on the three main screens.</p>
+      </div>
+      <div class="table-wrap reveal">
+        <table class="remote-table">
+          <thead><tr><th scope="col">Key</th><th scope="col">Fullscreen</th><th scope="col">Channel list</th><th scope="col">TV guide</th></tr></thead>
+          <tbody>
+            <tr><td><kbd>OK</kbd></td><td>Player options: channels, guide, pause, audio, subtitles, display, zoom, quality, sleep…</td><td>Play the channel</td><td>Play in the preview; OK again goes fullscreen</td></tr>
+            <tr><td><kbd>Hold OK</kbd></td><td>Player options</td><td>Channel menu: hide, rename, favourite, groups, guide</td><td>Channel and programme menu</td></tr>
+            <tr><td><kbd>Up</kbd> <kbd>CH+</kbd></td><td>Next channel</td><td>Move</td><td>Move (CH± a page)</td></tr>
+            <tr><td><kbd>Down</kbd></td><td>Player options, or previous channel with "Up and Down: change channel"</td><td>Move</td><td>Move</td></tr>
+            <tr><td><kbd>CH−</kbd></td><td>Previous channel</td><td>—</td><td>Page</td></tr>
+            <tr><td><kbd>Left</kbd></td><td>Channel list with groups, or previous channel with "Left / Right change channel"</td><td>Groups</td><td>Earlier programme; on now, the groups</td></tr>
+            <tr><td><kbd>Right</kbd> <kbd>Guide</kbd></td><td>TV guide, or next channel with "Left / Right change channel"</td><td>—</td><td>Later programme</td></tr>
+            <tr><td><kbd>Info</kbd></td><td>Info bar; then Left/Right peek at other channels, OK switches</td><td>—</td><td>—</td></tr>
+            <tr><td><kbd>Menu</kbd></td><td>Player options</td><td>—</td><td>Channel and programme menu</td></tr>
+            <tr><td><kbd>Play/Pause</kbd></td><td>Pause and resume live TV</td><td>—</td><td>—</td></tr>
+            <tr><td><kbd>FF</kbd> <kbd>RW</kbd></td><td>—</td><td>—</td><td>Jump 2 hours</td></tr>
+            <tr><td><kbd>0–9</kbd></td><td>Go to a channel number</td><td>—</td><td>—</td></tr>
+            <tr><td><kbd>Back</kbd></td><td>TV guide (or leave the app, with the guide turned off)</td><td>Close</td><td>Press twice to exit</td></tr>
+            <tr><td><kbd>Hold Back</kbd></td><td>Back to the player from any screen</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <section class="block lazy" aria-labelledby="shots-h">
     <div class="wrap">
       <div class="head reveal">
         <span class="eyebrow">Screenshots</span>
         <h2 id="shots-h">See it on a TV</h2>
+        <p class="muted">Taken with Tiviate's test playlist: made-up channels and the project's own test video. No real broadcaster content is shown.</p>
       </div>
       <div class="gallery">
-        <figure><img src="img/guide.webp" width="1280" height="720" loading="lazy" alt="TV guide with live preview"><figcaption>TV guide with live preview</figcaption></figure>
-        <figure><img src="img/channels.webp" width="1280" height="720" loading="lazy" alt="Channel list over the video with what is on now"><figcaption>Channel list over the video</figcaption></figure>
-        <figure><img src="img/groups.webp" width="1280" height="720" loading="lazy" alt="Groups column beside the TV guide"><figcaption>Groups beside the guide</figcaption></figure>
-        <figure><img src="img/options.webp" width="1280" height="720" loading="lazy" alt="Player options: audio, subtitles, display, sleep timer"><figcaption>Player options on OK</figcaption></figure>
+        <figure><img src="img/guide.webp" width="1280" height="720" loading="lazy" alt="Tiviate TV guide: live preview, minutes left, the playing channel marked"><figcaption><b>TV guide</b> · live preview, minutes left, the playing channel marked</figcaption></figure>
+        <figure><img src="img/options.webp" width="1280" height="720" loading="lazy" alt="Tiviate Player options: OK opens them; the current value under every tile"><figcaption><b>Player options</b> · OK opens them; the current value under every tile</figcaption></figure>
+        <figure><img src="img/groups.webp" width="1280" height="720" loading="lazy" alt="Tiviate Groups: beside the guide, with icons and channel counts"><figcaption><b>Groups</b> · beside the guide, with icons and channel counts</figcaption></figure>
+        <figure><img src="img/info.webp" width="1280" height="720" loading="lazy" alt="Tiviate Info bar: now and next, progress, stream details"><figcaption><b>Info bar</b> · now and next, progress, stream details</figcaption></figure>
+        <figure><img src="img/channels.webp" width="1280" height="720" loading="lazy" alt="Tiviate Channel list: over the video, with what's on now"><figcaption><b>Channel list</b> · over the video, with what's on now</figcaption></figure>
+        <figure><img src="img/menu.webp" width="1280" height="720" loading="lazy" alt="Tiviate Side menu: Search, TV and Settings"><figcaption><b>Side menu</b> · Search, TV and Settings</figcaption></figure>
+        <figure><img src="img/settings-playlists.webp" width="1280" height="720" loading="lazy" alt="Tiviate Playlists: account status, expiry and connections"><figcaption><b>Playlists</b> · account status, expiry and connections</figcaption></figure>
+        <figure><img src="img/settings-appearance.webp" width="1280" height="720" loading="lazy" alt="Tiviate Appearance: colours, fonts, clock and screens"><figcaption><b>Appearance</b> · colours, fonts, clock and screens</figcaption></figure>
+        <figure><img src="img/settings-playback.webp" width="1280" height="720" loading="lazy" alt="Tiviate Playback: buffer, decoders, subtitles, surround"><figcaption><b>Playback</b> · buffer, decoders, subtitles, surround</figcaption></figure>
+        <figure><img src="img/welcome.webp" width="1280" height="720" loading="lazy" alt="Tiviate First start: add your playlist"><figcaption><b>First start</b> · add your playlist</figcaption></figure>
+        <figure><img src="img/settings-general.webp" width="1280" height="720" loading="lazy" alt="Tiviate General settings: start-up, language, TV guide"><figcaption><b>General settings</b> · start-up, language, TV guide</figcaption></figure>
+        <figure><img src="img/about.webp" width="1280" height="720" loading="lazy" alt="Tiviate About: who made it, licence and legal notice"><figcaption><b>About</b> · who made it, licence and legal notice</figcaption></figure>
       </div>
     </div>
   </section>
 
-  <section class="block lazy" aria-labelledby="alt-h">
-    <div class="wrap compare">
-      <div class="head reveal" style="margin-bottom:0">
+  <section class="block lazy" id="compare" aria-labelledby="alt-h">
+    <div class="wrap">
+      <div class="head reveal">
         <span class="eyebrow">TiviMate alternative</span>
-        <h2 id="alt-h">A free, open-source alternative to TiviMate</h2>
-        <p class="muted">If you like how TiviMate works on a TV but don't want to pay to unlock features, Tiviate covers the same everyday use: live TV with a guide, groups and favourites, all driven by the remote. Tiviate is an independent project and is not affiliated with TiviMate.</p>
+        <h2 id="alt-h">Tiviate vs TiviMate</h2>
+        <p class="muted">If you like how TiviMate works on a TV but don't want to pay to unlock features, Tiviate covers the same everyday use: live TV with a guide, groups and favourites, all driven by the remote. Here is an honest comparison, including what Tiviate doesn't do yet.</p>
       </div>
       <div class="table-wrap reveal">
-        <table>
-          <thead><tr><th scope="col">What you get</th><th scope="col" class="us">Tiviate</th></tr></thead>
+        <table class="vs">
+          <thead><tr><th scope="col">Feature</th><th scope="col" class="us">Tiviate</th><th scope="col">TiviMate</th></tr></thead>
           <tbody>
-            <tr><td>Every feature, no premium tier</td><td class="yes">Free</td></tr>
-            <tr><td>Source code anyone can check</td><td class="yes">Yes, GPL-3.0</td></tr>
-            <tr><td>Account needed</td><td class="yes">No</td></tr>
-            <tr><td>Ads or tracking</td><td class="yes">None</td></tr>
-            <tr><td>Backup to a new TV</td><td class="yes">Yes</td></tr>
-            <tr><td>Channels included</td><td class="no">No, bring your own</td></tr>
+            <tr><td>Price</td><td class="yes">Free, every feature</td><td class="mid">Free version and a paid Premium subscription</td></tr>
+            <tr><td>Account or activation</td><td class="yes">None</td><td class="mid">Account to activate Premium</td></tr>
+            <tr><td>Device limit</td><td class="yes">None</td><td class="mid">Premium: up to 5 devices</td></tr>
+            <tr><td>Source code</td><td class="yes">Open, GPL-3.0</td><td class="no">Closed</td></tr>
+            <tr><td>M3U and Xtream Codes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td>TV guide (XMLTV, .gz, .xz)</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td>Favourites, own groups, hide and rename</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td>Several playlists</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td>Backup and restore</td><td class="yes">Yes</td><td class="no">Not checked</td></tr>
+            <tr><td>Left / Right change channel</td><td class="yes">Yes, optional</td><td class="no">Not checked</td></tr>
+            <tr><td>Stalker portal</td><td class="no">Not yet</td><td class="yes">Yes</td></tr>
+            <tr><td>Movies and series (VOD)</td><td class="no">Not yet</td><td class="yes">Yes</td></tr>
+            <tr><td>Programme reminders</td><td class="no">Not yet</td><td class="yes">Yes</td></tr>
+            <tr><td>Catch-up and recording</td><td class="no">No</td><td class="yes">Yes</td></tr>
+            <tr><td>Multi-view and parental controls</td><td class="no">No</td><td class="yes">Yes</td></tr>
           </tbody>
         </table>
       </div>
+      <p class="note">The TiviMate column comes from the text inside TiviMate's own app, checked on a Fire TV in October 2026. Which of its features need Premium wasn't checked; see TiviMate's website for current details. TiviMate is a trademark of its owner. Tiviate is an independent project, not affiliated with TiviMate, and contains none of its code, images or text.</p>
     </div>
   </section>
 
@@ -506,6 +649,10 @@ footer p { max-width: 95ch; }
         <li class="reveal"><div class="card"><span class="n">STEP 3</span><h3>Download Tiviate</h3><p>In Downloader, enter <code id="dl-url">github.com/Amitk2108/tiviate/releases/latest</code> and install the <code>.apk</code>.</p><button class="copy" type="button" data-copy="dl-url">Copy address</button></div></li>
         <li class="reveal"><div class="card"><span class="n">STEP 4</span><h3>Add your playlist</h3><p>Open Tiviate and add your M3U link, Xtream Codes login or M3U file.</p></div></li>
       </ol>
+      <div class="two" style="margin-top:16px">
+        <div class="card reveal"><h3>With a computer (adb)</h3><p>On the TV, turn on <b>ADB debugging</b> in Developer options and note the IP address (My Fire TV → About → Network). On the computer run <code>adb connect TV-IP:5555</code>, then <code>adb install -r Tiviate.apk</code>, and accept the prompt on the TV.</p></div>
+        <div class="card reveal"><h3>First start</h3><p>Pick how your provider gave you the playlist: an <b>M3U link</b>, <b>Xtream Codes</b> (server, username, password) or a <b>local .m3u file</b>. Channels, groups and the TV guide load by themselves. Your login stays on the TV and can be edited in Settings → Playlists.</p></div>
+      </div>
     </div>
   </section>
 
@@ -524,6 +671,39 @@ footer p { max-width: 95ch; }
         <details><summary>Can I add my own EPG or TV guide link?</summary><p>Yes. Tiviate finds the XMLTV guide from your playlist automatically, and you can add your own guide links in Settings. Plain, .gz and .xz files work.</p></details>
         <details><summary>Can the Left and Right buttons change channel?</summary><p>Yes. Turn on Settings, Remote control, Left / Right change channel. You can also turn off the TV guide so Tiviate always opens fullscreen.</p></details>
         <details><summary>Which devices does Tiviate run on?</summary><p>Android TV and Google TV devices and Amazon Fire TV and Firestick, on Android 7.0 or newer. It also runs on Android phones and tablets with touch.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="block lazy" id="open-source" aria-labelledby="os-h">
+    <div class="wrap">
+      <div class="head reveal">
+        <span class="eyebrow">Open source</span>
+        <h2 id="os-h">Private, independent and open</h2>
+      </div>
+      <div class="two">
+        <div class="card legal reveal">
+          <h3>Privacy and legal</h3>
+          <ul>
+            <li><b>Player only.</b> Tiviate does not provide, sell, host, store, index or link to any channels, playlists, streams or subscriptions, and has no servers of its own.</li>
+            <li><b>Your own subscription.</b> Channels, guide data and logos come straight from your provider. You are responsible for having the right to watch them.</li>
+            <li><b>Private.</b> No accounts, analytics, ads or tracking. Logins stay on your TV. The only other request is a daily update check with GitHub, which you can turn off.</li>
+            <li><b>Independent.</b> Not affiliated with TiviMate, AR Mobile Dev or any IPTV provider, and contains none of their code, images or text.</li>
+            <li><b>No warranty.</b> Provided "as is" under the GPL-3.0 licence. Rights questions: open an issue on GitHub.</li>
+          </ul>
+        </div>
+        <div class="card reveal">
+          <h3>Built in the open</h3>
+          <p>Tiviate is written in Kotlin with Compose for TV and AndroidX Media3, and released under GPL-3.0. Bug reports, ideas, translations and pull requests are welcome.</p>
+          <div class="chips" aria-label="Tech stack">
+            <span>Kotlin</span><span>Compose for TV</span><span>Media3 / ExoPlayer</span><span>FFmpeg audio</span><span>Room</span><span>WorkManager</span><span>DataStore</span><span>Paging</span><span>OkHttp</span><span>Coil</span>
+          </div>
+          <div class="cta" style="margin-top:8px">
+            <a class="btn ghost" href="https://github.com/Amitk2108/tiviate/blob/main/CONTRIBUTING.md">How to contribute</a>
+            <a class="btn ghost" href="https://github.com/Amitk2108/tiviate#%EF%B8%8F-building-from-source">Build from source</a>
+          </div>
+          <p class="muted" style="font-size:15px">The 40 translations were machine-written. A native speaker who reviews one language helps a lot.</p>
+        </div>
       </div>
     </div>
   </section>
