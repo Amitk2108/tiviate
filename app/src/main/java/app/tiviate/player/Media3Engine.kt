@@ -62,6 +62,8 @@ class Media3Engine(
         val originalUrl: String = url,
         /** The stream has played at least once: later errors reconnect to the same link, no format guessing. */
         val played: Boolean = false,
+        /** Decided when it first plays: a film (fixed length), not live. A live list that later ends stays live. */
+        val film: Boolean = false,
     )
 
     /** Channels that only played in the other format: later tunes go straight to it (this run of the app). */
@@ -121,7 +123,7 @@ class Media3Engine(
     private var pausedAtMs: Long? = null
     private var boundView: PlayerView? = null
 
-    private val retryRunnable = Runnable { startCurrent() }
+    private val retryRunnable = Runnable { startCurrent(keepPlace = true) }
     private val reconnector: Reconnector = Reconnector(
         watchdog,
         schedule = { delay, issue ->
@@ -158,7 +160,12 @@ class Media3Engine(
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) {
                 reconnector.onPlaying()
-                request?.let { if (!it.played) request = it.copy(played = true) }
+                request?.let {
+                    if (!it.played) {
+                        val film = player.isCurrentMediaItemSeekable && !player.isCurrentMediaItemLive && player.duration != C.TIME_UNSET
+                        request = it.copy(played = true, film = film)
+                    }
+                }
             }
             _state.update {
                 it.copy(
@@ -274,7 +281,7 @@ class Media3Engine(
         player = buildPlayer(newSettings)
         applyPreferences(newSettings)
         boundView?.player = player
-        if (request != null) startCurrent()
+        if (request != null) startCurrent(keepPlace = true)
     }
 
     override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String) {
@@ -289,8 +296,13 @@ class Media3Engine(
         startCurrent()
     }
 
-    private fun startCurrent() {
+    /** A film keeps its place when reconnecting or resuming after a long pause. */
+    private fun isFilm(): Boolean = request?.film == true
+
+    private fun startCurrent(keepPlace: Boolean = false) {
         val r = request ?: return
+        // A film reconnecting mid-way carries on where it was (at its end it starts again, as before).
+        val place = if (keepPlace && isFilm() && player.playbackState != Player.STATE_ENDED) player.currentPosition else null
         startCount++
         main.removeCallbacks(retryRunnable)
         reconnector.onStarted()
@@ -303,7 +315,7 @@ class Media3Engine(
             .setLiveConfiguration(MediaItem.LiveConfiguration.Builder().setMinPlaybackSpeed(1f).setMaxPlaybackSpeed(1f).build())
             .build()
         val source = DefaultMediaSourceFactory(dataSource, EXTRACTORS).createMediaSource(item)
-        player.setMediaSource(source, /* resetPosition = */ true)
+        if (place != null) player.setMediaSource(source, place) else player.setMediaSource(source, /* resetPosition = */ true)
         player.prepare()
         if (pausedAtMs == null) player.play() else player.pause()
     }
@@ -350,8 +362,12 @@ class Media3Engine(
         } else {
             pausedAtMs = null
             _state.update { it.copy(isPaused = false) }
-            // Long pauses on live streams: rejoin the live edge with a fresh connection.
-            if (SystemClock.elapsedRealtime() - paused > LIVE_REJOIN_MS) startCurrent() else player.play()
+            when {
+                isFilm() -> player.play() // a paused film carries on from the same place
+                // Long pauses on live streams: rejoin the live edge with a fresh connection.
+                SystemClock.elapsedRealtime() - paused > LIVE_REJOIN_MS -> startCurrent()
+                else -> player.play()
+            }
         }
     }
 
@@ -379,7 +395,28 @@ class Media3Engine(
         }
         reconnector.reset()
         _state.update { it.copy(error = null, issue = null, issueDetail = null, isBuffering = true) }
-        startCurrent()
+        startCurrent(keepPlace = true)
+    }
+
+    override fun seekInfo(): SeekInfo? {
+        val p = player
+        if (request == null || !p.isCurrentMediaItemSeekable) return null
+        val duration = p.duration
+        if (duration == C.TIME_UNSET || duration <= 0) return null
+        val live = p.isCurrentMediaItemLive
+        if (live && duration < MIN_REWIND_MS) return null // a live list's last few segments aren't worth a bar
+        return SeekInfo(p.currentPosition.coerceIn(0, duration), duration, live)
+    }
+
+    override fun seekTo(positionMs: Long) {
+        val info = seekInfo() ?: return
+        val target = positionMs.coerceIn(0, info.durationMs)
+        // The live end of a rewind window: back to the live edge.
+        if (info.live && target >= info.durationMs - LIVE_EDGE_MS) player.seekToDefaultPosition() else player.seekTo(target)
+    }
+
+    override fun seekBy(deltaMs: Long) {
+        seekInfo()?.let { seekTo(it.positionMs + deltaMs) }
     }
 
     override fun stop() {
@@ -504,6 +541,9 @@ class Media3Engine(
 
     companion object {
         private const val LIVE_REJOIN_MS = 30_000L
+        /** Live channels get a seek bar only when the provider keeps at least this much to rewind. */
+        private const val MIN_REWIND_MS = 2 * 60_000L
+        private const val LIVE_EDGE_MS = 10_000L
         private const val BUSY_NOTICE = "Your account is busy on another device — waiting for it to free up…"
 
         private val EXTRACTORS = DefaultExtractorsFactory()

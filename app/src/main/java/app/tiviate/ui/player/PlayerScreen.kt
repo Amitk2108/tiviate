@@ -5,6 +5,7 @@ import android.os.Build
 import android.view.KeyEvent as AndroidKeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -214,6 +215,16 @@ fun PlayerScreen() {
                 }
                 return true
             }
+            AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD, AndroidKeyEvent.KEYCODE_MEDIA_SKIP_FORWARD,
+            AndroidKeyEvent.KEYCODE_MEDIA_REWIND, AndroidKeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD -> {
+                if (engine.seekInfo() == null) return false
+                if (down) {
+                    val forward = native.keyCode == AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD || native.keyCode == AndroidKeyEvent.KEYCODE_MEDIA_SKIP_FORWARD
+                    engine.seekBy(if (forward) 10_000L else -10_000L)
+                    vm.showBanner()
+                }
+                return true
+            }
             AndroidKeyEvent.KEYCODE_SEARCH -> { if (down) nav.push(Screen.Search); return true }
             in AndroidKeyEvent.KEYCODE_0..AndroidKeyEvent.KEYCODE_9 -> {
                 if (down) vm.digit(native.keyCode - AndroidKeyEvent.KEYCODE_0)
@@ -290,7 +301,8 @@ fun PlayerScreen() {
         when (val o = overlay) {
             Overlay.None -> Unit
             Overlay.Banner -> bannerChannel?.let {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally) {
+                    SeekBar(engine, Modifier.padding(horizontal = Tokens.SafeMargin), interactive = false)
                     ZapBanner(
                         it, it.epgRef?.let(vm.nowNext::get), playback, settings.showChannelNumbers, requestInfo = { ref -> vm.loadNowNext(listOf(ref)) },
                         source = if (settings.showPlaylistAndGroup) listOfNotNull(playlist?.name, it.groupName).joinToString("  ·  ") else null,
@@ -375,6 +387,7 @@ fun PlayerScreen() {
                     showNumber = settings.showChannelNumbers,
                     requestInfo = { ref -> vm.loadNowNext(listOf(ref)) },
                     focusTag = vm.lastOptionTag,
+                    top = { SeekBar(engine, onUse = { lastInputAt = SystemClock.uptimeMillis() }) },
                     options = listOfNotNull(
                         OptionItem("option_channels", t("Channels"), null) { vm.lastOptionTag = "option_channels"; openPanel(categories = false) },
                         if (settings.guideScreen) OptionItem("option_guide", t("TV guide"), null) { vm.close(); nav.push(Screen.Guide) } else null,
@@ -525,6 +538,7 @@ fun PlayerScreen() {
                 }
             }
             Overlay.TouchControls -> TouchControls(
+                engine = engine,
                 onChannels = { openPanel(categories = false) },
                 onGuide = { vm.close(); openGuide() },
                 onMenu = { vm.open(Overlay.Options) },
@@ -565,8 +579,9 @@ fun PlayerScreen() {
 }
 
 @Composable
-private fun TouchControls(onChannels: () -> Unit, onGuide: () -> Unit, onMenu: () -> Unit, onPlayPause: () -> Unit, onExitFullscreen: (() -> Unit)? = null) {
-    Box(Modifier.fillMaxSize().padding(Tokens.SafeMargin), contentAlignment = Alignment.BottomCenter) {
+private fun TouchControls(engine: app.tiviate.player.PlaybackEngine, onChannels: () -> Unit, onGuide: () -> Unit, onMenu: () -> Unit, onPlayPause: () -> Unit, onExitFullscreen: (() -> Unit)? = null) {
+    Column(Modifier.fillMaxSize().padding(Tokens.SafeMargin), verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Bottom), horizontalAlignment = Alignment.CenterHorizontally) {
+        SeekBar(engine, Modifier.background(Tokens.Scrim, Tokens.Shape).padding(horizontal = 12.dp, vertical = 4.dp))
         Row(Modifier.background(Tokens.Scrim, Tokens.Shape).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ActionButton(t("Channels"), onChannels)
             ActionButton(t("Guide"), onGuide)

@@ -144,6 +144,26 @@ class PlayerOptionsTest {
         org.junit.Assert.assertEquals("other channels keep Fit", DisplayMode.FIT, settings().displayMode)
     }
 
+    private fun position(): Long {
+        var at = -1L
+        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync { at = graph.player.engine.seekInfo()?.positionMs ?: -1L }
+        return at
+    }
+
+    @Test
+    fun seekBarMovesTenSecondsWithLeftAndRight() {
+        // The test channels are short films, so the options show a seek bar above the cards.
+        Remote.down()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("seek_line") }
+        rule.waitForIdle()
+        Remote.up()
+        rule.waitUntil(2_000) { runCatching { rule.onNodeWithTag("seek_line").assertIsFocused() }.isSuccess }
+        Remote.left(2) // back to the start
+        rule.waitUntil(3_000) { position() in 0..2_000 }
+        Remote.right()
+        rule.waitUntil(2_000) { position() >= 9_000 }
+    }
+
     @Test
     fun pauseThenBackToLive() {
         pressOption("option_playpause")

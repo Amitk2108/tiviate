@@ -147,6 +147,8 @@ fun PhoneHome() {
                     }
                     RoundButton(Icons.Rounded.Fullscreen, t("Fullscreen")) { fullscreen() }
                 }
+                // Films and rewindable live channels: the seek bar along the bottom of the video.
+                app.tiviate.ui.player.SeekBar(graph.player.engine, Modifier.align(Alignment.BottomCenter).padding(horizontal = 8.dp), onUse = ::touched)
             }
         }
 

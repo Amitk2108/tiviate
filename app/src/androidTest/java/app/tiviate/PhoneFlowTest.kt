@@ -8,6 +8,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.click
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -83,6 +85,41 @@ class PhoneFlowTest {
         rule.onNodeWithTag("field_url_paste").performClick()
         rule.onNodeWithTag("field_url_input").assertTextEquals(link)
         shot("10-add-playlist")
+    }
+
+    @Test
+    fun aFilmShowsASeekBarThatMovesWithTouch() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("phone") == "true")
+        ui.setRotation(UiAutomation.ROTATION_FREEZE_0)
+        runBlocking {
+            graph.playlists.playlists.first().forEach { graph.playlists.delete(it.id) }
+            val id = graph.playlists.addM3uUrl("My IPTV", fixtures.url("/list.m3u"), null, null)
+            graph.playlists.sync(id).first { it is SyncProgress.Done || it is SyncProgress.Failed }
+            graph.settings.update { it.copy(activePlaylistId = id) }
+        }
+        scenario = ActivityScenario.launch(MainActivity::class.java)
+        rule.waitUntil(15_000) { rule.onAllNodesWithTagExists("phone_home") }
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("phone_channel_1") }
+        rule.onNodeWithTag("phone_channel_1").performClick()
+        rule.waitUntil(15_000) { graph.player.engine.state.value.isPlaying }
+        fun position(): Long {
+            var at = -1L
+            InstrumentationRegistry.getInstrumentation().runOnMainSync { at = graph.player.engine.seekInfo()?.positionMs ?: -1L }
+            return at
+        }
+
+        // The test channels are short films: a tap on the video shows the controls with a seek bar.
+        rule.onNodeWithTag("phone_video").performClick()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("seek_bar") }
+        rule.onNodeWithTag("seek_back").performClick()
+        rule.onNodeWithTag("seek_back").performClick()
+        rule.waitUntil(3_000) { position() in 0..2_000 }
+        rule.onNodeWithTag("seek_forward").performClick()
+        rule.waitUntil(2_000) { position() >= 9_000 }
+        // A tap on the line jumps there (the middle of a 12 s film).
+        rule.onNodeWithTag("seek_line").performTouchInput { click(center) }
+        rule.waitUntil(2_000) { position() in 4_000..9_000 }
+        shot("11-seek")
     }
 
     @Test

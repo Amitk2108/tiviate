@@ -80,6 +80,8 @@ fun OptionsPanel(
     requestInfo: (String) -> Unit,
     options: List<OptionItem>,
     focusTag: String,
+    /** Shown between the channel details and the tiles (the seek bar). */
+    top: @Composable () -> Unit = {},
 ) {
     val now = rememberNow()
     val focus = remember { FocusRequester() }
@@ -96,6 +98,7 @@ fun OptionsPanel(
     ) {
         Column(Modifier.fillMaxWidth().padding(start = Tokens.SafeMargin, end = Tokens.SafeMargin, bottom = 32.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
             channel?.let { ChannelInfo(it, info, playback, showNumber, now) }
+            top()
             // Tiles are sized so a whole number fits the width: no tile is cut at the screen edge.
             BoxWithConstraints(Modifier.fillMaxWidth()) {
             val gap = 8.dp

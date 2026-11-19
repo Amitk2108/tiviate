@@ -38,6 +38,9 @@ data class PlaybackState(
     val notice: String? = null,
 )
 
+/** Where playback is in a stream that can be moved through (films, or live with a rewind window). */
+data class SeekInfo(val positionMs: Long, val durationMs: Long, val live: Boolean)
+
 /**
  * The small surface the UI needs from a player. Media3 is the implementation today; another
  * engine (e.g. libVLC) can be added later without touching screens.
@@ -59,4 +62,8 @@ interface PlaybackEngine {
     /** Null turns subtitles off. */
     fun selectText(option: TrackOption?)
     fun bindView(view: PlayerView)
+    /** Null for ordinary live channels, which can't be moved through. */
+    fun seekInfo(): SeekInfo?
+    fun seekTo(positionMs: Long)
+    fun seekBy(deltaMs: Long)
 }

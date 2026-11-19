@@ -2,6 +2,21 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.3.2 — 2026-11-19
+
+### Added: seek bar
+- Films and series in your playlist, and live channels whose provider keeps a rewind window, now show a seek
+  bar with the time played and the total length (live: how far behind live, and a tap on "Live" goes back).
+- Phones and tablets: tap the video for the controls, then drag the dot, tap anywhere on the line, or use the
+  10-second back and forward buttons.
+- TV: in the options (Down), press Up to reach the seek bar, then Left/Right to move 10 seconds. The remote's
+  rewind and fast-forward keys also move 10 seconds.
+- Ordinary live channels can't be moved through, so they show no bar.
+
+### Fixed
+- A film paused for a while carries on from where it was (it used to start again from the beginning), and a
+  film that reconnects after a network hiccup keeps its place.
+
 ## 0.3.1 — 2026-11-19
 
 ### Fixed on phones and tablets
