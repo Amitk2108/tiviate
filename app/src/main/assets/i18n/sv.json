@@ -351,5 +351,11 @@
 "Restore this backup?": "Återställa den här säkerhetskopian?",
 "It replaces the playlists, favourites and settings on this TV.": "Den ersätter spellistor, favoriter och inställningar på den här tv:n.",
 "Restoring… loading your channels": "Återställer… läser in dina kanaler",
-"Couldn't read this backup": "Det gick inte att läsa säkerhetskopian"
+"Couldn't read this backup": "Det gick inte att läsa säkerhetskopian",
+"Left / Right change channel": "Vänster / Höger byter kanal",
+"When on, the channel list and groups are on OK → Channels.": "När den är på finns kanallistan och grupperna under OK → Kanaler.",
+"Show the TV guide": "Visa TV-guiden",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "När den är av öppnas Tiviate i helskärm, Höger öppnar kanallistan och Tillbaka avslutar appen.",
+"Always highest quality": "Alltid högsta kvalitet",
+"Off: automatic — the quality follows your connection.": "Av: automatiskt — kvaliteten anpassas efter din anslutning."
 }

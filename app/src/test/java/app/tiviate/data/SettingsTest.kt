@@ -40,6 +40,17 @@ class SettingsTest {
     }
 
     @Test
+    fun leftRightZapIsOffAndTheGuideOnByDefault() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val store = SettingsStore.forFile(File(context.filesDir, "settings-lr-${System.nanoTime()}.preferences_pb"))
+        val d = store.settings.first()
+        assertTrue(!d.leftRightZap && d.guideScreen)
+        store.update { it.copy(leftRightZap = true, guideScreen = false) }
+        val s = store.settings.first()
+        assertTrue(s.leftRightZap && !s.guideScreen)
+    }
+
+    @Test
     fun highestQualityIsTheDefaultAndAutomaticIsKept() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val store = SettingsStore.forFile(File(context.filesDir, "settings-q-${System.nanoTime()}.preferences_pb"))

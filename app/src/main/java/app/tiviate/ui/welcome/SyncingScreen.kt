@@ -58,7 +58,7 @@ fun SyncingScreen(playlistId: Long, isEdit: Boolean = false) {
             graph.settings.update { it.copy(activePlaylistId = playlistId, lastChannelKey = null, lastGroup = null) }
             graph.player.stop()
             nav.replaceAll(Screen.Player)
-            if (!graph.settings.settings.first().startFullscreen) nav.push(Screen.Guide)
+            if (graph.settings.settings.first().let { !it.startFullscreen && it.guideScreen }) nav.push(Screen.Guide)
         }
     }
 

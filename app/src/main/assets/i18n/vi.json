@@ -359,5 +359,11 @@
 "Restore this backup?": "Khôi phục bản sao lưu này?",
 "It replaces the playlists, favourites and settings on this TV.": "Thao tác này sẽ thay thế danh sách phát, mục yêu thích và cài đặt trên TV này.",
 "Restoring… loading your channels": "Đang khôi phục… đang tải kênh của bạn",
-"Couldn't read this backup": "Không thể đọc bản sao lưu này"
+"Couldn't read this backup": "Không thể đọc bản sao lưu này",
+"Left / Right change channel": "Trái / Phải để chuyển kênh",
+"When on, the channel list and groups are on OK → Channels.": "Khi bật, danh sách kênh và nhóm nằm ở OK → Kênh.",
+"Show the TV guide": "Hiện lịch phát sóng",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Khi tắt, Tiviate mở toàn màn hình, Phải mở danh sách kênh và Quay lại sẽ thoát ứng dụng.",
+"Always highest quality": "Luôn chất lượng cao nhất",
+"Off: automatic — the quality follows your connection.": "Tắt: tự động — chất lượng thay đổi theo kết nối của bạn."
 }

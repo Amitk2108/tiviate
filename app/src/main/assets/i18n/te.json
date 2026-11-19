@@ -361,5 +361,11 @@
 "Restore this backup?": "ఈ బ్యాకప్‌ను రీస్టోర్ చేయాలా?",
 "It replaces the playlists, favourites and settings on this TV.": "ఇది ఈ టీవీలోని ప్లేలిస్ట్‌లు, ఇష్టమైనవి, సెట్టింగ్‌లను భర్తీ చేస్తుంది.",
 "Restoring… loading your channels": "రీస్టోర్ అవుతోంది… మీ ఛానెల్‌లు లోడ్ అవుతున్నాయి",
-"Couldn't read this backup": "ఈ బ్యాకప్‌ను చదవలేకపోయాము"
+"Couldn't read this backup": "ఈ బ్యాకప్‌ను చదవలేకపోయాము",
+"Left / Right change channel": "ఎడమ / కుడితో ఛానెల్ మార్చండి",
+"When on, the channel list and groups are on OK → Channels.": "ఆన్‌లో ఉన్నప్పుడు ఛానెల్ జాబితా, గ్రూప్‌లు OK → ఛానెల్స్‌లో ఉంటాయి.",
+"Show the TV guide": "టీవీ గైడ్ చూపించు",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "ఆఫ్‌లో ఉన్నప్పుడు Tiviate ఫుల్ స్క్రీన్‌లో తెరుచుకుంటుంది, కుడి ఛానెల్ జాబితాను తెరుస్తుంది, Back యాప్ నుండి నిష్క్రమిస్తుంది.",
+"Always highest quality": "ఎల్లప్పుడూ అత్యధిక నాణ్యత",
+"Off: automatic — the quality follows your connection.": "ఆఫ్: ఆటోమేటిక్ — నాణ్యత మీ కనెక్షన్‌కు అనుగుణంగా మారుతుంది."
 }

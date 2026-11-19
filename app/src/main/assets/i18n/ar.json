@@ -361,5 +361,11 @@
 "Restore this backup?": "استعادة هذه النسخة الاحتياطية؟",
 "It replaces the playlists, favourites and settings on this TV.": "ستحل محل قوائم التشغيل والمفضلة والإعدادات على هذا التلفاز.",
 "Restoring… loading your channels": "جارٍ الاستعادة… تحميل قنواتك",
-"Couldn't read this backup": "تعذّرت قراءة هذه النسخة الاحتياطية"
+"Couldn't read this backup": "تعذّرت قراءة هذه النسخة الاحتياطية",
+"Left / Right change channel": "يسار / يمين لتغيير القناة",
+"When on, the channel list and groups are on OK → Channels.": "عند التشغيل، تجد قائمة القنوات والمجموعات في OK → القنوات.",
+"Show the TV guide": "عرض دليل التلفزيون",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "عند الإيقاف، يفتح Tiviate بملء الشاشة، ويفتح زر يمين قائمة القنوات، ويخرج زر رجوع من التطبيق.",
+"Always highest quality": "أعلى جودة دائمًا",
+"Off: automatic — the quality follows your connection.": "إيقاف: تلقائي — تتكيف الجودة مع اتصالك."
 }

@@ -361,5 +361,11 @@
 "Restore this backup?": "এই ব্যাকআপ পুনরুদ্ধার করবেন?",
 "It replaces the playlists, favourites and settings on this TV.": "এটি এই টিভির প্লেলিস্ট, পছন্দের তালিকা ও সেটিংস প্রতিস্থাপন করবে।",
 "Restoring… loading your channels": "পুনরুদ্ধার হচ্ছে… আপনার চ্যানেল লোড হচ্ছে",
-"Couldn't read this backup": "এই ব্যাকআপ পড়া যায়নি"
+"Couldn't read this backup": "এই ব্যাকআপ পড়া যায়নি",
+"Left / Right change channel": "বাঁ / ডান দিয়ে চ্যানেল বদল",
+"When on, the channel list and groups are on OK → Channels.": "চালু থাকলে চ্যানেল তালিকা ও গ্রুপ পাবেন OK → চ্যানেল-এ।",
+"Show the TV guide": "টিভি গাইড দেখান",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "বন্ধ থাকলে Tiviate পূর্ণ স্ক্রিনে খোলে, ডান চাপলে চ্যানেল তালিকা খোলে এবং Back চাপলে অ্যাপ বন্ধ হয়।",
+"Always highest quality": "সবসময় সর্বোচ্চ মান",
+"Off: automatic — the quality follows your connection.": "বন্ধ: স্বয়ংক্রিয় — মান আপনার সংযোগ অনুযায়ী বদলায়।"
 }

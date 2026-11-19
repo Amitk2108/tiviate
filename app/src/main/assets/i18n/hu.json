@@ -361,5 +361,11 @@
 "Restore this backup?": "Visszaállítod ezt a mentést?",
 "It replaces the playlists, favourites and settings on this TV.": "Lecseréli a tévén lévő lejátszási listákat, kedvenceket és beállításokat.",
 "Restoring… loading your channels": "Visszaállítás… csatornák betöltése",
-"Couldn't read this backup": "Nem sikerült beolvasni ezt a mentést"
+"Couldn't read this backup": "Nem sikerült beolvasni ezt a mentést",
+"Left / Right change channel": "Balra / Jobbra csatornát vált",
+"When on, the channel list and groups are on OK → Channels.": "Bekapcsolva a csatornalista és a csoportok az OK → Csatornák alatt vannak.",
+"Show the TV guide": "Műsorújság megjelenítése",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Kikapcsolva a Tiviate teljes képernyőn indul, a Jobbra megnyitja a csatornalistát, a Vissza pedig kilép az alkalmazásból.",
+"Always highest quality": "Mindig a legjobb minőség",
+"Off: automatic — the quality follows your connection.": "Ki: automatikus — a minőség a kapcsolatához igazodik."
 }

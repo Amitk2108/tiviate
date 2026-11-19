@@ -361,5 +361,11 @@
 "Restore this backup?": "აღვადგინოთ ეს სარეზერვო ასლი?",
 "It replaces the playlists, favourites and settings on this TV.": "ის ჩაანაცვლებს ამ ტელევიზორზე არსებულ დასაკრავ სიებს, რჩეულებს და პარამეტრებს.",
 "Restoring… loading your channels": "აღდგენა… არხები იტვირთება",
-"Couldn't read this backup": "ამ სარეზერვო ასლის წაკითხვა ვერ მოხერხდა"
+"Couldn't read this backup": "ამ სარეზერვო ასლის წაკითხვა ვერ მოხერხდა",
+"Left / Right change channel": "მარცხნივ / მარჯვნივ ცვლის არხს",
+"When on, the channel list and groups are on OK → Channels.": "ჩართვისას არხების სია და ჯგუფები მოთავსებულია აქ: OK → არხები.",
+"Show the TV guide": "ტელეგიდის ჩვენება",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "გამორთვისას Tiviate სრულ ეკრანზე იხსნება, მარჯვნივ ხსნის არხების სიას, „უკან“ კი გამოდის აპიდან.",
+"Always highest quality": "ყოველთვის უმაღლესი ხარისხი",
+"Off: automatic — the quality follows your connection.": "გამორთული: ავტომატური — ხარისხი თქვენს კავშირს ერგება."
 }

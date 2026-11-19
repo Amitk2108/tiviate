@@ -356,5 +356,11 @@
 "Restore this backup?": "Vai atjaunot šo dublējumu?",
 "It replaces the playlists, favourites and settings on this TV.": "Tas aizstās atskaņošanas sarakstus, izlasi un iestatījumus šajā televizorā.",
 "Restoring… loading your channels": "Atjauno… ielādē jūsu kanālus",
-"Couldn't read this backup": "Neizdevās nolasīt šo dublējumu"
+"Couldn't read this backup": "Neizdevās nolasīt šo dublējumu",
+"Left / Right change channel": "Pa kreisi / Pa labi pārslēdz kanālu",
+"When on, the channel list and groups are on OK → Channels.": "Kad ieslēgts, kanālu saraksts un grupas ir sadaļā OK → Kanāli.",
+"Show the TV guide": "Rādīt TV programmu",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Kad izslēgts, Tiviate atveras pilnekrāna režīmā, Pa labi atver kanālu sarakstu un Atpakaļ iziet no lietotnes.",
+"Always highest quality": "Vienmēr augstākā kvalitāte",
+"Off: automatic — the quality follows your connection.": "Izslēgts: automātiski — kvalitāte pielāgojas jūsu savienojumam."
 }

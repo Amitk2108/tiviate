@@ -361,5 +361,11 @@
 "Restore this backup?": "Восстановить эту резервную копию?",
 "It replaces the playlists, favourites and settings on this TV.": "Плейлисты, избранное и настройки на этом телевизоре будут заменены.",
 "Restoring… loading your channels": "Восстановление… загрузка каналов",
-"Couldn't read this backup": "Не удалось прочитать резервную копию"
+"Couldn't read this backup": "Не удалось прочитать резервную копию",
+"Left / Right change channel": "Влево / Вправо переключают канал",
+"When on, the channel list and groups are on OK → Channels.": "Когда включено, список каналов и группы находятся в OK → Каналы.",
+"Show the TV guide": "Показывать телегид",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Когда выключено, Tiviate открывается на весь экран, Вправо открывает список каналов, а «Назад» закрывает приложение.",
+"Always highest quality": "Всегда наивысшее качество",
+"Off: automatic — the quality follows your connection.": "Выкл.: автоматически — качество подстраивается под ваше соединение."
 }

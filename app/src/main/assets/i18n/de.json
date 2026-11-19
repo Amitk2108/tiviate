@@ -346,5 +346,11 @@
 "Restore this backup?": "Diese Sicherung wiederherstellen?",
 "It replaces the playlists, favourites and settings on this TV.": "Playlists, Favoriten und Einstellungen auf diesem Fernseher werden ersetzt.",
 "Restoring… loading your channels": "Wird wiederhergestellt… Sender werden geladen",
-"Couldn't read this backup": "Diese Sicherung kann nicht gelesen werden"
+"Couldn't read this backup": "Diese Sicherung kann nicht gelesen werden",
+"Left / Right change channel": "Links / Rechts wechselt den Sender",
+"When on, the channel list and groups are on OK → Channels.": "Wenn an, findest du Senderliste und Gruppen unter OK → Sender.",
+"Show the TV guide": "TV-Programm anzeigen",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Wenn aus, startet Tiviate im Vollbild, Rechts öffnet die Senderliste und Zurück beendet die App.",
+"Always highest quality": "Immer höchste Qualität",
+"Off: automatic — the quality follows your connection.": "Aus: automatisch — die Qualität richtet sich nach deiner Verbindung."
 }

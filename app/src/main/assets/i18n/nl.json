@@ -346,5 +346,11 @@
 "Restore this backup?": "Deze back-up herstellen?",
 "It replaces the playlists, favourites and settings on this TV.": "Dit vervangt de playlists, favorieten en instellingen op deze tv.",
 "Restoring… loading your channels": "Herstellen… je zenders worden geladen",
-"Couldn't read this backup": "Kan deze back-up niet lezen"
+"Couldn't read this backup": "Kan deze back-up niet lezen",
+"Left / Right change channel": "Links / Rechts wisselt van zender",
+"When on, the channel list and groups are on OK → Channels.": "Indien aan, vind je de zenderlijst en groepen onder OK → Zenders.",
+"Show the TV guide": "Tv-gids tonen",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Indien uit, opent Tiviate op volledig scherm, Rechts opent de zenderlijst en Terug sluit de app.",
+"Always highest quality": "Altijd hoogste kwaliteit",
+"Off: automatic — the quality follows your connection.": "Uit: automatisch — de kwaliteit past zich aan je verbinding aan."
 }

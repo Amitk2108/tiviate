@@ -358,5 +358,11 @@
 "Restore this backup?": "Želite obnoviti to varnostno kopijo?",
 "It replaces the playlists, favourites and settings on this TV.": "Zamenjala bo sezname predvajanja, priljubljene in nastavitve na tem televizorju.",
 "Restoring… loading your channels": "Obnavljanje… nalaganje kanalov",
-"Couldn't read this backup": "Te varnostne kopije ni mogoče prebrati"
+"Couldn't read this backup": "Te varnostne kopije ni mogoče prebrati",
+"Left / Right change channel": "Levo / Desno preklaplja kanale",
+"When on, the channel list and groups are on OK → Channels.": "Ko je vklopljeno, so seznam kanalov in skupine v OK → Kanali.",
+"Show the TV guide": "Prikaži TV-vodnik",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Ko je izklopljeno, se Tiviate odpre čez cel zaslon, Desno odpre seznam kanalov, Nazaj pa zapre aplikacijo.",
+"Always highest quality": "Vedno najvišja kakovost",
+"Off: automatic — the quality follows your connection.": "Izklopljeno: samodejno — kakovost se prilagaja vaši povezavi."
 }

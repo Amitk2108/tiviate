@@ -140,6 +140,9 @@ fun PlayerScreen() {
         }
     }
 
+    // The TV guide, or the channel list when the viewer turned the guide off.
+    fun openGuide() { if (settings.guideScreen) nav.push(Screen.Guide) else openPanel(categories = false) }
+
     fun handleKey(native: AndroidKeyEvent): Boolean {
         val down = native.action == AndroidKeyEvent.ACTION_DOWN
         // The error card's buttons sit in a row: Left/Right move between them (Up/Down still zap).
@@ -171,12 +174,24 @@ fun PlayerScreen() {
                 return true
             }
             // Info bar opened with Info: Left/Right look at the previous/next channel's programme; OK switches to it.
-            AndroidKeyEvent.KEYCODE_DPAD_LEFT -> { if (down) { if (overlay == Overlay.Banner && vm.canPeek) vm.peek(forward = false) else openPanel(categories = true) }; return true }
+            AndroidKeyEvent.KEYCODE_DPAD_LEFT -> {
+                when {
+                    settings.leftRightZap -> if (down && native.repeatCount % 3 == 0) vm.zap(forward = false)
+                    !down -> Unit
+                    overlay == Overlay.Banner && vm.canPeek -> vm.peek(forward = false)
+                    else -> openPanel(categories = true)
+                }
+                return true
+            }
             AndroidKeyEvent.KEYCODE_LAST_CHANNEL -> { if (down) vm.previousChannel(); return true }
-            AndroidKeyEvent.KEYCODE_MEDIA_STOP -> { if (down) { graph.player.stop(); nav.push(Screen.Guide) }; return true }
+            AndroidKeyEvent.KEYCODE_MEDIA_STOP -> { if (down) { graph.player.stop(); if (settings.guideScreen) nav.push(Screen.Guide) }; return true }
             AndroidKeyEvent.KEYCODE_DPAD_RIGHT, AndroidKeyEvent.KEYCODE_GUIDE, AndroidKeyEvent.KEYCODE_TV_INPUT -> {
-                if (down) {
-                    if (native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_RIGHT && overlay == Overlay.Banner && vm.canPeek) vm.peek(forward = true) else nav.push(Screen.Guide)
+                val right = native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_RIGHT
+                when {
+                    right && settings.leftRightZap -> if (down && native.repeatCount % 3 == 0) vm.zap(forward = true)
+                    !down -> Unit
+                    right && overlay == Overlay.Banner && vm.canPeek -> vm.peek(forward = true)
+                    else -> openGuide()
                 }
                 return true
             }
@@ -206,13 +221,20 @@ fun PlayerScreen() {
     }
 
     // Back: close the top overlay, otherwise show the TV guide (the channel keeps playing in its preview).
+    // Without the guide, Back leaves the app (after a second press, unless that is turned off).
+    var lastBackAt by remember { mutableLongStateOf(0L) }
     BackHandler(enabled = LocalScreenActive.current) {
         when {
             sheet != null -> sheet = null
             overlay is Overlay.Picker -> vm.open(Overlay.Options)
             !inFullscreen -> vm.close()
             overlay == Overlay.Banner -> vm.close()
-            else -> nav.push(Screen.Guide)
+            settings.guideScreen -> nav.push(Screen.Guide)
+            !settings.confirmExit || SystemClock.uptimeMillis() - lastBackAt < 2_000 -> (context as? Activity)?.finish()
+            else -> {
+                lastBackAt = SystemClock.uptimeMillis()
+                vm.showToast(t("Press Back again to exit"))
+            }
         }
     }
 
@@ -342,7 +364,7 @@ fun PlayerScreen() {
                     focusTag = vm.lastOptionTag,
                     options = listOfNotNull(
                         OptionItem("option_channels", t("Channels"), null) { vm.lastOptionTag = "option_channels"; openPanel(categories = false) },
-                        OptionItem("option_guide", t("TV guide"), null) { vm.close(); nav.push(Screen.Guide) },
+                        if (settings.guideScreen) OptionItem("option_guide", t("TV guide"), null) { vm.close(); nav.push(Screen.Guide) } else null,
                         OptionItem("option_playpause", if (playback.isPaused) t("Play") else t("Pause"), if (playback.isPaused) t("Paused") else t("Live")) {
                             vm.lastOptionTag = "option_playpause"
                             vm.togglePause()
@@ -491,7 +513,7 @@ fun PlayerScreen() {
             }
             Overlay.TouchControls -> TouchControls(
                 onChannels = { openPanel(categories = false) },
-                onGuide = { vm.close(); nav.push(Screen.Guide) },
+                onGuide = { vm.close(); openGuide() },
                 onMenu = { vm.open(Overlay.Options) },
                 onPlayPause = { vm.togglePause() },
             )

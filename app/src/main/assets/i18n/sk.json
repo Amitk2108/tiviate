@@ -356,5 +356,11 @@
 "Restore this backup?": "Obnoviť túto zálohu?",
 "It replaces the playlists, favourites and settings on this TV.": "Nahradí playlisty, obľúbené a nastavenia v tomto televízore.",
 "Restoring… loading your channels": "Obnovuje sa… načítavajú sa kanály",
-"Couldn't read this backup": "Túto zálohu sa nepodarilo prečítať"
+"Couldn't read this backup": "Túto zálohu sa nepodarilo prečítať",
+"Left / Right change channel": "Vľavo / Vpravo prepína kanály",
+"When on, the channel list and groups are on OK → Channels.": "Keď je zapnuté, zoznam kanálov a skupiny nájdete v OK → Kanály.",
+"Show the TV guide": "Zobraziť TV sprievodcu",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Keď je vypnuté, Tiviate sa otvorí na celú obrazovku, Vpravo otvorí zoznam kanálov a Späť aplikáciu ukončí.",
+"Always highest quality": "Vždy najvyššia kvalita",
+"Off: automatic — the quality follows your connection.": "Vypnuté: automaticky — kvalita sa riadi vaším pripojením."
 }

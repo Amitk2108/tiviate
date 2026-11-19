@@ -361,5 +361,11 @@
 "Restore this backup?": "要恢复此备份吗？",
 "It replaces the playlists, favourites and settings on this TV.": "这将替换此电视上的播放列表、收藏和设置。",
 "Restoring… loading your channels": "正在恢复… 正在加载频道",
-"Couldn't read this backup": "无法读取此备份"
+"Couldn't read this backup": "无法读取此备份",
+"Left / Right change channel": "左/右键切换频道",
+"When on, the channel list and groups are on OK → Channels.": "开启后，频道列表和分组位于 OK → 频道。",
+"Show the TV guide": "显示电视节目指南",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "关闭后，Tiviate 以全屏打开，按右键打开频道列表，按返回键退出应用。",
+"Always highest quality": "始终使用最高画质",
+"Off: automatic — the quality follows your connection.": "关：自动 — 画质随网络连接调整。"
 }

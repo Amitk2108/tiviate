@@ -350,5 +350,11 @@
 "Restore this backup?": "Restaurezi acest backup?",
 "It replaces the playlists, favourites and settings on this TV.": "Va înlocui playlisturile, favoritele și setările de pe acest televizor.",
 "Restoring… loading your channels": "Se restaurează… se încarcă canalele",
-"Couldn't read this backup": "Nu s-a putut citi acest backup"
+"Couldn't read this backup": "Nu s-a putut citi acest backup",
+"Left / Right change channel": "Stânga / Dreapta schimbă canalul",
+"When on, the channel list and groups are on OK → Channels.": "Când e activat, lista de canale și grupurile sunt în OK → Canale.",
+"Show the TV guide": "Afișează ghidul TV",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Când e dezactivat, Tiviate se deschide pe tot ecranul, Dreapta deschide lista de canale, iar Înapoi închide aplicația.",
+"Always highest quality": "Mereu calitatea maximă",
+"Off: automatic — the quality follows your connection.": "Dezactivat: automat — calitatea se adaptează conexiunii."
 }

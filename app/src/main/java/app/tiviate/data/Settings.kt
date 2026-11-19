@@ -118,6 +118,10 @@ data class AppSettings(
     /** Back on the guide asks for a second press before leaving. */
     val confirmExit: Boolean = true,
     val upDownMode: UpDownMode = UpDownMode.UP_NEXT_DOWN_OPTIONS,
+    /** Left/Right in fullscreen switch to the previous/next channel (instead of groups / TV guide). */
+    val leftRightZap: Boolean = false,
+    /** Off: no TV guide screen; Tiviate opens fullscreen and Back leaves the app. */
+    val guideScreen: Boolean = true,
     /** Audio language picked "for all channels" (ISO 639 code from the stream). */
     val preferredAudioLanguage: String? = null,
     val subtitlesForAll: Boolean = false,
@@ -243,6 +247,8 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p[START_FULLSCREEN] = next.startFullscreen
             p[CONFIRM_EXIT] = next.confirmExit
             p[UP_DOWN] = next.upDownMode.name
+            p[LEFT_RIGHT_ZAP] = next.leftRightZap
+            p[GUIDE_SCREEN] = next.guideScreen
             p.setOrRemove(AUDIO_LANG, next.preferredAudioLanguage)
             p[SUBS_FOR_ALL] = next.subtitlesForAll
             p.setOrRemove(TEXT_LANG, next.preferredTextLanguage)
@@ -312,6 +318,8 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         startFullscreen = p[START_FULLSCREEN] ?: false,
         confirmExit = p[CONFIRM_EXIT] ?: true,
         upDownMode = p[UP_DOWN]?.let { runCatching { UpDownMode.valueOf(it) }.getOrNull() } ?: UpDownMode.UP_NEXT_DOWN_OPTIONS,
+        leftRightZap = p[LEFT_RIGHT_ZAP] ?: false,
+        guideScreen = p[GUIDE_SCREEN] ?: true,
         preferredAudioLanguage = p[AUDIO_LANG],
         subtitlesForAll = p[SUBS_FOR_ALL] ?: false,
         preferredTextLanguage = p[TEXT_LANG],
@@ -392,6 +400,8 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val START_FULLSCREEN = booleanPreferencesKey("start_fullscreen")
         private val CONFIRM_EXIT = booleanPreferencesKey("confirm_exit")
         private val UP_DOWN = stringPreferencesKey("up_down_mode")
+        private val LEFT_RIGHT_ZAP = booleanPreferencesKey("left_right_zap")
+        private val GUIDE_SCREEN = booleanPreferencesKey("guide_screen")
         private val AUDIO_LANG = stringPreferencesKey("preferred_audio_language")
         private val SUBS_FOR_ALL = booleanPreferencesKey("subtitles_for_all")
         private val TEXT_LANG = stringPreferencesKey("preferred_text_language")

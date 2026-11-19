@@ -197,6 +197,8 @@ private fun GeneralSection() {
         ValueRow(t("Language"), settings.language?.let { tag -> app.tiviate.ui.I18n.LANGUAGES.firstOrNull { it.first == tag }?.second } ?: t("TV's language"), "setting_language") { pickLanguage = true }
         ToggleRow(t("Open last channel fullscreen on start"), settings.startFullscreen, { update { it.copy(startFullscreen = !it.startFullscreen) } }, tag = "setting_start_fullscreen")
         Caption(t("When off, Tiviate starts on the TV guide; OK on a channel plays it."))
+        ToggleRow(t("Show the TV guide"), settings.guideScreen, { update { it.copy(guideScreen = !it.guideScreen) } }, tag = "setting_guide_screen")
+        Caption(t("When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app."))
         ToggleRow(t("Confirm exit with a second Back"), settings.confirmExit, { update { it.copy(confirmExit = !it.confirmExit) } }, tag = "setting_confirm_exit")
         val context = androidx.compose.ui.platform.LocalContext.current
         ToggleRow(t("Start Tiviate when the TV turns on"), settings.autoStartOnBoot, {
@@ -229,6 +231,10 @@ private fun RemoteSection() {
             }
         }
         Caption(t("Menu or a long press of OK always opens the options. CH+ and CH− always change channel."))
+        ToggleRow(t("Left / Right change channel"), settings.leftRightZap, {
+            scope.launch { graph.settings.update { it.copy(leftRightZap = !it.leftRightZap) } }
+        }, tag = "setting_left_right_zap")
+        Caption(t("When on, the channel list and groups are on OK → Channels."))
         val nav = LocalNavigator.current
         ActionButton(t("Option cards (show, hide, order)"), { nav.push(Screen.OptionCards) }, tag = "setting_option_cards")
     }

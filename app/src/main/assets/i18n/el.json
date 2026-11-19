@@ -361,5 +361,11 @@
 "Restore this backup?": "Επαναφορά αυτού του αντιγράφου;",
 "It replaces the playlists, favourites and settings on this TV.": "Θα αντικαταστήσει τις λίστες, τα αγαπημένα και τις ρυθμίσεις σε αυτήν την τηλεόραση.",
 "Restoring… loading your channels": "Επαναφορά… φόρτωση των καναλιών σας",
-"Couldn't read this backup": "Δεν ήταν δυνατή η ανάγνωση αυτού του αντιγράφου"
+"Couldn't read this backup": "Δεν ήταν δυνατή η ανάγνωση αυτού του αντιγράφου",
+"Left / Right change channel": "Αριστερά / Δεξιά αλλάζουν κανάλι",
+"When on, the channel list and groups are on OK → Channels.": "Όταν είναι ενεργό, η λίστα καναλιών και οι ομάδες βρίσκονται στο OK → Κανάλια.",
+"Show the TV guide": "Εμφάνιση οδηγού TV",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Όταν είναι ανενεργό, το Tiviate ανοίγει σε πλήρη οθόνη, το Δεξιά ανοίγει τη λίστα καναλιών και το Πίσω κλείνει την εφαρμογή.",
+"Always highest quality": "Πάντα μέγιστη ποιότητα",
+"Off: automatic — the quality follows your connection.": "Ανενεργό: αυτόματα — η ποιότητα προσαρμόζεται στη σύνδεσή σας."
 }

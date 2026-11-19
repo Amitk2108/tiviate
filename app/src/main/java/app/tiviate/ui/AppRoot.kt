@@ -48,7 +48,7 @@ fun AppRoot() {
         val active = playlists.firstOrNull { it.id == settings.activePlaylistId } ?: playlists.first()
         if (settings.activePlaylistId != active.id) graph.settings.update { it.copy(activePlaylistId = active.id) }
         nav.replaceAll(Screen.Player)
-        if (!settings.startFullscreen) nav.push(Screen.Guide) // start on the TV guide; Back goes fullscreen
+        if (!settings.startFullscreen && settings.guideScreen) nav.push(Screen.Guide) // start on the TV guide; Back goes fullscreen
         if (graph.playlists.needsStartSync(settings.playlistUpdate, settings.updateOnStart)) {
             // A playlist that never loaded goes now; a routine refresh waits until the viewer has settled in.
             SyncScheduler.syncNow(context, atStart = true, delaySec = if (playlists.any { it.lastSyncAt == null }) 0 else 45)

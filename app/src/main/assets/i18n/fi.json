@@ -358,5 +358,11 @@
 "Restore this backup?": "Palautetaanko tämä varmuuskopio?",
 "It replaces the playlists, favourites and settings on this TV.": "Se korvaa tämän television soittolistat, suosikit ja asetukset.",
 "Restoring… loading your channels": "Palautetaan… ladataan kanaviasi",
-"Couldn't read this backup": "Tätä varmuuskopiota ei voitu lukea"
+"Couldn't read this backup": "Tätä varmuuskopiota ei voitu lukea",
+"Left / Right change channel": "Vasen / Oikea vaihtaa kanavaa",
+"When on, the channel list and groups are on OK → Channels.": "Kun päällä, kanavalista ja ryhmät löytyvät kohdasta OK → Kanavat.",
+"Show the TV guide": "Näytä TV-opas",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "Kun pois päältä, Tiviate avautuu koko näytölle, Oikea avaa kanavalistan ja Takaisin sulkee sovelluksen.",
+"Always highest quality": "Aina paras laatu",
+"Off: automatic — the quality follows your connection.": "Pois: automaattinen — laatu mukautuu yhteyteesi."
 }

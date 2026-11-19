@@ -2,6 +2,17 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.2.5 — 2026-11-19
+
+### Added (requested by viewers)
+- Settings → Remote control → Left / Right change channel: Left and Right switch to the previous and next
+  channel while watching. The channel list and groups are then on OK → Channels. Off by default.
+- Settings → General → Show the TV guide: turn it off and Tiviate opens fullscreen, Right and the Guide key
+  open the channel list, the TV guide card is hidden and Back leaves the app. On by default.
+
+### Changed
+- The "Always highest quality" setting is now translated into all 40 languages.
+
 ## 0.2.4 — 2026-10-29
 
 ### Fixed — your data

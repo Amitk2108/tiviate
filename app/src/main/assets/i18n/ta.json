@@ -361,5 +361,11 @@
 "Restore this backup?": "இந்தக் காப்புப்பிரதியை மீட்டெடுக்கவா?",
 "It replaces the playlists, favourites and settings on this TV.": "இது இந்த டிவியில் உள்ள பிளேலிஸ்ட்கள், பிடித்தவை மற்றும் அமைப்புகளை மாற்றிவிடும்.",
 "Restoring… loading your channels": "மீட்டெடுக்கிறது… உங்கள் சேனல்கள் ஏற்றப்படுகின்றன",
-"Couldn't read this backup": "இந்தக் காப்புப்பிரதியைப் படிக்க முடியவில்லை"
+"Couldn't read this backup": "இந்தக் காப்புப்பிரதியைப் படிக்க முடியவில்லை",
+"Left / Right change channel": "இடது / வலது மூலம் சேனலை மாற்றவும்",
+"When on, the channel list and groups are on OK → Channels.": "இயக்கத்தில் இருக்கும்போது சேனல் பட்டியலும் குழுக்களும் OK → சேனல்கள் என்பதில் இருக்கும்.",
+"Show the TV guide": "டிவி வழிகாட்டியைக் காட்டு",
+"When off, Tiviate opens fullscreen, Right opens the channel list and Back leaves the app.": "முடக்கத்தில் இருக்கும்போது Tiviate முழுத் திரையில் திறக்கும், வலது சேனல் பட்டியலைத் திறக்கும், Back ஆப்ஸிலிருந்து வெளியேறும்.",
+"Always highest quality": "எப்போதும் அதிகபட்சத் தரம்",
+"Off: automatic — the quality follows your connection.": "ஆஃப்: தானியங்கு — தரம் உங்கள் இணைப்பிற்கு ஏற்ப மாறும்."
 }

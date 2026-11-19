@@ -63,6 +63,20 @@ class PlayerNavigationTest {
     }
 
     @Test
+    fun leftRightChangeChannelWhenTurnedOnAndTheGuideCanBeTurnedOff() {
+        runBlocking { graph.settings.update { it.copy(leftRightZap = true, guideScreen = false) } }
+        rule.waitForIdle()
+        Remote.right()
+        rule.waitUntil(5_000) { current() == "Beacon Sports" }
+        Remote.left()
+        rule.waitUntil(5_000) { current() == "Aurora News" }
+        // No guide: the remote's Guide key opens the channel list, and the TV guide card is gone.
+        Remote.press(KeyEvent.KEYCODE_GUIDE)
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
+        assertTrue(!rule.onAllNodesWithTagExists("guide_screen"))
+    }
+
+    @Test
     fun upChangesToTheNextChannel() {
         assertEquals("Aurora News", current())
         Remote.up()
