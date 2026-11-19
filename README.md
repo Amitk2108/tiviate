@@ -13,7 +13,7 @@ M3U links · Xtream Codes · local M3U files · full TV guide · 40 languages ·
 ![Min Android 7.0](https://img.shields.io/badge/Android-7.0%2B-informational.svg)
 ![Made by Amit Kumar](https://img.shields.io/badge/made%20by-Amit%20Kumar-ff69b4.svg)
 
-[Download](#-download) · [Features](#-features) · [Screenshots](#-screenshots) · [Remote control](#-remote-control) · [Build](#-building-from-source) · [Contributing](CONTRIBUTING.md) · [Legal](#%EF%B8%8F-legal)
+[Website](https://amitk2108.github.io/tiviate/) · [Download](#-download) · [Features](#-features) · [Screenshots](#-screenshots) · [Remote control](#-remote-control) · [Build](#-building-from-source) · [Contributing](CONTRIBUTING.md) · [Legal](#%EF%B8%8F-legal)
 
 </div>
 

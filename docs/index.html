@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiviate – Free Open-Source IPTV Player for Android TV &amp; Fire TV</title>
+<meta name="description" content="Tiviate is a free, open-source IPTV player for Android TV, Fire TV and Firestick. M3U and Xtream Codes, full TV guide (EPG), every feature free. A TiviMate alternative with no premium tier.">
+<link rel="canonical" href="https://amitk2108.github.io/tiviate/">
+<link rel="icon" type="image/png" href="img/icon.png">
+<meta name="theme-color" content="#05080f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tiviate">
+<meta property="og:title" content="Tiviate – Free Open-Source IPTV Player for Android TV & Fire TV">
+<meta property="og:description" content="M3U and Xtream Codes, full TV guide, built for the remote. Every feature free, no ads, no account.">
+<meta property="og:url" content="https://amitk2108.github.io/tiviate/">
+<meta property="og:image" content="https://amitk2108.github.io/tiviate/screenshots/02-tv-guide.png">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Tiviate",
+  "description": "Free, open-source IPTV player for Android TV and Fire TV with M3U, Xtream Codes and a full TV guide.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Android TV, Fire OS, Android 7.0 or newer",
+  "url": "https://amitk2108.github.io/tiviate/",
+  "downloadUrl": "https://github.com/Amitk2108/tiviate/releases/latest",
+  "softwareHelp": "https://github.com/Amitk2108/tiviate#readme",
+  "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "screenshot": "https://amitk2108.github.io/tiviate/screenshots/02-tv-guide.png",
+  "author": { "@type": "Person", "name": "Amit Kumar", "url": "https://github.com/Amitk2108" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Is Tiviate free?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every feature is free. There is no premium version, no account, no ads and no tracking. The source code is open under the GPL-3.0 licence." } },
+    { "@type": "Question", "name": "Does Tiviate include channels?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Tiviate is a player only. You add the M3U link, Xtream Codes login or M3U file you already have from your own provider." } },
+    { "@type": "Question", "name": "Is Tiviate an alternative to TiviMate?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Tiviate is an independent, open-source IPTV player for the same kind of use: live TV with a TV guide on Android TV and Fire TV. All of its features are free. It is not affiliated with TiviMate." } },
+    { "@type": "Question", "name": "How do I install Tiviate on a Fire TV Stick?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Install Downloader from the Amazon Appstore, allow it under Settings, My Fire TV, Developer options, Install unknown apps, then open github.com/Amitk2108/tiviate/releases/latest in Downloader and install the APK." } },
+    { "@type": "Question", "name": "Which devices does Tiviate run on?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Android TV and Google TV devices and Amazon Fire TV and Firestick, on Android 7.0 or newer. It also runs on Android phones and tablets with touch." } }
+  ]
+}
+</script>
+<style>
+/* One dark look, matching the app's own guide screen. */
+:root {
+  --bg: #05080f; --band: #0a1120; --surface: #0f1a2e; --line: #1d2a42;
+  --ink: #e8eef7; --muted: #9aa8bc; --accent: #38c6ee; --accent-ink: #04121a; --select: #ffd23f; --live: #3ddc84;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--font); }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 3px solid var(--select); outline-offset: 3px; border-radius: 6px; }
+img { max-width: 100%; height: auto; display: block; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { line-height: 1.15; text-wrap: balance; margin: 0; letter-spacing: -0.015em; }
+h1 { font-size: clamp(36px, 6vw, 60px); font-weight: 800; }
+h2 { font-size: clamp(26px, 3.6vw, 36px); font-weight: 750; }
+h3 { font-size: 19px; font-weight: 650; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+header.top { padding-block: 18px; }
+header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-weight: 750; font-size: 20px; }
+.brand img { width: 36px; height: 36px; border-radius: 9px; }
+nav.links { display: flex; gap: 22px; flex-wrap: wrap; }
+nav.links a { color: var(--muted); text-decoration: none; font-size: 15px; }
+nav.links a:hover { color: var(--ink); }
+
+.hero { padding-block: 40px 56px; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 48px; align-items: center; }
+.hero-text { display: flex; flex-direction: column; gap: 20px; }
+.lead { font-size: 20px; color: var(--muted); max-width: 34ch; }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 10px; font-weight: 650; text-decoration: none; font-size: 16px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { border: 1px solid var(--line); color: var(--ink); }
+.btn:hover { filter: brightness(1.08); }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.facts span::before { content: "•"; color: var(--live); margin-right: 8px; }
+/* The screenshot sits in the guide's own yellow "selected" frame. */
+.shot { border: 3px solid var(--select); border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 16 / 9; }
+
+.band { background: var(--band); border-block: 1px solid var(--line); padding-block: 64px; }
+section.block { padding-block: 64px; }
+.section-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; max-width: 62ch; }
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px 32px; }
+.feature { display: flex; flex-direction: column; gap: 6px; padding-left: 14px; border-left: 2px solid var(--line); }
+.feature p { color: var(--muted); font-size: 16px; }
+
+.gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.gallery figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.gallery img { border-radius: 10px; border: 1px solid var(--line); aspect-ratio: 16 / 9; }
+.gallery figcaption { font-size: 14px; color: var(--muted); }
+
+.alt { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.alt ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+
+ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
+ol.steps li { counter-increment: s; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+ol.steps li::before { content: "Step " counter(s); font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; text-transform: uppercase; }
+ol.steps p { color: var(--muted); font-size: 16px; }
+code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.92em; background: var(--bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere; }
+
+.faq { display: flex; flex-direction: column; gap: 10px; max-width: 780px; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; }
+.faq summary { cursor: pointer; font-weight: 650; font-size: 18px; }
+.faq details p { margin-top: 10px; color: var(--muted); }
+
+footer { border-top: 1px solid var(--line); padding-block: 36px 48px; font-size: 14px; color: var(--muted); }
+footer .wrap { display: flex; flex-direction: column; gap: 10px; }
+footer p { max-width: 90ch; }
+
+@media (max-width: 860px) {
+  .hero .wrap, .alt { grid-template-columns: minmax(0, 1fr); }
+  .gallery { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="img/icon.png" alt="" width="36" height="36">Tiviate</a>
+    <nav class="links" aria-label="Main">
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/Amitk2108/tiviate">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-text">
+        <h1>Free IPTV player for Android TV and Fire TV</h1>
+        <p class="lead">Open source, built for the remote, and every feature is free. Add your own M3U link or Xtream Codes login and watch with a full TV guide.</p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/Amitk2108/tiviate/releases/latest">Download the APK</a>
+          <a class="btn ghost" href="https://github.com/Amitk2108/tiviate">Source code</a>
+        </div>
+        <div class="facts" aria-label="At a glance">
+          <span>Android 7.0+</span><span>About 10 MB</span><span>GPL-3.0</span><span>40 languages</span><span>No ads or account</span>
+        </div>
+      </div>
+      <div class="shot">
+        <img src="img/guide.webp" width="1280" height="720" alt="Tiviate TV guide on Android TV: live preview at the top, channels with their programmes below, the selected channel framed in yellow" fetchpriority="high">
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Everything a live TV player needs, without a premium tier</h2>
+        <p class="muted">Made for watching TV from the sofa with a remote, and smooth on a low-cost Fire TV Stick.</p>
+      </div>
+      <div class="features">
+        <div class="feature"><h3>Full TV guide (EPG)</h3><p>A guide grid with a live preview and minutes left. XMLTV guides are found from your playlist, and you can add your own (.gz and .xz work).</p></div>
+        <div class="feature"><h3>M3U and Xtream Codes</h3><p>Add an M3U or M3U8 link, an Xtream Codes login or a local M3U file. Playlists update on start, daily, weekly or monthly.</p></div>
+        <div class="feature"><h3>Built for the remote</h3><p>OK opens the player options, Left opens your groups, and holding Back always returns to the player.</p></div>
+        <div class="feature"><h3>Your channels, your way</h3><p>Favourites, recent channels and your own groups. Hide, rename and reorder channels, or strip "UK:" and "| FHD" from names.</p></div>
+        <div class="feature"><h3>Reliable playback</h3><p>Hardware decoding, AC3 and DTS sound on TVs that can't decode it, automatic reconnect, and a switch between .ts and .m3u8 when a channel fails.</p></div>
+        <div class="feature"><h3>Every feature free</h3><p>Audio and subtitle tracks, audio sync, sleep timer, picture-in-picture, backup and restore. Nothing is locked.</p></div>
+        <div class="feature"><h3>Private</h3><p>No account, no ads, no analytics. Your playlist logins stay on your TV.</p></div>
+        <div class="feature"><h3>Keeps itself up to date</h3><p>Tiviate tells you when a new version is out and installs it for you. You can turn the check off.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="shots-h">
+    <div class="wrap">
+      <div class="section-head"><h2 id="shots-h">Screenshots</h2></div>
+      <div class="gallery">
+        <figure><img src="img/channels.webp" width="1280" height="720" loading="lazy" alt="Channel list over the video with what is on now"><figcaption>Channel list over the video</figcaption></figure>
+        <figure><img src="img/groups.webp" width="1280" height="720" loading="lazy" alt="Groups column beside the TV guide"><figcaption>Groups beside the guide</figcaption></figure>
+        <figure><img src="img/options.webp" width="1280" height="720" loading="lazy" alt="Player options: audio, subtitles, display, sleep timer"><figcaption>Player options on OK</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="alt-h">
+    <div class="wrap alt">
+      <div class="section-head" style="margin-bottom:0">
+        <h2 id="alt-h">A free, open-source alternative to TiviMate</h2>
+        <p class="muted">If you like how TiviMate works on a TV but don't want to pay to unlock features, Tiviate covers the same everyday use: live TV with a guide, groups and favourites, all driven by the remote.</p>
+      </div>
+      <ul>
+        <li>Every feature is free, with no premium tier to unlock.</li>
+        <li>The source code is public, so anyone can check what the app does.</li>
+        <li>No account and no tracking.</li>
+        <li>Backups move your playlists, favourites and settings to a new TV.</li>
+        <li>Tiviate is an independent project and is not affiliated with TiviMate.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="install" aria-labelledby="install-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="install-h">Install on a Fire TV Stick or Fire TV</h2>
+        <p class="muted">On Android TV and Google TV, download the APK with a browser or a file-sending app and open it.</p>
+      </div>
+      <ol class="steps">
+        <li><h3>Get Downloader</h3><p>Install the free <b>Downloader</b> app from the Amazon Appstore on your Fire TV.</p></li>
+        <li><h3>Allow the install</h3><p>Settings → My Fire TV → Developer options → Install unknown apps → turn on Downloader. No Developer options? Open My Fire TV → About and press the device name 7 times.</p></li>
+        <li><h3>Download Tiviate</h3><p>In Downloader, enter <code>github.com/Amitk2108/tiviate/releases/latest</code>, choose the <code>.apk</code> file and press Install.</p></li>
+        <li><h3>Add your playlist</h3><p>Open Tiviate and add your M3U link, Xtream Codes login or M3U file. The guide fills in by itself.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band" id="faq" aria-labelledby="faq-h">
+    <div class="wrap">
+      <div class="section-head"><h2 id="faq-h">Questions</h2></div>
+      <div class="faq">
+        <details><summary>Is Tiviate free?</summary><p>Yes. Every feature is free. There is no premium version, no account, no ads and no tracking. The source code is open under the GPL-3.0 licence.</p></details>
+        <details><summary>Does Tiviate include channels?</summary><p>No. Tiviate is a player only. You add the M3U link, Xtream Codes login or M3U file you already have from your own provider.</p></details>
+        <details><summary>Is Tiviate an alternative to TiviMate?</summary><p>Yes. Tiviate is an independent, open-source IPTV player for the same kind of use: live TV with a TV guide on Android TV and Fire TV. All of its features are free. It is not affiliated with TiviMate.</p></details>
+        <details><summary>How do I install Tiviate on a Fire TV Stick?</summary><p>Install Downloader from the Amazon Appstore, allow it under Settings, My Fire TV, Developer options, Install unknown apps, then open github.com/Amitk2108/tiviate/releases/latest in Downloader and install the APK.</p></details>
+        <details><summary>Which devices does Tiviate run on?</summary><p>Android TV and Google TV devices and Amazon Fire TV and Firestick, on Android 7.0 or newer. It also runs on Android phones and tablets with touch.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>Player only.</b> Tiviate does not provide, sell, host or store any channels, playlists or streams. You add a subscription you obtained yourself and are responsible for having the right to watch it. TiviMate, Fire TV and Android TV are trademarks of their owners, used here only to describe compatibility.</p>
+    <p>Made by <a href="https://github.com/Amitk2108">Amit Kumar</a> · <a href="https://github.com/Amitk2108/tiviate">Source code</a> · <a href="https://github.com/Amitk2108/tiviate/blob/main/LICENSE">GPL-3.0 licence</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
