@@ -138,6 +138,7 @@ Every feature is free. There is no premium version, no account, no activation an
 - **Display mode** (Fit, Stretch, Fill, 16:9, 4:3) and **zoom**, per channel or for all
 - **Video quality** (automatic or a fixed resolution), **stats** overlay (codec, bitrate, buffer, dropped frames)
 - **Sleep timer**, **picture-in-picture** (option card, or on the Home button), always-open-in-another-player
+- **Android TV home screen rows**: your **Favorites** and **Recent** channels on the home screen; pick one to start watching it
 
 ### 🧭 Browsing
 - **TV guide** with a live preview, the programme on now, **minutes left**, descriptions and images; the playing channel has a **green "live" border**

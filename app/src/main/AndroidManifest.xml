@@ -20,6 +20,8 @@
         android:maxSdkVersion="28" />
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Android TV home screen rows (Favorites, Recent). -->
+    <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
     <!-- In-app updates: hand the downloaded release APK to the system installer. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Android 10+: needed to open Tiviate at boot ("Start Tiviate when the TV turns on"). -->
@@ -47,6 +49,12 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+            <!-- A channel picked on the Android TV home screen (not BROWSABLE: web pages can't open it). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="tiviate" android:host="play" />
             </intent-filter>
         </activity>
 

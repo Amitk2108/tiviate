@@ -49,6 +49,8 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(LocalGraph provides graph) { AppRoot() }
             }
         }
+        HomeChannels.parse(intent?.dataString)?.let { graph.openChannel.value = it }
+        HomeChannels.start(this, graph)
         lifecycleScope.launch(Dispatchers.IO) {
             SyncScheduler.schedulePeriodic(this@MainActivity, graph.settings.settings.first().updateIntervalHours)
         }
@@ -111,6 +113,12 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         app.tiviate.ui.phone.Rotation.release()
         super.onDestroy()
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        HomeChannels.parse(intent.dataString)?.let { graph.openChannel.value = it }
     }
 
     override fun onStart() {

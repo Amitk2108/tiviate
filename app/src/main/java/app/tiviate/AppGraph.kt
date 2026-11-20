@@ -34,6 +34,8 @@ class AppGraph(context: Context) {
     )
     val channels: ChannelRepository by lazy { ChannelRepository(db, sortSetting = settings.settings.map { it.channelSort }) }
     /** Long press of Back: return to fullscreen from anywhere (TiviMate's "Long Back"). */
+    /** A channel picked on the TV home screen (playlist id, channel key), until the app opens it. */
+    val openChannel = kotlinx.coroutines.flow.MutableStateFlow<Pair<Long, String>?>(null)
     val longBack = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     val player: PlayerController by lazy { PlayerController(appContext, http, settings, channels, appScope) }

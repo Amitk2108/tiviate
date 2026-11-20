@@ -56,6 +56,7 @@ fun AppRoot() {
     }
 
     LaunchedEffect(Unit) {
+        val opening = graph.openChannel.value != null // started from a channel on the TV home screen
         val playlists = graph.db.playlists().all()
         if (playlists.isEmpty()) {
             nav.replaceAll(Screen.Welcome)
@@ -66,7 +67,7 @@ fun AppRoot() {
         if (settings.activePlaylistId != active.id) graph.settings.update { it.copy(activePlaylistId = active.id) }
         nav.replaceAll(Screen.Player)
         // TV: start on the guide (Back goes fullscreen). Phones open on their Live screen (video and list).
-        if (!settings.startFullscreen && settings.guideScreen && !phoneLayout) nav.push(Screen.Guide)
+        if (!opening && !settings.startFullscreen && settings.guideScreen && !phoneLayout) nav.push(Screen.Guide)
         if (graph.playlists.needsStartSync(settings.playlistUpdate, settings.updateOnStart)) {
             // A playlist that never loaded goes now; a routine refresh waits until the viewer has settled in.
             SyncScheduler.syncNow(context, atStart = true, delaySec = if (playlists.any { it.lastSyncAt == null }) 0 else 45)
@@ -82,6 +83,22 @@ fun AppRoot() {
             val latest = app.tiviate.data.update.UpdateChecker.latest(graph.http)
             if (latest != null && app.tiviate.data.update.UpdateChecker.shouldOffer(latest.version, app.tiviate.BuildConfig.VERSION_NAME, s.skippedUpdate)) {
                 app.tiviate.ui.components.UpdatePrompt.release = latest
+            }
+        }
+    }
+
+    // A channel picked on the TV home screen: play it fullscreen.
+    LaunchedEffect(Unit) {
+        graph.openChannel.collect { pick ->
+            val (playlistId, key) = pick ?: return@collect
+            graph.openChannel.value = null
+            val channel = graph.db.channels().byKey(playlistId, key) ?: return@collect
+            val playlist = graph.playlists.get(playlistId) ?: return@collect
+            if (graph.settings.settings.first().activePlaylistId != playlistId) graph.settings.update { it.copy(activePlaylistId = playlistId) }
+            // The player lives on the main thread; the lookups above may have resumed elsewhere.
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main.immediate) {
+                graph.player.tune(channel, playlist.userAgent)
+                nav.replaceAll(Screen.Player)
             }
         }
     }

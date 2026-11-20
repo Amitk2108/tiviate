@@ -2,6 +2,16 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.3.3 — 2026-11-20
+
+### Added: channels on the Android TV home screen (GitHub issue #2)
+- Your Favorites and Recent channels now appear as rows on the Android TV home screen (Android 8.0 and newer).
+  Pick a channel there and Tiviate opens fullscreen on it.
+- The Favorites row is added by itself. Android TV lets an app add only one row automatically, so turn on the
+  Recent row once: home screen → Customize channels → Tiviate → Recent.
+- The rows follow the active playlist and update as you add favourites and watch channels.
+- Fire TV and phones have no such rows, so nothing changes there.
+
 ## 0.3.2 — 2026-11-19
 
 ### Added: seek bar

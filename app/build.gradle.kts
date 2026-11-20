@@ -16,8 +16,8 @@ android {
         applicationId = "app.tiviate"
         minSdk = 24
         targetSdk = 35
-        versionCode = 10
-        versionName = "0.3.2"
+        versionCode = 11
+        versionName = "0.3.3"
         testInstrumentationRunner = "app.tiviate.TiviateTestRunner"
         // Each instrumented test runs in a fresh process with cleared app data.
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
@@ -89,6 +89,8 @@ dependencies {
     implementation(libs.compose.foundation)
     // Menu and option icons (Apache-2.0); R8 keeps only the ones used.
     implementation(libs.compose.icons)
+    // Android TV home screen rows (Favorites, Recent).
+    implementation(libs.tvprovider)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.tv.material)
     implementation(libs.coroutines.android)
