@@ -41,15 +41,18 @@ data class ToggleChoice(val label: String, val checked: Boolean, val onToggle: (
 
 /** A list of choices with the current one ticked, and an optional "for all channels" switch. */
 @Composable
-fun ChoiceDialog(title: String, choices: List<Choice>, toggle: ToggleChoice? = null, empty: String? = null, tag: String = "choice_dialog") {
+fun ChoiceDialog(
+    title: String, choices: List<Choice>, toggle: ToggleChoice? = null, empty: String? = null, tag: String = "choice_dialog",
+    /** Phones: a tap above the sheet or dragging it down closes it (Back is the owner's, as on TV). */
+    onDismiss: (() -> Unit)? = null,
+) {
     val first = remember { FocusRequester() }
     val start = choices.indexOfFirst { it.selected }.coerceAtLeast(0)
     LaunchedEffect(Unit) { focusSoon(first) }
-    Box(Modifier.fillMaxSize().background(Tokens.ScrimSoft).testTag(tag), contentAlignment = Alignment.Center) {
-        Column(Modifier.width(560.dp).background(Tokens.Surface, Tokens.Shape).padding(24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    val body: @Composable (Modifier) -> Unit = { listModifier ->
             Text(title, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
             if (choices.isEmpty() && empty != null) Text(empty, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
-            LazyColumn(Modifier.heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            LazyColumn(listModifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 itemsIndexed(choices, key = { i, c -> "$i-${c.label}" }) { i, c ->
                     ChoiceRow(c.label, c.selected, (if (i == start) Modifier.focusRequester(first) else Modifier).testTag("choice_${c.label}"), c.onClick)
                 }
@@ -68,6 +71,16 @@ fun ChoiceDialog(title: String, choices: List<Choice>, toggle: ToggleChoice? = n
                     }
                 }
             }
+    }
+    if (app.tiviate.ui.components.usesBottomSheets()) {
+        app.tiviate.ui.components.BottomSheet(onDismiss, tag) {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) { body(Modifier.weight(1f, fill = false)) }
+        }
+        return
+    }
+    Box(Modifier.fillMaxSize().background(Tokens.ScrimSoft).testTag(tag), contentAlignment = Alignment.Center) {
+        Column(Modifier.width(560.dp).background(Tokens.Surface, Tokens.Shape).padding(24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            body(Modifier.heightIn(max = 420.dp))
         }
     }
 }

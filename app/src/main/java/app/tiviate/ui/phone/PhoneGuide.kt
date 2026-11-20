@@ -221,13 +221,8 @@ private fun ProgrammeSheet(
     reminded: Boolean? = null, onRemind: (app.tiviate.data.db.ProgrammeEntity) -> Unit = {},
     onRecord: (app.tiviate.data.db.ProgrammeEntity) -> Unit = {},
 ) {
-    androidx.activity.compose.BackHandler(onBack = onClose)
-    Box(Modifier.fillMaxSize().background(Tokens.Scrim).pointerInput(Unit) { detectTapGestures { onClose() } }, contentAlignment = Alignment.BottomCenter) {
-        Column(
-            Modifier.fillMaxWidth().background(Tokens.Surface, Tokens.Shape).padding(20.dp).testTag("phone_programme_sheet")
-                .pointerInput(Unit) { detectTapGestures { } }, // taps on the card don't close it
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+    app.tiviate.ui.components.BottomSheet(onClose, "phone_programme_scrim") {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp).testTag("phone_programme_sheet"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             val p = block.programme
             Text(channel.name, style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.SemiBold))
             Text(p?.title ?: t("No programme information"), maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))

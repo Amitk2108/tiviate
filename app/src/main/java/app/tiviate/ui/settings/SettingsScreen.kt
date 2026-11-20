@@ -238,6 +238,7 @@ private fun GeneralSection() {
                     app.tiviate.ui.player.Choice(name, settings.language == tag) { pickLanguage = false; update { it.copy(language = tag) } }
                 },
             tag = "language_dialog",
+            onDismiss = { pickLanguage = false },
         )
         return
     }

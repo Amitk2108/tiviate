@@ -3,6 +3,7 @@ package app.tiviate
 import android.app.UiAutomation
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -17,6 +18,8 @@ import app.tiviate.data.SyncProgress
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
@@ -84,6 +87,32 @@ class PhoneFeaturesTest {
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("phone_record") && rule.onAllNodesWithTagExists("phone_remind") }
         rule.onNodeWithTag("phone_remind").performClick()
         rule.waitUntil(5_000) { runBlocking { graph.settings.settings.first().reminders.size } == 1 }
+    }
+
+    @Test
+    fun aLongPressOpensABottomSheetThatBackClosesWithoutLeavingTheApp() {
+        start(xtream = false)
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("phone_channel_1") }
+        rule.onNodeWithTag("phone_channel_1").performTouchInput { longClick() }
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_sheet_handle") }
+        rule.waitForIdle()
+        // A bottom sheet: it starts well below the top of the screen.
+        val screen = rule.onNodeWithTag("channel_sheet").fetchSemanticsNode().boundsInRoot
+        val handle = rule.onNodeWithTag("channel_sheet_handle").fetchSemanticsNode().boundsInRoot
+        assertTrue("sheet top ${handle.top} on a screen of ${screen.height}", handle.top > screen.height * 0.1f)
+        InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("screencap -p /sdcard/tiviate-phone/12-sheet.png").close()
+        Thread.sleep(600)
+
+        Remote.back() // closes the sheet, not the app
+        rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("channel_sheet") }
+        assertTrue(rule.onAllNodesWithTagExists("phone_home"))
+        assertEquals(androidx.lifecycle.Lifecycle.State.RESUMED, scenario!!.state)
+
+        // A tap above the sheet closes it too.
+        rule.onNodeWithTag("phone_channel_1").performTouchInput { longClick() }
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_sheet_handle") }
+        rule.onNodeWithTag("channel_sheet").performTouchInput { click(Offset(width / 2f, 20f)) }
+        rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("channel_sheet") }
     }
 
     @Test

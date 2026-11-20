@@ -166,11 +166,12 @@ fun VodPlayerScreen(item: VodPlay) {
             }
         }
         when (picker) {
-            "audio" -> ChoiceDialog(t("Audio"), engine.audioTracks().map { o -> Choice(o.label, o.selected) { engine.selectAudio(o); picker = null } }, empty = t("This stream has one sound track."))
+            "audio" -> ChoiceDialog(t("Audio"), engine.audioTracks().map { o -> Choice(o.label, o.selected) { engine.selectAudio(o); picker = null } }, empty = t("This stream has one sound track."), onDismiss = { picker = null })
             "subtitles" -> ChoiceDialog(
                 t("Subtitles"),
                 listOf(Choice(t("Off"), engine.textTracks().none { it.selected }) { engine.selectText(null); picker = null }) +
                     engine.textTracks().map { o -> Choice(o.label, o.selected) { engine.selectText(o); picker = null } },
+                onDismiss = { picker = null },
             )
         }
         if (picker != null) BackHandler { picker = null }

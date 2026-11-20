@@ -162,6 +162,7 @@ fun MultiViewScreen() {
             },
             empty = t("Loading channels…"),
             tag = "multiview_picker",
+            onDismiss = { picking = false },
         )
         BackHandler { picking = false; root.requestFocusSafely() }
     }

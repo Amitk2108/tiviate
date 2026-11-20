@@ -82,6 +82,8 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
     LaunchedEffect(dialog) { if (dialog == null) focusSoon(first) }
     val ch = target.channel
     val cat = target.category
+    // Back: from a dialog to the menu, from the menu to the screen.
+    androidx.activity.compose.BackHandler { if (dialog != null) dialog = null else onClose() }
     val context = androidx.compose.ui.platform.LocalContext.current
     val activeRecordings by remember { graph.db.recordings().observeActive() }.collectAsState(initial = emptyList())
 
@@ -110,11 +112,11 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
             return
         }
         SheetDialog.AssignGuide -> if (ch != null) {
-            AssignGuideDialog(ch) { onMessage(t("Guide updated")); onClose() }
+            AssignGuideDialog(ch, onDismiss = { dialog = null }) { onMessage(t("Guide updated")); onClose() }
             return
         }
         SheetDialog.AddToGroup -> if (ch != null) {
-            AddToGroupDialog(target.playlistId, listOf(ch.stableKey)) { name -> name?.let { onMessage(tf("Added to %s", it)) }; onClose() }
+            AddToGroupDialog(target.playlistId, listOf(ch.stableKey), onDismiss = { dialog = null }) { name -> name?.let { onMessage(tf("Added to %s", it)) }; onClose() }
             return
         }
         SheetDialog.RenameGroup -> {
@@ -146,9 +148,13 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
         null -> Unit
     }
 
+    val bottomSheet = app.tiviate.ui.components.usesBottomSheets()
     val rows = buildList<SheetItem> {
-        add(SheetItem.Row("sheet_search", t("Search")) { onClose(); nav.push(Screen.Search) })
-        add(SheetItem.Row("sheet_settings", t("Settings")) { onClose(); nav.push(Screen.Settings) })
+        // Phones have Search and Settings in the bottom bar: the sheet starts with the channel.
+        if (!bottomSheet) {
+            add(SheetItem.Row("sheet_search", t("Search")) { onClose(); nav.push(Screen.Search) })
+            add(SheetItem.Row("sheet_settings", t("Settings")) { onClose(); nav.push(Screen.Settings) })
+        }
         if (target.programmeTitle != null && onDescription != null) {
             add(SheetItem.Header(target.programmeTitle))
             add(SheetItem.Row("sheet_description", t("Programme description")) { onClose(); onDescription() })
@@ -233,11 +239,8 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
         add(SheetItem.Row("sheet_manage_groups", t("Manage groups")) { onClose(); nav.push(Screen.ManageGroups(target.playlistId)) })
     }
 
-    Box(Modifier.fillMaxSize().background(Tokens.ScrimSoft).testTag("channel_sheet"), contentAlignment = Alignment.CenterEnd) {
-        LazyColumn(
-            Modifier.width(520.dp).fillMaxHeight().background(Tokens.Surface).padding(horizontal = 16.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
+    val list: @Composable (Modifier) -> Unit = { listModifier ->
+        LazyColumn(listModifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
             val firstRow = rows.indexOfFirst { it is SheetItem.Row && (ch == null || it.tag == "sheet_favorite") }.coerceAtLeast(0)
             items(rows.size) { i ->
                 when (val item = rows[i]) {
@@ -258,6 +261,13 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
                     }
                 }
             }
+        }
+    }
+    if (app.tiviate.ui.components.usesBottomSheets()) {
+        app.tiviate.ui.components.BottomSheet(onClose, "channel_sheet") { list(Modifier.fillMaxWidth().weight(1f, fill = false)) }
+    } else {
+        Box(Modifier.fillMaxSize().background(Tokens.ScrimSoft).testTag("channel_sheet"), contentAlignment = Alignment.CenterEnd) {
+            list(Modifier.width(520.dp).fillMaxHeight().background(Tokens.Surface).padding(horizontal = 16.dp, vertical = 24.dp))
         }
     }
 }

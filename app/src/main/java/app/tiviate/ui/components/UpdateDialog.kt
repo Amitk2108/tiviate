@@ -55,8 +55,7 @@ fun UpdateDialog(release: Release, onClose: () -> Unit) {
     var message by remember { mutableStateOf<String?>(null) }
     val install = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusSoon(install) }
-    Box(Modifier.fillMaxSize().background(Tokens.Scrim).testTag("update_dialog"), contentAlignment = Alignment.Center) {
-        Column(Modifier.width(620.dp).background(Tokens.Surface, Tokens.Shape).padding(28.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    val body = @Composable {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 Icon(Icons.Rounded.SystemUpdate, contentDescription = null, tint = Tokens.Cyan)
                 Text(tf("Version %s is available", release.version), style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Bold))
@@ -88,7 +87,13 @@ fun UpdateDialog(release: Release, onClose: () -> Unit) {
                     onClose()
                 }, tag = "update_later")
             }
-        }
+    }
+    if (usesBottomSheets()) {
+        BottomSheet(onClose, "update_dialog") { Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) { body() } }
+        return
+    }
+    Box(Modifier.fillMaxSize().background(Tokens.Scrim).testTag("update_dialog"), contentAlignment = Alignment.Center) {
+        Column(Modifier.width(620.dp).background(Tokens.Surface, Tokens.Shape).padding(28.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) { body() }
     }
 }
 

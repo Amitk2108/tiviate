@@ -32,6 +32,11 @@ class ReminderTest {
 
     @Before
     fun setUp() {
+        // The first reminder asks for permission to notify (Android 13+); a test can't answer that dialog.
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation
+                .grantRuntimePermission(context.packageName, android.Manifest.permission.POST_NOTIFICATIONS)
+        }
         fixtures = FixtureServer().start()
         runBlocking {
             val id = graph.playlists.addM3uUrl("Fixture", fixtures.url("/list.m3u"), null, null)

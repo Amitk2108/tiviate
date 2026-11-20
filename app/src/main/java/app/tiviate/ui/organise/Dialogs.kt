@@ -45,7 +45,16 @@ import app.tiviate.ui.t
 import app.tiviate.ui.tf
 
 @Composable
-fun DialogFrame(title: String, tag: String, width: Int = 620, content: @Composable () -> Unit) {
+fun DialogFrame(title: String, tag: String, width: Int = 620, onDismiss: (() -> Unit)? = null, content: @Composable () -> Unit) {
+    if (app.tiviate.ui.components.usesBottomSheets()) {
+        app.tiviate.ui.components.BottomSheet(onDismiss, tag) {
+            Column(Modifier.fillMaxWidth().weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(title, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
+                content()
+            }
+        }
+        return
+    }
     Box(Modifier.fillMaxSize().background(Tokens.ScrimSoft).testTag(tag), contentAlignment = Alignment.Center) {
         Column(Modifier.width(width.dp).background(Tokens.Surface, Tokens.Shape).padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(title, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
@@ -60,7 +69,7 @@ fun TextInputDialog(title: String, label: String, initial: String, onSave: (Stri
     var value by remember { mutableStateOf(initial) }
     val first = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusSoon(first) }
-    DialogFrame(title, tag) {
+    DialogFrame(title, tag, onDismiss = onCancel) {
         TvTextField(label, value, { value = it }, Modifier.focusRequester(first), tag = "${tag}_field")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ActionButton(t("Save"), { onSave(value) }, primary = true, tag = "${tag}_save")
@@ -71,7 +80,7 @@ fun TextInputDialog(title: String, label: String, initial: String, onSave: (Stri
 
 /** Pick the guide channel for [channel] by hand, or go back to automatic matching. */
 @Composable
-fun AssignGuideDialog(channel: ChannelEntity, onDone: () -> Unit) {
+fun AssignGuideDialog(channel: ChannelEntity, onDismiss: (() -> Unit)? = null, onDone: () -> Unit) {
     val graph = LocalGraph.current
     val scope = rememberCoroutineScope()
     var query by remember { mutableStateOf(channel.name) }
@@ -82,7 +91,7 @@ fun AssignGuideDialog(channel: ChannelEntity, onDone: () -> Unit) {
         choices = graph.channels.guideChannels(channel.playlistId, query)
     }
     LaunchedEffect(Unit) { focusSoon(first) }
-    DialogFrame(tf("Guide for %s", channel.name), "assign_guide_dialog", width = 760) {
+    DialogFrame(tf("Guide for %s", channel.name), "assign_guide_dialog", width = 760, onDismiss = onDismiss) {
         TvTextField(t("Search the guide"), query, { query = it }, Modifier.focusRequester(first), tag = "assign_guide_search")
         LazyColumn(Modifier.heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             item(key = "auto") {
@@ -102,7 +111,7 @@ fun AssignGuideDialog(channel: ChannelEntity, onDone: () -> Unit) {
 
 /** Add channels to one of the viewer's own groups, or make a new one. */
 @Composable
-fun AddToGroupDialog(playlistId: Long, keys: List<String>, onDone: (String?) -> Unit) {
+fun AddToGroupDialog(playlistId: Long, keys: List<String>, onDismiss: (() -> Unit)? = null, onDone: (String?) -> Unit) {
     val graph = LocalGraph.current
     val scope = rememberCoroutineScope()
     val groups by graph.channels.customGroups(playlistId).collectAsState(initial = emptyList<CustomGroupEntity>())
@@ -119,7 +128,7 @@ fun AddToGroupDialog(playlistId: Long, keys: List<String>, onDone: (String?) -> 
         }, onCancel = { creating = false }, tag = "new_group_dialog")
         return
     }
-    DialogFrame(t("Add to group"), "add_to_group_dialog") {
+    DialogFrame(t("Add to group"), "add_to_group_dialog", onDismiss = onDismiss) {
         LazyColumn(Modifier.heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             item(key = "new") { Row(t("New group…"), false, Modifier.focusRequester(first)) { creating = true } }
             items(groups, key = { it.id }) { g ->

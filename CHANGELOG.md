@@ -2,6 +2,17 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.4.1 — 2026-11-20
+
+### Phones and tablets
+- Menus and choices now open as **bottom sheets**: the long-press menu on a channel, the player's choices (audio,
+  subtitles, display, sleep timer…), rename and group dialogs, the PIN pad, reminders and the update offer.
+  Drag the handle down, tap above the sheet or press Back to close it.
+- **Fixed**: Back on the long-press menu closed Tiviate instead of the menu.
+- The phone's long-press menu starts with the channel (Search and Settings are in the bottom bar).
+
+TVs are unchanged.
+
 ## 0.4.0 — 2026-11-20
 
 ### Added

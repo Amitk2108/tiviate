@@ -492,7 +492,7 @@ fun PlayerScreen() {
                                 }
                             },
                             empty = t("This channel has only one audio track."),
-                            tag = "track_dialog",
+                            tag = "track_dialog", onDismiss = { done() },
                         )
                     }
                     PickerKind.SUBTITLES -> {
@@ -516,7 +516,7 @@ fun PlayerScreen() {
                                 val lang = tracks.firstOrNull { it.selected }?.language
                                 save { it.copy(subtitlesForAll = on, preferredTextLanguage = if (on) lang ?: it.preferredTextLanguage else it.preferredTextLanguage) }
                             },
-                            tag = "track_dialog",
+                            tag = "track_dialog", onDismiss = { done() },
                         )
                     }
                     PickerKind.DISPLAY -> {
@@ -540,13 +540,13 @@ fun PlayerScreen() {
                                     if (on) save { s -> s.copy(channelDisplayModes = s.channelDisplayModes - it) }
                                 }
                             },
-                            tag = "display_dialog",
+                            tag = "display_dialog", onDismiss = { done() },
                         )
                     }
                     PickerKind.ZOOM -> ChoiceDialog(
                         title = t("Zoom (all channels)"),
                         choices = ZOOM_STEPS.map { z -> Choice("$z%", z == settings.zoomPercent) { save { it.copy(zoomPercent = z) }; done() } },
-                        tag = "zoom_dialog",
+                        tag = "zoom_dialog", onDismiss = { done() },
                     )
                     PickerKind.QUALITY -> {
                         val tracks = remember(o, playback.channelKey) { engine.videoTracks() }
@@ -555,19 +555,19 @@ fun PlayerScreen() {
                             title = t("Quality"),
                             choices = listOf(Choice(t("Automatic"), auto) { engine.selectVideo(null); done() }) +
                                 tracks.map { t -> Choice(t.label, !auto && t.selected) { engine.selectVideo(t); done() } },
-                            tag = "quality_dialog",
+                            tag = "quality_dialog", onDismiss = { done() },
                         )
                     }
                     PickerKind.AUDIO_SYNC -> ChoiceDialog(
                         title = t("Audio sync (all channels)"),
                         choices = AUDIO_SYNC_STEPS.map { ms -> Choice(audioSyncLabel(ms), ms == settings.audioOffsetMs) { save { it.copy(audioOffsetMs = ms) }; done() } },
-                        tag = "audio_sync_dialog",
+                        tag = "audio_sync_dialog", onDismiss = { done() },
                     )
                     PickerKind.SLEEP -> ChoiceDialog(
                         title = t("Sleep timer"),
                         choices = listOf(Choice(t("Off"), sleepMinutes == null) { graph.player.setSleepTimer(null); done() }) +
                             SLEEP_STEPS.map { m -> Choice(tf("%d min", m), false) { graph.player.setSleepTimer(m); vm.showToast(tf("Tiviate will stop in %d min", m)); done() } },
-                        tag = "sleep_dialog",
+                        tag = "sleep_dialog", onDismiss = { done() },
                     )
                 }
             }

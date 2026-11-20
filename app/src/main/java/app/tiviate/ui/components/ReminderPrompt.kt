@@ -38,15 +38,22 @@ fun ReminderPrompt(reminder: Reminder, onWatch: () -> Unit, onDismiss: () -> Uni
     BackHandler(onBack = onDismiss)
     LaunchedEffect(reminder) { focusSoon(watch) }
     LaunchedEffect(reminder) { delay(60_000); onDismiss() }
+    if (usesBottomSheets()) {
+        BottomSheet(onDismiss, "reminder_prompt") { ReminderBody(reminder, watch, onWatch, onDismiss) }
+        return
+    }
     Box(
         Modifier.fillMaxSize().padding(Tokens.SafeMargin).testTag("reminder_prompt")
             .focusProperties { onExit = { cancelFocusChange() } }.focusGroup(),
         contentAlignment = Alignment.BottomEnd,
     ) {
-        Column(
-            Modifier.widthIn(max = 460.dp).background(Tokens.Surface, Tokens.Shape).padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+        Column(Modifier.widthIn(max = 460.dp).background(Tokens.Surface, Tokens.Shape).padding(20.dp)) { ReminderBody(reminder, watch, onWatch, onDismiss) }
+    }
+}
+
+@Composable
+private fun ReminderBody(reminder: Reminder, watch: FocusRequester, onWatch: () -> Unit, onDismiss: () -> Unit) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(t("Reminder"), style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.SemiBold))
             Text(reminder.title, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.SemiBold))
             Text(tf("Starts at %1\$s on %2\$s", formatTime(reminder.startMs), reminder.channelName), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
@@ -55,5 +62,4 @@ fun ReminderPrompt(reminder: Reminder, onWatch: () -> Unit, onDismiss: () -> Uni
                 ActionButton(t("Dismiss"), onDismiss, tag = "reminder_dismiss")
             }
         }
-    }
 }
