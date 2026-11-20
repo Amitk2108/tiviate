@@ -1,5 +1,7 @@
 package app.tiviate
 
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.assertIsFocused
 import android.view.KeyEvent
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsNodeInteraction
@@ -39,3 +41,12 @@ object Remote {
 
 fun SemanticsNodeInteractionsProvider.onAllNodesWithContentDescriptionExists(text: String): Boolean =
     onAllNodes(androidx.compose.ui.test.hasContentDescription(text)).fetchSemanticsNodes().isNotEmpty()
+
+/** In the guide's side menu: Down until Settings (Movies & Series and Recordings sit above it). */
+fun androidx.compose.ui.test.junit4.ComposeTestRule.downToRailSettings() {
+    repeat(4) {
+        if (runCatching { onNodeWithTag("rail_settings").assertIsFocused() }.isSuccess) return
+        Remote.down()
+        waitForIdle()
+    }
+}

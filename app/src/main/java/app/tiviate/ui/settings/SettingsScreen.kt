@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.size
 import androidx.tv.material3.Icon
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.FiberManualRecord
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.SettingsRemote
 import androidx.compose.material.icons.rounded.PlayCircle
@@ -96,6 +98,8 @@ import java.util.Date
 import kotlinx.coroutines.launch
 import app.tiviate.ui.t
 import app.tiviate.ui.tf
+import app.tiviate.data.Parental
+import app.tiviate.ui.components.PinDialog
 
 private enum class Section(val tag: String, val english: String, val icon: ImageVector) {
     GENERAL("section_general", "General", Icons.Rounded.Tune),
@@ -104,6 +108,8 @@ private enum class Section(val tag: String, val english: String, val icon: Image
     APPEARANCE("section_appearance", "Appearance", Icons.Rounded.Palette),
     PLAYER("section_player", "Playback", Icons.Rounded.PlayCircle),
     REMOTE("section_remote", "Remote control", Icons.Rounded.SettingsRemote),
+    RECORDING("section_recording", "Recording", Icons.Rounded.FiberManualRecord),
+    PARENTAL("section_parental", "Parental control", Icons.Rounded.Lock),
     OTHER("section_other", "Other", Icons.Rounded.MoreHoriz),
     ABOUT("section_about", "About", Icons.Rounded.Info);
 
@@ -187,6 +193,8 @@ private fun SectionContent(section: Section) {
                 Section.APPEARANCE -> AppearanceSection()
                 Section.PLAYER -> PlayerSection()
                 Section.REMOTE -> RemoteSection()
+                Section.RECORDING -> RecordingSection()
+                Section.PARENTAL -> ParentalSection()
                 Section.OTHER -> OtherSection()
                 Section.ABOUT -> AboutSection()
             }
@@ -278,6 +286,97 @@ private fun RemoteSection() {
         Caption(t("When on, the channel list and groups are on OK → Channels."))
         val nav = LocalNavigator.current
         ActionButton(t("Option cards (show, hide, order)"), { nav.push(Screen.OptionCards) }, tag = "setting_option_cards")
+    }
+}
+
+/** "0 h", "+1 h", "−2 h 30 min". */
+internal fun offsetLabel(minutes: Int): String {
+    if (minutes == 0) return "0 h"
+    val sign = if (minutes > 0) "+" else "−"
+    val m = kotlin.math.abs(minutes)
+    return sign + (m / 60).toString() + " h" + if (m % 60 != 0) " ${m % 60} min" else ""
+}
+
+@Composable
+private fun RecordingSection() {
+    val graph = LocalGraph.current
+    val nav = LocalNavigator.current
+    val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
+    val folders = remember { app.tiviate.data.record.Recordings.folders(context) }
+    val current = app.tiviate.data.record.Recordings.folder(context, settings.recordingFolder)
+    val index = folders.indexOfFirst { it.path == current.path }.coerceAtLeast(0)
+    SectionColumn {
+        Heading(t("Recording"))
+        Caption(t("Record the channel you are watching from the options, or a programme from the TV guide (long-press OK on it). While it records, a recording uses one of your provider's connections."))
+        val free = android.text.format.Formatter.formatShortFileSize(context, app.tiviate.data.record.Recordings.freeBytes(current))
+        ValueRow(
+            t("Save recordings to"),
+            (if (index == 0) t("This device") else t("USB drive or memory card")) + "  ·  " + tf("%s free", free),
+            "setting_recording_folder",
+        ) {
+            if (folders.size > 1) {
+                val next = folders[(index + 1) % folders.size]
+                scope.launch { graph.settings.update { it.copy(recordingFolder = next.path) } }
+            }
+        }
+        if (folders.size == 1) Caption(t("Plug in a USB drive to record onto it."))
+        ActionButton(t("Open recordings"), { nav.push(Screen.Recordings) }, tag = "setting_open_recordings")
+    }
+}
+
+private enum class PinStep { NEW, CONFIRM, CHECK_THEN_NEW, CHECK_THEN_OFF }
+
+@Composable
+private fun ParentalSection() {
+    val graph = LocalGraph.current
+    val scope = rememberCoroutineScope()
+    val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
+    var step by remember { mutableStateOf<PinStep?>(null) }
+    var firstPin by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf<String?>(null) }
+    SectionColumn {
+        Heading(t("Parental control"))
+        Caption(t("A 4-digit PIN locks the channels and groups you choose. Long-press OK on a channel (or in a group) and pick Lock. Locked channels ask for the PIN before they play."))
+        if (settings.pinHash == null) {
+            ActionButton(t("Set a PIN"), { note = null; step = PinStep.NEW }, tag = "setting_pin_set")
+        } else {
+            Caption(tf("Locked: %1\$d channels, %2\$d groups", settings.lockedChannels.size, settings.lockedGroups.size))
+            ToggleRow(t("Lock Settings too"), settings.lockSettings, {
+                scope.launch { graph.settings.update { it.copy(lockSettings = !it.lockSettings) } }
+            }, tag = "setting_lock_settings")
+            ActionButton(t("Change PIN"), { note = null; step = PinStep.CHECK_THEN_NEW }, tag = "setting_pin_change")
+            ActionButton(t("Turn off parental control"), { note = null; step = PinStep.CHECK_THEN_OFF }, tag = "setting_pin_off", danger = true)
+        }
+        note?.let { Caption(it) }
+    }
+    when (step) {
+        PinStep.NEW -> PinDialog(t("Choose a 4-digit PIN"), onPin = { pin -> firstPin = pin; step = PinStep.CONFIRM; true }, onCancel = { step = null })
+        PinStep.CONFIRM -> PinDialog(t("Enter the same PIN again"), onPin = { pin ->
+            if (pin == firstPin) {
+                scope.launch { graph.settings.update { it.copy(pinHash = Parental.hash(pin)) } }
+                graph.player.unlocked.value = true
+                note = t("PIN saved")
+            } else {
+                note = t("The PINs didn't match. Try again.")
+            }
+            step = null
+            true
+        }, onCancel = { step = null })
+        PinStep.CHECK_THEN_NEW, PinStep.CHECK_THEN_OFF -> PinDialog(t("Enter the current PIN"), onPin = { pin ->
+            Parental.matches(settings, pin).also { ok ->
+                if (!ok) return@also
+                if (step == PinStep.CHECK_THEN_NEW) {
+                    step = PinStep.NEW
+                } else {
+                    scope.launch { graph.settings.update { it.copy(pinHash = null, lockedChannels = emptySet(), lockedGroups = emptySet(), lockSettings = false) } }
+                    note = t("Parental control is off")
+                    step = null
+                }
+            }
+        }, onCancel = { step = null })
+        null -> Unit
     }
 }
 
@@ -452,6 +551,12 @@ private fun GuideSection() {
                 if (renaming) {
                     TvTextField(t("Source name"), newName, { newName = it }, tag = "epg_name_${s.id}")
                     ActionButton(t("Save name"), { renaming = false; scope.launch { graph.playlists.renameEpgSource(s.id, newName) } }, tag = "epg_name_save_${s.id}")
+                }
+                // A guide in the wrong time zone: move all its programmes by an hour at a time.
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(tf("Time offset: %s", offsetLabel(s.timeOffsetMin)), style = TextStyle(color = Tokens.Text, fontSize = Tokens.CaptionSize), modifier = Modifier.testTag("epg_offset_${s.id}"))
+                    ActionButton("−1 h", { scope.launch { graph.channels.setEpgOffset(s.id, s.timeOffsetMin - 60) } }, tag = "epg_offset_minus_${s.id}")
+                    ActionButton("+1 h", { scope.launch { graph.channels.setEpgOffset(s.id, s.timeOffsetMin + 60) } }, tag = "epg_offset_plus_${s.id}")
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (!renaming) ActionButton(t("Rename"), { renaming = true }, tag = "epg_rename_${s.id}")

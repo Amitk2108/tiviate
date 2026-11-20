@@ -26,6 +26,7 @@ class XtreamJsonTest {
         assertEquals(2, a.maxConnections)
         assertEquals(1, a.activeConnections)
         assertEquals(listOf("m3u8"), a.allowedFormats)
+        assertEquals("Asia/Kolkata", a.timezone)
     }
 
     @Test

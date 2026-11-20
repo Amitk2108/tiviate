@@ -30,12 +30,23 @@ class FixtureServer {
                     path == "/player_api.php" && query == "get_live_categories" ->
                         MockResponse().setBody("""[{"category_id":"1","category_name":"News & Sports"},{"category_id":"2","category_name":"Entertainment"}]""")
                     path == "/player_api.php" && query == "get_live_streams" -> MockResponse().setBody(xtreamStreams())
+                    // Movies & Series: one film and one two-episode series, all on the bundled test stream.
+                    path == "/player_api.php" && query == "get_vod_categories" -> MockResponse().setBody("""[{"category_id":"10","category_name":"Films"}]""")
+                    path == "/player_api.php" && query == "get_vod_streams" ->
+                        MockResponse().setBody("""[{"stream_id":501,"name":"Test Film","category_id":"10","container_extension":"m3u8","stream_icon":""}]""")
+                    path == "/player_api.php" && query == "get_vod_info" -> MockResponse().setBody("""{"info":{"plot":"A short test film.","genre":"Drama","duration_secs":12}}""")
+                    path == "/player_api.php" && query == "get_series_categories" -> MockResponse().setBody("""[{"category_id":"20","category_name":"Shows"}]""")
+                    path == "/player_api.php" && query == "get_series" -> MockResponse().setBody("""[{"series_id":9,"name":"Test Show","category_id":"20","plot":"A test show."}]""")
+                    path == "/player_api.php" && query == "get_series_info" -> MockResponse().setBody(
+                        """{"info":{"plot":"A test show."},"episodes":{"1":[{"id":"701","episode_num":1,"title":"Pilot","container_extension":"m3u8"},""" +
+                            """{"id":"702","episode_num":2,"title":"Second","container_extension":"m3u8"}]}}""",
+                    )
                     path == "/player_api.php" -> MockResponse().setBody(
                         """{"user_info":{"auth":1,"status":"Active","exp_date":"1924992000","max_connections":"2","active_cons":"0","allowed_output_formats":["m3u8"]}}""",
                     )
                     path == "/xmltv.php" -> MockResponse().setBody(guide())
-                    path.startsWith("/live/u/p/") -> {
-                        val rest = path.removePrefix("/live/u/p/")
+                    path.startsWith("/live/u/p/") || path.startsWith("/movie/u/p/") || path.startsWith("/series/u/p/") -> {
+                        val rest = path.substringAfter("/u/p/")
                         if (rest.matches(Regex("""\d+\.m3u8"""))) asset("fixture/hls/master.m3u8") else asset("fixture/hls/$rest")
                     }
                     path == "/list.m3u" -> MockResponse().setBody(playlist())
@@ -60,7 +71,9 @@ class FixtureServer {
         appendLine("""#EXTM3U url-tvg="${url("/epg.xml")}"""")
         channelNames.forEachIndexed { i, name ->
             val group = if (i < 2) "News & Sports" else "Entertainment"
-            appendLine("""#EXTINF:-1 tvg-id="ch$i" tvg-chno="${i + 1}" group-title="$group",$name""")
+            // Aurora News keeps a 3-day archive (catch-up), served by the same test stream.
+            val archive = if (i == 0) """ catchup="default" catchup-source="${url("/hls/master.m3u8")}?archive={utc}-{duration}" catchup-days="3"""" else ""
+            appendLine("""#EXTINF:-1 tvg-id="ch$i" tvg-chno="${i + 1}" group-title="$group"$archive,$name""")
             appendLine(url("/hls/master.m3u8") + "?ch=$i")
         }
     }

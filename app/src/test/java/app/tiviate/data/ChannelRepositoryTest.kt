@@ -131,6 +131,46 @@ class ChannelRepositoryTest {
         assertEquals(listOf("A"), repo.search(pid, "a").channels.map { it.name })
     }
 
+    @Test
+    fun searchListsLaterProgrammesAndOnesStillInTheArchive() = runBlocking {
+        val day = 86_400_000L
+        val now = 10 * day
+        val repoAt = ChannelRepository(db, clock = { now })
+        val pid = seed()
+        val src = db.epg().insertSource(EpgSourceEntity(url = "e", name = "E", origin = EpgOrigin.MANUAL))
+        val c = db.channels().byKey(pid, "C")!!
+        // Channel C keeps a 2-day archive.
+        db.channels().updateAllBlocking(listOf(c.copy(epgRef = "$src:C", catchupType = "xc", catchupDays = 2)))
+        fun hour(start: Long, title: String) = ProgrammeEntity(sourceId = src, epgRef = "$src:C", startMs = start, stopMs = start + 3_600_000, title = title, generation = 0)
+        db.epg().insertProgrammes(
+            listOf(
+                hour(now - 3 * day, "Cricket Old"), // older than the archive
+                hour(now - day, "Cricket Yesterday"),
+                hour(now + 4 * 3_600_000, "Cricket Tonight"),
+                hour(now + 8 * day, "Cricket Next Week"), // more than a week away
+            ),
+        )
+        val result = repoAt.search(pid, "cricket")
+        assertEquals(emptyList<String>(), result.programmes.map { it.programme.title })
+        assertEquals(listOf("Cricket Tonight"), result.later.map { it.programme.title })
+        assertEquals(listOf("Cricket Yesterday"), result.archive.map { it.programme.title })
+        // A hidden channel's programmes are left out.
+        db.channels().updateAllBlocking(listOf(db.channels().byKey(pid, "C")!!.copy(hidden = true)))
+        assertEquals(emptyList<String>(), repoAt.search(pid, "cricket").later.map { it.programme.title })
+    }
+
+    @Test
+    fun aGuideTimeOffsetMovesItsProgrammesAtOnce() = runBlocking {
+        val src = db.epg().insertSource(EpgSourceEntity(url = "e", name = "E", origin = EpgOrigin.MANUAL))
+        db.epg().insertProgrammes(listOf(ProgrammeEntity(sourceId = src, epgRef = "$src:x", startMs = 3_600_000, stopMs = 7_200_000, title = "Show", generation = 0)))
+        repo.setEpgOffset(src, 60)
+        repo.setEpgOffset(src, 30) // half an hour back again: +30 min in all
+        val p = db.epg().programmesFor(listOf("$src:x"), 0, Long.MAX_VALUE).single()
+        assertEquals(3_600_000 + 1_800_000L, p.startMs)
+        assertEquals(7_200_000 + 1_800_000L, p.stopMs)
+        assertEquals(30, db.epg().source(src)!!.timeOffsetMin)
+    }
+
     private fun prog(start: Long, stop: Long, title: String) =
         ProgrammeEntity(sourceId = 1, epgRef = "1:x", startMs = start, stopMs = stop, title = title, generation = 0)
 

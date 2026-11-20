@@ -2,6 +2,28 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.4.0 — 2026-11-20
+
+### Added
+- **Catch-up**: on channels whose provider keeps an archive (Xtream accounts, or M3U playlists with `catchup`),
+  programmes that already aired show ↺ in the TV guide; OK plays them. Options → *Back to live* returns to the channel.
+- **Movies & Series** (Xtream accounts): posters by group, Continue watching, details, seasons and episodes. Films and
+  episodes carry on where you stopped. TV: guide → side menu → *Movies & Series*; phones: the *Movies* tab.
+- **Recording**: record the channel you are watching (Options → *Record*) or a programme from the TV guide
+  (long-press OK → *Record*), to the device or a USB drive. *Recordings* (guide side menu, or Settings → Recording)
+  to watch or delete them; a REC badge shows while the channel on screen records.
+- **Multi-view**: up to four channels at once (Options → *Multi-view*). The selected one has the sound; Back shows it
+  fullscreen.
+- **Parental control**: a PIN locks the channels and groups you choose (long-press → *Lock*), and Settings if you
+  want. Settings → Parental control.
+- **Reminders**: *Remind me* on programmes still to come (guide menu, a phone's programme card, Search); when it
+  starts, Tiviate offers to switch to it.
+- **Search** now also finds programmes later this week and ones you can still watch from the archive.
+- **TV guide time offset** for guides in the wrong time zone: Settings → TV guide → a source → −1 h / +1 h.
+
+### Good to know
+- Recording and multi-view each use one of your provider's connections while they run.
+
 ## 0.3.3 — 2026-11-20
 
 ### Added: channels on the Android TV home screen (GitHub issue #2)

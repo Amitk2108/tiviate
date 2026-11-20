@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -71,6 +74,8 @@ fun GuideRow(
     highlight: GuideHighlight = GuideHighlight.ON_AIR,
     emptyBlocks: List<FocusBlock> = emptyList(),
     channelWidth: Dp = GUIDE_CHANNEL_WIDTH,
+    /** Programmes with a reminder ([app.tiviate.data.Reminders.key]): a bell before the title. */
+    reminders: Set<String> = emptySet(),
 ) {
     Row(
         Modifier.fillMaxWidth().height(GUIDE_ROW_HEIGHT).padding(vertical = 2.dp)
@@ -80,10 +85,13 @@ fun GuideRow(
         ChannelCell(channel, isPlaying, showNumber, rowFocused = focused != null, width = channelWidth)
         Box(Modifier.width(stripWidth).fillMaxHeight().clipToBounds()) {
             val viewEnd = viewStartMs + windowMs
+            val archive = channel != null && (channel.catchupType != null || !channel.catchupSource.isNullOrBlank())
             for (p in programmes) {
                 if (p.stopMs <= viewStartMs || p.startMs >= viewEnd) continue
                 val isFocused = focused?.programme?.id == p.id && focused.programme != null
-                ProgrammeBlock(p.title, p.startMs, p.stopMs, viewStartMs, windowMs, stripWidth, nowMs, isFocused, highlight = highlight)
+                val replay = archive && app.tiviate.core.catchup.Catchup.available(channel!!.catchupType, channel.catchupSource, channel.catchupDays, p.startMs, p.stopMs, nowMs)
+                val reminded = channel != null && reminders.isNotEmpty() && app.tiviate.data.Reminders.key(channel.playlistId, channel.stableKey, p.startMs) in reminders
+                ProgrammeBlock(p.title, p.startMs, p.stopMs, viewStartMs, windowMs, stripWidth, nowMs, isFocused, highlight = highlight, replay = replay, reminded = reminded)
             }
             // Nothing scheduled: "No information" blocks, so the row never ends in a gap.
             for (e in emptyBlocks) {
@@ -140,6 +148,9 @@ private fun ProgrammeBlock(
     focused: Boolean,
     empty: Boolean = false,
     highlight: GuideHighlight = GuideHighlight.ON_AIR,
+    /** Already aired and in the channel's archive: OK plays it (catch-up). */
+    replay: Boolean = false,
+    reminded: Boolean = false,
 ) {
     val from = maxOf(startMs, viewStartMs)
     val to = minOf(stopMs, viewStartMs + windowMs)
@@ -171,6 +182,14 @@ private fun ProgrammeBlock(
             .padding(horizontal = 10.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+        if (replay || reminded) {
+            androidx.tv.material3.Icon(
+                if (replay) androidx.compose.material.icons.Icons.Rounded.History else androidx.compose.material.icons.Icons.Rounded.Notifications,
+                contentDescription = if (replay) t("Catch-up") else t("Reminder set"),
+                tint = Tokens.Cyan, modifier = Modifier.padding(end = 6.dp).size(14.dp),
+            )
+        }
         Text(
             title,
             maxLines = if (app.tiviate.ui.theme.ThemeState.twoLineTitles) 2 else 1,
@@ -185,6 +204,7 @@ private fun ProgrammeBlock(
                 fontWeight = if (focused || live) FontWeight.SemiBold else FontWeight.Normal,
             ),
         )
+        }
     }
 }
 

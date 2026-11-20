@@ -21,7 +21,7 @@ class MigrationTest {
     val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(), TiviateDatabase::class.java)
 
     @Test
-    fun version1DataSurvivesTheUpgradeToVersion2() {
+    fun version1DataSurvivesEveryUpgrade() {
         helper.createDatabase(name, 1).apply {
             execSQL(
                 "INSERT INTO playlist (id, name, type, preferHls, enabled, sortIndex) VALUES (1, 'Home', 'M3U', 0, 1, 0)",
@@ -34,7 +34,7 @@ class MigrationTest {
             close()
         }
 
-        val db = helper.runMigrationsAndValidate(name, 2, true, *Migrations.ALL)
+        val db = helper.runMigrationsAndValidate(name, 3, true, *Migrations.ALL)
 
         db.query("SELECT name, originalName, hidden, customSort, addedAt, epgOverride, renamed FROM channel WHERE id = 7").use { c ->
             assertTrue(c.moveToFirst())
@@ -61,5 +61,8 @@ class MigrationTest {
         db.execSQL("INSERT INTO custom_group (playlistId, name) VALUES (1, 'Mine')")
         db.execSQL("INSERT INTO custom_group_member (groupId, stableKey) VALUES (1, 'k7')")
         db.query("SELECT COUNT(*) FROM custom_group_member").use { c -> c.moveToFirst(); assertEquals(1, c.getInt(0)) }
+        // v3: catch-up columns start empty.
+        db.query("SELECT catchupType, catchupSource FROM channel WHERE id = 7").use { c -> assertTrue(c.moveToFirst() && c.isNull(0) && c.isNull(1)) }
+        db.query("SELECT serverTimezone FROM playlist WHERE id = 1").use { c -> assertTrue(c.moveToFirst() && c.isNull(0)) }
     }
 }

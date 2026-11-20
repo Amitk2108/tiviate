@@ -47,7 +47,8 @@ data class SeekInfo(val positionMs: Long, val durationMs: Long, val live: Boolea
  */
 interface PlaybackEngine {
     val state: StateFlow<PlaybackState>
-    fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String)
+    /** [startAtMs]: where a film starts (resume); 0 = the start, or the live edge. */
+    fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long = 0)
     fun togglePause()
     fun retryNow()
     fun stop()

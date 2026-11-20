@@ -71,7 +71,7 @@ enum class LogoStyle(override val english: String) : Labelled { ROUNDED("Rounded
 /** The fullscreen options cards, in their default order. */
 val DEFAULT_OPTION_CARDS = listOf(
     "option_channels", "option_guide", "option_playpause", "option_previous", "option_audio", "option_subtitles", "option_display", "option_zoom",
-    "option_quality", "option_audio_sync", "option_stats", "option_sleep", "option_favorite", "option_channel", "option_pip",
+    "option_quality", "option_audio_sync", "option_stats", "option_sleep", "option_record", "option_multiview", "option_favorite", "option_channel", "option_pip",
     "option_external", "option_search", "option_settings",
 )
 
@@ -162,6 +162,18 @@ data class AppSettings(
     val englishSubtitles: Boolean = true,
     /** Look for a new Tiviate on GitHub Releases once a day. */
     val checkUpdates: Boolean = true,
+    // --- Parental control
+    /** Hash of the parental PIN (see [Parental]); null = no PIN. */
+    val pinHash: String? = null,
+    /** Locked channels as "playlistId:stableKey" and groups as "playlistId|group": they need the PIN to play. */
+    val lockedChannels: Set<String> = emptySet(),
+    val lockedGroups: Set<String> = emptySet(),
+    /** Settings open only with the PIN. */
+    val lockSettings: Boolean = false,
+    /** Programme reminders, as [Reminders.encode] writes them. */
+    val reminders: Set<String> = emptySet(),
+    /** Where recordings go (a folder from [app.tiviate.data.record.Recordings.folders]); null = the device. */
+    val recordingFolder: String? = null,
     val lastUpdateCheck: Long = 0,
     /** The version the viewer said "Later" to (not offered again; a newer one is). */
     val skippedUpdate: String? = null,
@@ -277,6 +289,12 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p[PREFER_SURROUND] = next.preferSurround
             p[ENGLISH_SUBTITLES] = next.englishSubtitles
             p[CHECK_UPDATES] = next.checkUpdates
+            p.setOrRemove(PIN_HASH, next.pinHash)
+            p[LOCKED_CHANNELS] = next.lockedChannels
+            p[LOCKED_GROUPS] = next.lockedGroups
+            p[LOCK_SETTINGS] = next.lockSettings
+            p[REMINDERS] = next.reminders
+            p.setOrRemove(RECORDING_FOLDER, next.recordingFolder)
             p[LAST_UPDATE_CHECK] = next.lastUpdateCheck
             p.setOrRemove(SKIPPED_UPDATE, next.skippedUpdate)
             p[AUDIO_OFFSET] = next.audioOffsetMs
@@ -353,6 +371,12 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         preferSurround = p[PREFER_SURROUND] ?: false,
         englishSubtitles = p[ENGLISH_SUBTITLES] ?: true,
         checkUpdates = p[CHECK_UPDATES] ?: true,
+        pinHash = p[PIN_HASH],
+        lockedChannels = p[LOCKED_CHANNELS] ?: emptySet(),
+        lockedGroups = p[LOCKED_GROUPS] ?: emptySet(),
+        lockSettings = p[LOCK_SETTINGS] ?: false,
+        reminders = p[REMINDERS] ?: emptySet(),
+        recordingFolder = p[RECORDING_FOLDER],
         lastUpdateCheck = p[LAST_UPDATE_CHECK] ?: 0L,
         skippedUpdate = p[SKIPPED_UPDATE],
         audioOffsetMs = p[AUDIO_OFFSET] ?: 0,
@@ -430,6 +454,12 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val PREFER_SURROUND = booleanPreferencesKey("prefer_surround")
         private val ENGLISH_SUBTITLES = booleanPreferencesKey("english_subtitles")
         private val CHECK_UPDATES = booleanPreferencesKey("check_updates")
+        private val PIN_HASH = stringPreferencesKey("parental_pin_hash")
+        private val LOCKED_CHANNELS = stringSetPreferencesKey("locked_channels")
+        private val LOCKED_GROUPS = stringSetPreferencesKey("locked_groups")
+        private val LOCK_SETTINGS = booleanPreferencesKey("lock_settings")
+        private val REMINDERS = stringSetPreferencesKey("reminders")
+        private val RECORDING_FOLDER = stringPreferencesKey("recording_folder")
         private val LAST_UPDATE_CHECK = longPreferencesKey("last_update_check")
         private val SKIPPED_UPDATE = stringPreferencesKey("skipped_update")
         private val AUDIO_OFFSET = intPreferencesKey("audio_offset_ms")

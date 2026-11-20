@@ -86,6 +86,7 @@ fun PlayerScreen() {
     val playlists by vm.playlists.collectAsStateWithLifecycle()
     val groups by vm.groups.collectAsStateWithLifecycle()
     val favorites by vm.favoriteKeys.collectAsStateWithLifecycle()
+    val catchup by graph.player.catchup.collectAsStateWithLifecycle()
     val customGroups by vm.customGroups.collectAsStateWithLifecycle()
     app.tiviate.ui.guide.FollowCustomGroup(category, customGroups) { vm.selectCategory(it) }
     var sheet by remember { mutableStateOf<SheetTarget?>(null) }
@@ -93,6 +94,11 @@ fun PlayerScreen() {
     val toast by vm.toast.collectAsStateWithLifecycle()
     val showStats by vm.showStats.collectAsStateWithLifecycle()
     val sleepMinutes by graph.player.sleepMinutes.collectAsStateWithLifecycle()
+    // A recording of the channel on screen (REC badge, and "Stop recording" in the options).
+    val activeRecordings by remember { graph.db.recordings().observeActive() }.collectAsStateWithLifecycle(emptyList())
+    val recordingNow = current?.let { c ->
+        activeRecordings.firstOrNull { it.status == app.tiviate.data.db.RecordingStatus.RECORDING && it.playlistId == c.playlistId && it.stableKey == c.stableKey }
+    }
     val settings by graph.settings.screenSettings.collectAsStateWithLifecycle(AppSettings())
 
     val rootFocus = remember { FocusRequester() }
@@ -296,6 +302,12 @@ fun PlayerScreen() {
 
         if (playback.isBuffering && !playback.isPaused && playback.error == null) BufferingIndicator(playback.retrying, playback.notice)
         if (playback.isPaused) PausedBadge()
+        if (recordingNow != null && inFullscreen) {
+            androidx.tv.material3.Text(
+                "● REC", modifier = Modifier.align(Alignment.TopStart).padding(28.dp).testTag("rec_badge"),
+                style = androidx.compose.ui.text.TextStyle(color = Tokens.Danger, fontSize = Tokens.CaptionSize, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+            )
+        }
 
         val bannerChannel = pending ?: current
         when (val o = overlay) {
@@ -391,11 +403,15 @@ fun PlayerScreen() {
                     options = listOfNotNull(
                         OptionItem("option_channels", t("Channels"), null) { vm.lastOptionTag = "option_channels"; openPanel(categories = false) },
                         if (settings.guideScreen) OptionItem("option_guide", t("TV guide"), null) { vm.close(); nav.push(Screen.Guide) } else null,
-                        OptionItem("option_playpause", if (playback.isPaused) t("Play") else t("Pause"), if (playback.isPaused) t("Paused") else t("Live")) {
+                        OptionItem("option_playpause", if (playback.isPaused) t("Play") else t("Pause"), if (playback.isPaused) t("Paused") else if (catchup != null) t("Catch-up") else t("Live")) {
                             vm.lastOptionTag = "option_playpause"
                             vm.togglePause()
                         },
-                        if (playback.isPaused) OptionItem("option_live", t("Back to live"), null) { vm.lastOptionTag = "option_playpause"; engine.goLive() } else null,
+                        if (playback.isPaused || catchup != null) OptionItem("option_live", t("Back to live"), null) {
+                            vm.lastOptionTag = "option_playpause"
+                            // From an archived programme: the channel live again; after a pause: the live edge.
+                            if (catchup != null) ch?.let { graph.player.tune(it, playlist?.userAgent) } else engine.goLive()
+                        } else null,
                         OptionItem("option_audio", t("Audio"), playback.audioLabel ?: t("Default")) { pick("option_audio", PickerKind.AUDIO) },
                         graph.player.previous.value?.let { prev ->
                             OptionItem("option_previous", t("Previous channel"), prev.name) { vm.lastOptionTag = "option_previous"; vm.close(); vm.previousChannel() }
@@ -415,6 +431,24 @@ fun PlayerScreen() {
                         ) { pick("option_quality", PickerKind.QUALITY) },
                         OptionItem("option_stats", t("Stats"), if (showStats) t("On") else t("Off")) { vm.lastOptionTag = "option_stats"; vm.toggleStats() },
                         OptionItem("option_sleep", t("Sleep timer"), sleepMinutes?.let { tf("%d min left", it) } ?: t("Off")) { pick("option_sleep", PickerKind.SLEEP) },
+                        OptionItem("option_multiview", t("Multi-view"), null) { vm.lastOptionTag = "option_multiview"; vm.close(); nav.push(Screen.MultiView) },
+                        ch?.let { c ->
+                            OptionItem("option_record", if (recordingNow != null) t("Stop recording") else t("Record"), if (recordingNow != null) "REC" else null) {
+                                vm.lastOptionTag = "option_record"
+                                val running = recordingNow
+                                if (running != null) {
+                                    graph.appScope.launch { app.tiviate.data.record.Recordings.stop(context, running.id) }
+                                    vm.showToast(t("Recording stopped"))
+                                } else {
+                                    // The programme on air (to its end), or an hour when the guide doesn't say.
+                                    val now = System.currentTimeMillis()
+                                    val programme = c.epgRef?.let(vm.nowNext::get)?.now
+                                    val until = programme?.stopMs?.takeIf { it > now + 5 * 60_000 }?.plus(app.tiviate.data.record.Recordings.LATE_MS) ?: (now + 60 * 60_000)
+                                    graph.appScope.launch { app.tiviate.data.record.Recordings.schedule(context, c, programme?.title ?: c.name, now, until) }
+                                    vm.showToast(tf("Recording until %s", android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date(until))))
+                                }
+                            }
+                        },
                         ch?.let {
                             OptionItem("option_favorite", t("Favorite"), if (it.stableKey in favorites) t("Added") else t("Not added")) {
                                 vm.lastOptionTag = "option_favorite"

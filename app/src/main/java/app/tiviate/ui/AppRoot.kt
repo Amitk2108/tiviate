@@ -4,6 +4,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,7 +45,8 @@ fun AppRoot() {
     val portrait = config.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
     val phoneLayout = usesPhoneLayout(formFactor, portrait)
     // Fullscreen video on a phone or tablet (the Live screen held sideways): no system bars.
-    val immersive = formFactor != FormFactor.TV && nav.current == Screen.Player && !(phoneLayout && portrait)
+    val immersive = formFactor != FormFactor.TV &&
+        ((nav.current == Screen.Player && !(phoneLayout && portrait)) || nav.current is Screen.VodPlayer || nav.current == Screen.MultiView)
     LaunchedEffect(immersive, formFactor) {
         if (formFactor == FormFactor.TV) return@LaunchedEffect
         val window = (context as? android.app.Activity)?.window ?: return@LaunchedEffect
@@ -121,8 +123,14 @@ fun AppRoot() {
         Box(Modifier.fillMaxSize().background(Tokens.Background)) {
             app.tiviate.ui.player.VideoHost(graph.player.engine)
             // Only the player and the guide let the video show through; every other screen is opaque.
-            val opaque = nav.current != Screen.Player && nav.current != Screen.Guide
-            val dialogOpen = app.tiviate.ui.components.UpdatePrompt.release != null
+            val opaque = nav.current != Screen.Player && nav.current != Screen.Guide && nav.current !is Screen.VodPlayer
+            // Parental control: a locked channel waits for the PIN; locked Settings open only with it.
+            val appSettings by graph.settings.settings.collectAsState(initial = app.tiviate.data.AppSettings())
+            val pinRequest by graph.player.pinRequest.collectAsState()
+            val unlocked by graph.player.unlocked.collectAsState()
+            val settingsLocked = nav.current == Screen.Settings && appSettings.lockSettings && appSettings.pinHash != null && !unlocked
+            val reminderDue by graph.reminderDue.collectAsState()
+            val dialogOpen = app.tiviate.ui.components.UpdatePrompt.release != null || pinRequest != null || settingsLocked || reminderDue != null
             // The dialog kept the focus away from the screen; when it closes, hand the focus back
             // (otherwise nothing is focused and the first key press is lost).
             val screensFocus = remember { androidx.compose.ui.focus.FocusRequester() }
@@ -158,9 +166,34 @@ fun AppRoot() {
                 is Screen.ManageGroups -> app.tiviate.ui.organise.ManageGroupsScreen(screen.playlistId)
                 Screen.OptionCards -> app.tiviate.ui.organise.OptionCardsScreen()
                 Screen.Settings -> SettingsScreen()
+                Screen.Library -> app.tiviate.ui.library.LibraryScreen()
+                is Screen.MovieDetails -> app.tiviate.ui.library.MovieDetailsScreen(screen.playlistId, screen.streamId)
+                is Screen.SeriesDetails -> app.tiviate.ui.library.SeriesDetailsScreen(screen.playlistId, screen.seriesId)
+                is Screen.VodPlayer -> app.tiviate.ui.library.VodPlayerScreen(screen.item)
+                Screen.Recordings -> app.tiviate.ui.library.RecordingsScreen()
+                Screen.MultiView -> app.tiviate.ui.player.MultiViewScreen()
             }
             }
             app.tiviate.ui.components.UpdatePrompt.release?.let { r -> app.tiviate.ui.components.UpdateDialog(r) { app.tiviate.ui.components.UpdatePrompt.release = null } }
+            fun unlock(pin: String): Boolean {
+                if (!app.tiviate.data.Parental.matches(appSettings, pin)) return false
+                graph.player.unlocked.value = true
+                return true
+            }
+            when {
+                pinRequest != null -> app.tiviate.ui.components.PinDialog(
+                    t("This channel is locked. Enter the PIN"),
+                    onPin = { pin -> unlock(pin).also { ok -> if (ok) { val retry = pinRequest; graph.player.pinRequest.value = null; retry?.invoke() } } },
+                    onCancel = { graph.player.pinRequest.value = null },
+                )
+                settingsLocked -> app.tiviate.ui.components.PinDialog(t("Enter the PIN to open Settings"), onPin = ::unlock, onCancel = { nav.back() })
+                reminderDue != null -> reminderDue?.let { r ->
+                    app.tiviate.ui.components.ReminderPrompt(r, onWatch = {
+                        graph.reminderDue.value = null
+                        graph.openChannel.value = r.playlistId to r.stableKey // plays it fullscreen (locked channels ask for the PIN)
+                    }, onDismiss = { graph.reminderDue.value = null })
+                }
+            }
         }
     }
 }

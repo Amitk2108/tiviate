@@ -22,6 +22,9 @@ interface PlaylistDao {
     @Query("UPDATE playlist SET lastSyncAt = :stamp, lastError = NULL, detectedEpgUrl = COALESCE(:epgUrl, detectedEpgUrl) WHERE id = :id")
     suspend fun markSynced(id: Long, stamp: Long, epgUrl: String?)
 
+    @Query("UPDATE playlist SET serverTimezone = :zone WHERE id = :id")
+    suspend fun setServerTimezone(id: Long, zone: String)
+
     @Query("UPDATE playlist SET lastError = :error WHERE id = :id")
     suspend fun setError(id: Long, error: String?)
     @Query("SELECT * FROM playlist ORDER BY sortIndex, id") fun observeAll(): Flow<List<PlaylistEntity>>
@@ -347,6 +350,9 @@ interface EpgDao {
     suspend fun searchProgrammes(text: String, fromMs: Long, toMs: Long, limit: Int = 50): List<ProgrammeEntity>
 
     @Query("SELECT COUNT(*) FROM programme WHERE sourceId = :sourceId") suspend fun countProgrammes(sourceId: Long): Int
+
+    @Query("UPDATE programme SET startMs = startMs + :deltaMs, stopMs = stopMs + :deltaMs WHERE sourceId = :sourceId")
+    suspend fun shiftProgrammes(sourceId: Long, deltaMs: Long)
 
     @Query("UPDATE epg_source SET activeGeneration = :generation WHERE id = :sourceId")
     suspend fun setActiveGeneration(sourceId: Long, generation: Int)

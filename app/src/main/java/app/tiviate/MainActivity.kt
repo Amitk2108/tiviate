@@ -51,6 +51,14 @@ class MainActivity : ComponentActivity() {
         }
         HomeChannels.parse(intent?.dataString)?.let { graph.openChannel.value = it }
         HomeChannels.start(this, graph)
+        if (Build.VERSION.SDK_INT >= 33) {
+            lifecycleScope.launch {
+                graph.settings.settings.first { it.reminders.isNotEmpty() }
+                if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7)
+                }
+            }
+        }
         lifecycleScope.launch(Dispatchers.IO) {
             SyncScheduler.schedulePeriodic(this@MainActivity, graph.settings.settings.first().updateIntervalHours)
         }

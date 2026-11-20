@@ -114,6 +114,15 @@ Your login is saved on the TV only and can be edited or removed in *Settings →
 
 Every feature is free. There is no premium version, no account, no activation and no ads.
 
+### 🆕 Watch more
+- **Catch-up**: programmes that already aired play from the provider's archive (↺ in the TV guide)
+- **Movies & Series** for Xtream accounts: posters, Continue watching, seasons and episodes, resume where you stopped
+- **Recording**: the channel you watch, or programmes from the TV guide, to the device or a **USB drive**
+- **Multi-view**: up to **four channels** at once; the selected one has the sound
+- **Parental control**: a PIN for chosen channels, groups and Settings
+- **Reminders** for programmes still to come; **search** finds later programmes and the archive
+- **TV guide time offset** for guides in the wrong time zone
+
 ### 📱 Phones and tablets
 - **Touch everywhere**: tap, long-press and scroll on every screen, with haptic feedback
 - The layout follows the device: **TV**, **phone** or **tablet**, and changes when you turn it

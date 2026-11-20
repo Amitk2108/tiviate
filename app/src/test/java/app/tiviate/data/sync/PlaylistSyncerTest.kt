@@ -177,6 +177,7 @@ class PlaylistSyncerTest {
         assertEquals("x:6775", ch[0].stableKey)
         assertEquals("144", ch[0].tvgId)
         assertEquals(7, ch[1].catchupDays)
+        assertEquals("archive channels use Xtream timeshift links", listOf(null, "xc"), ch.map { it.catchupType })
         assertEquals("$server/xmltv.php?username=u&password=p", h.db.playlists().get(id)!!.detectedEpgUrl)
     }
 

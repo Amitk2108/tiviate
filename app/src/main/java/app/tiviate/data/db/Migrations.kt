@@ -42,5 +42,38 @@ object Migrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2)
+    /** v3: catch-up (archive) links per channel, the Xtream server's time zone, Movies & Series, and recordings. */
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `channel` ADD COLUMN `catchupType` TEXT")
+            db.execSQL("ALTER TABLE `channel` ADD COLUMN `catchupSource` TEXT")
+            db.execSQL("ALTER TABLE `playlist` ADD COLUMN `serverTimezone` TEXT")
+            // Movies & Series (Xtream) and where the viewer stopped in them.
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `movie` (`playlistId` INTEGER NOT NULL, `streamId` INTEGER NOT NULL, `name` TEXT NOT NULL, " +
+                    "`category` TEXT, `poster` TEXT, `rating` TEXT, `extension` TEXT NOT NULL, `addedAt` INTEGER, `sortIndex` INTEGER NOT NULL, " +
+                    "`syncStamp` INTEGER NOT NULL, PRIMARY KEY(`playlistId`, `streamId`))",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_movie_playlistId_category` ON `movie` (`playlistId`, `category`)")
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `series` (`playlistId` INTEGER NOT NULL, `seriesId` INTEGER NOT NULL, `name` TEXT NOT NULL, " +
+                    "`category` TEXT, `cover` TEXT, `plot` TEXT, `rating` TEXT, `genre` TEXT, `year` TEXT, `sortIndex` INTEGER NOT NULL, " +
+                    "`syncStamp` INTEGER NOT NULL, PRIMARY KEY(`playlistId`, `seriesId`))",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_series_playlistId_category` ON `series` (`playlistId`, `category`)")
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `watch_progress` (`playlistId` INTEGER NOT NULL, `itemKey` TEXT NOT NULL, `title` TEXT NOT NULL, " +
+                    "`poster` TEXT, `positionMs` INTEGER NOT NULL, `durationMs` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `seriesId` INTEGER, " +
+                    "`finished` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`playlistId`, `itemKey`))",
+            )
+            // Recordings, scheduled and made.
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `recording` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `playlistId` INTEGER NOT NULL, " +
+                    "`stableKey` TEXT NOT NULL, `channelName` TEXT NOT NULL, `title` TEXT NOT NULL, `startMs` INTEGER NOT NULL, `stopMs` INTEGER NOT NULL, " +
+                    "`status` TEXT NOT NULL, `path` TEXT, `bytes` INTEGER NOT NULL, `error` TEXT)",
+            )
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
 }

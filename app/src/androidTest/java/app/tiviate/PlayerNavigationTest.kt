@@ -70,9 +70,11 @@ class PlayerNavigationTest {
         rule.waitUntil(5_000) { current() == "Beacon Sports" }
         Remote.left()
         rule.waitUntil(5_000) { current() == "Aurora News" }
-        // No guide: the remote's Guide key opens the channel list, and the TV guide card is gone.
-        Remote.press(KeyEvent.KEYCODE_GUIDE)
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
+        // No guide: its card is gone from the options. (The Guide key would open the channel list, but Android TV and
+        // Google TV keep that key for the system's own live TV app, so a test can't press it there.)
+        Remote.down()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") && rule.onAllNodesWithTagExists("option_channels") }
+        assertTrue(!rule.onAllNodesWithTagExists("option_guide"))
         assertTrue(!rule.onAllNodesWithTagExists("guide_screen"))
     }
 

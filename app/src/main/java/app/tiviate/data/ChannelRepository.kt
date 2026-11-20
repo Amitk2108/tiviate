@@ -66,7 +66,15 @@ data class ProgrammeHit(val programme: ProgrammeEntity, val channel: ChannelEnti
 
 /** A guide channel offered by "Assign guide". */
 data class GuideChoice(val ref: String, val name: String, val xmltvId: String, val sourceName: String)
-data class SearchResult(val channels: List<ChannelEntity>, val programmes: List<ProgrammeHit>)
+data class SearchResult(
+    val channels: List<ChannelEntity>,
+    /** On now and in the next 3 hours. */
+    val programmes: List<ProgrammeHit>,
+    /** Later this week. */
+    val later: List<ProgrammeHit> = emptyList(),
+    /** Already aired, on channels whose archive still has them (catch-up). */
+    val archive: List<ProgrammeHit> = emptyList(),
+)
 
 class ChannelRepository(
     private val db: TiviateDatabase,
@@ -240,7 +248,7 @@ class ChannelRepository(
 
     /** Changes whenever a guide source swaps in a refresh (or is added or removed). */
     fun guideVersion(): Flow<Long> = db.epg().observeSources()
-        .map { sources -> sources.map { it.id to it.activeGeneration }.hashCode().toLong() }
+        .map { sources -> sources.map { Triple(it.id, it.activeGeneration, it.timeOffsetMin) }.hashCode().toLong() }
         .distinctUntilChanged()
 
     /** Current and next programme for each guide reference. */
@@ -259,11 +267,29 @@ class ChannelRepository(
         val fts = ftsQuery(text) ?: return SearchResult(emptyList(), emptyList())
         val channels = db.channels().search(playlistId, fts)
         val now = clock()
-        val programmes = db.epg().searchProgrammes(text.trim(), now, now + 3 * 3_600_000L, limit = 60)
-        val byRef = chunkedIn(programmes.map { it.epgRef }.distinct()) { db.channels().byEpgRefs(playlistId, it) }
+        val q = text.trim()
+        val soon = now + 3 * 3_600_000L
+        val day = 86_400_000L
+        val programmes = db.epg().searchProgrammes(q, now, soon, limit = 60)
+        val later = db.epg().searchProgrammes(q, soon, now + 7 * day, limit = 60).filter { it.startMs >= soon }
+        val past = db.epg().searchProgrammes(q, now - 7 * day, now, limit = 120).filter { it.stopMs <= now }
+        val byRef = chunkedIn((programmes + later + past).map { it.epgRef }.distinct()) { db.channels().byEpgRefs(playlistId, it) }
             .groupBy { it.epgRef }
-        val hits = programmes.mapNotNull { p -> byRef[p.epgRef]?.firstOrNull()?.let { ProgrammeHit(p, it) } }
-        return SearchResult(channels, hits)
+        // Hidden channels stay out of search, as they do everywhere else.
+        fun hits(list: List<ProgrammeEntity>) = list.mapNotNull { p -> byRef[p.epgRef]?.firstOrNull { !it.hidden }?.let { ProgrammeHit(p, it) } }
+        val archive = hits(past).filter { h ->
+            app.tiviate.core.catchup.Catchup.available(h.channel.catchupType, h.channel.catchupSource, h.channel.catchupDays, h.programme.startMs, h.programme.stopMs, now)
+        }.sortedByDescending { it.programme.startMs }.take(40)
+        return SearchResult(channels, hits(programmes), hits(later), archive)
+    }
+
+    /** Moves a guide source's times by whole minutes (a guide in the wrong time zone); shows at once. */
+    suspend fun setEpgOffset(sourceId: Long, minutes: Int) = db.withTransaction {
+        val source = db.epg().source(sourceId) ?: return@withTransaction
+        val next = minutes.coerceIn(-12 * 60, 14 * 60)
+        if (next == source.timeOffsetMin) return@withTransaction
+        db.epg().shiftProgrammes(sourceId, (next - source.timeOffsetMin) * 60_000L)
+        db.epg().updateSource(source.copy(timeOffsetMin = next))
     }
 
     /** Programmes for the guide grid window. */

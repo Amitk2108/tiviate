@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleStartEffect
+import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -76,6 +77,9 @@ fun PhoneGuide() {
     val groups by vm.groups.collectAsStateWithLifecycle()
     val customGroups by vm.customGroups.collectAsStateWithLifecycle()
     val settings by graph.settings.screenSettings.collectAsStateWithLifecycle(AppSettings())
+    val reminders = remember(settings.reminders) { app.tiviate.data.Reminders.keys(settings) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     val playing by graph.player.current.collectAsStateWithLifecycle()
     FollowCustomGroup(category, customGroups) { vm.selectCategory(it) }
     val items = vm.channels.collectAsLazyPagingItems()
@@ -171,6 +175,7 @@ fun PhoneGuide() {
                                     focused = null,
                                     highlight = settings.guideHighlight,
                                     channelWidth = LOGO_COLUMN,
+                                    reminders = reminders,
                                 )
                             }
                         }
@@ -184,12 +189,38 @@ fun PhoneGuide() {
         }
         PhoneBottomBar(PhoneTab.GUIDE)
     }
-    details?.let { (ch, block) -> ProgrammeSheet(ch, block, now, onWatch = { details = null; watch(ch) }, onClose = { details = null }) }
+    details?.let { (ch, block) ->
+        ProgrammeSheet(ch, block, now, onWatch = {
+            details = null
+            // A programme that already aired plays from the archive when the channel has one.
+            if (block.programme != null && block.stopMs <= System.currentTimeMillis() && vm.playCatchup(ch, block)) {
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                nav.replaceAll(Screen.Player)
+            } else {
+                watch(ch)
+            }
+        }, onClose = { details = null }, reminded = block.programme?.let { app.tiviate.data.Reminders.key(ch.playlistId, ch.stableKey, it.startMs) in reminders },
+            onRemind = { p ->
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                scope.launch { app.tiviate.data.Reminders.toggle(context, graph.settings, ch, p.title, p.startMs) }
+            },
+            onRecord = { p ->
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                details = null
+                scope.launch {
+                    app.tiviate.data.record.Recordings.schedule(context, ch, p.title, maxOf(p.startMs, System.currentTimeMillis()), p.stopMs + app.tiviate.data.record.Recordings.LATE_MS)
+                }
+            })
+    }
 }
 
 /** A programme's details over the bottom of the guide, with Watch. */
 @Composable
-private fun ProgrammeSheet(channel: ChannelEntity, block: FocusBlock, now: Long, onWatch: () -> Unit, onClose: () -> Unit) {
+private fun ProgrammeSheet(
+    channel: ChannelEntity, block: FocusBlock, now: Long, onWatch: () -> Unit, onClose: () -> Unit,
+    reminded: Boolean? = null, onRemind: (app.tiviate.data.db.ProgrammeEntity) -> Unit = {},
+    onRecord: (app.tiviate.data.db.ProgrammeEntity) -> Unit = {},
+) {
     androidx.activity.compose.BackHandler(onBack = onClose)
     Box(Modifier.fillMaxSize().background(Tokens.Scrim).pointerInput(Unit) { detectTapGestures { onClose() } }, contentAlignment = Alignment.BottomCenter) {
         Column(
@@ -204,6 +235,11 @@ private fun ProgrammeSheet(channel: ChannelEntity, block: FocusBlock, now: Long,
             p?.description?.let { Text(it, maxLines = 6, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.CaptionSize)) }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 ActionButton(t("Watch"), onWatch, primary = true, tag = "phone_watch")
+                // Still to come: a reminder shortly before it starts.
+                if (p != null && p.startMs > System.currentTimeMillis() && reminded != null) {
+                    ActionButton(if (reminded) t("Cancel reminder") else t("Remind me"), { onRemind(p) }, tag = "phone_remind")
+                }
+                if (p != null && p.stopMs > System.currentTimeMillis()) ActionButton(t("Record"), { onRecord(p) }, tag = "phone_record")
                 ActionButton(t("Close"), onClose)
             }
         }

@@ -18,7 +18,7 @@ import okhttp3.OkHttpClient
 import okio.buffer
 import okio.source
 
-data class PlaylistSyncResult(val channels: Int, val skipped: Int, val detectedEpgUrl: String?)
+data class PlaylistSyncResult(val channels: Int, val skipped: Int, val detectedEpgUrl: String?, val serverTimezone: String? = null)
 
 /**
  * Downloads and parses a playlist straight into the database in batches. Rows are stamped with
@@ -53,6 +53,7 @@ class PlaylistSyncer(
             if (writer.count == 0) throw SyncException("The provider sent no channels. Your channels were kept; try again later.")
             db.channels().deleteStale(playlist.id, keepStamp = stamp)
             db.playlists().markSynced(playlist.id, stamp, result.detectedEpgUrl)
+            result.serverTimezone?.let { db.playlists().setServerTimezone(playlist.id, it) }
             EpgLinker(db).relink(playlist.id)
             result
         } catch (e: CancellationException) {
@@ -88,6 +89,8 @@ class PlaylistSyncer(
                     epgRef = null,
                     logoFallback = null,
                     catchupDays = e.catchupDays,
+                    catchupType = e.catchup,
+                    catchupSource = e.catchupSource,
                     sortIndex = position,
                     syncStamp = writer.stamp,
                 ),
@@ -140,6 +143,7 @@ class PlaylistSyncer(
                         epgRef = null,
                         logoFallback = null,
                         catchupDays = if (s.tvArchive) s.tvArchiveDays else null,
+                        catchupType = if (s.tvArchive) "xc" else null,
                         sortIndex = ((s.categoryId?.let(rank::get) ?: categoryList.size) * band + position)
                             .coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
                         syncStamp = writer.stamp,
@@ -147,7 +151,7 @@ class PlaylistSyncer(
                 )
             }
         }
-        return PlaylistSyncResult(count, 0, XtreamUrls.xmltv(creds))
+        return PlaylistSyncResult(count, 0, XtreamUrls.xmltv(creds), account.timezone)
     }
 
     /** Buffers rows and writes them in transactions of [BATCH] to keep memory flat on large playlists. */

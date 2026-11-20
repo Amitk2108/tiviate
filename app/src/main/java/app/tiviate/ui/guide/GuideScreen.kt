@@ -95,6 +95,7 @@ fun GuideScreen() {
     val groups by vm.groups.collectAsStateWithLifecycle()
     val current by graph.player.current.collectAsStateWithLifecycle()
     val settings by graph.settings.screenSettings.collectAsStateWithLifecycle(AppSettings())
+    val reminders = remember(settings.reminders) { app.tiviate.data.Reminders.keys(settings) }
     val items = vm.channels.collectAsLazyPagingItems()
 
     val now = rememberNow(30_000)
@@ -107,6 +108,8 @@ fun GuideScreen() {
     var side by remember { mutableStateOf(SideNav.GRID) }
     val playlists by vm.playlists.collectAsStateWithLifecycle()
     val playlist by vm.playlist.collectAsStateWithLifecycle()
+    val libraryCount by remember(playlist?.id) { playlist?.id?.let { graph.library.count(it) } ?: kotlinx.coroutines.flow.flowOf(0) }
+        .collectAsStateWithLifecycle(0)
     val leftPress = remember { LongPressDetector() }
     val okPress = remember { LongPressDetector() }
     var sheet by remember { mutableStateOf<SheetTarget?>(null) }
@@ -200,7 +203,7 @@ fun GuideScreen() {
 
     fun openSheet() {
         val pid = playlist?.id ?: return
-        sheet = SheetTarget(pid, channelAt(state.row), category, state.focused?.programme?.title)
+        sheet = SheetTarget(pid, channelAt(state.row), category, state.focused?.programme?.title, state.focused?.programme?.startMs, state.focused?.programme?.stopMs)
     }
 
     fun onOk() {
@@ -208,7 +211,12 @@ fun GuideScreen() {
         val block = state.focused
         val nowMs = System.currentTimeMillis()
         val live = block == null || (block.startMs <= nowMs && nowMs < block.stopMs)
-        // Any programme of a channel plays that channel live (no catch-up); its description is in the long-OK menu.
+        // A programme that already aired plays from the channel's archive (catch-up), fullscreen.
+        if (block?.programme != null && block.stopMs <= nowMs && !settings.alwaysExternalPlayer && vm.playCatchup(channel, block)) {
+            nav.back()
+            return
+        }
+        // Other programmes play the channel live; a programme's description is in the long-OK menu.
         when {
             channel.stableKey == current?.stableKey -> nav.back() // already playing: go fullscreen, no reconnect
             settings.alwaysExternalPlayer -> app.tiviate.player.ExternalPlayer.open(activity ?: return, channel.streamUrl, channel.name)
@@ -318,6 +326,8 @@ fun GuideScreen() {
                     onSearch = { side = SideNav.GRID; nav.push(Screen.Search) },
                     onTv = { side = SideNav.GROUPS },
                     onSettings = { side = SideNav.GRID; nav.push(Screen.Settings) },
+                    onLibrary = if (libraryCount > 0) ({ side = SideNav.GRID; nav.push(Screen.Library) }) else null,
+                    onRecordings = { side = SideNav.GRID; nav.push(Screen.Recordings) },
                 )
             }
             GroupsColumn(
@@ -441,6 +451,7 @@ fun GuideScreen() {
                                 showNumber = settings.showChannelNumbers,
                                 focused = if (isFocusedRow) focusedBlock else null,
                                 highlight = settings.guideHighlight,
+                                reminders = reminders,
                             )
                             }
                         }

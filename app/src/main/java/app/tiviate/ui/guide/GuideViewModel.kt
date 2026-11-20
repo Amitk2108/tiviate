@@ -145,6 +145,10 @@ class GuideViewModel(private val graph: AppGraph) : ViewModel() {
 
     fun tune(channel: ChannelEntity) = graph.player.tune(channel, _playlist.value?.userAgent)
 
+    /** A programme that already aired, from the channel's archive; false when it has none. */
+    fun playCatchup(channel: ChannelEntity, block: FocusBlock): Boolean =
+        graph.player.playCatchup(channel, _playlist.value, block.programme?.title, block.startMs, block.stopMs)
+
     /** Shows another playlist: its first (or last watched) channel starts in the preview. */
     fun switchPlaylist(id: Long) {
         // At once, before anything can save the old playlist's group for the new one.

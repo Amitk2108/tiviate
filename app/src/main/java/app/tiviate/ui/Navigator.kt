@@ -19,6 +19,14 @@ sealed interface Screen {
     data class ManageChannels(val playlistId: Long, val category: app.tiviate.data.Category, val reorder: Boolean) : Screen
     data class ManageGroups(val playlistId: Long) : Screen
     data object OptionCards : Screen
+    /** Movies & Series (Xtream accounts). */
+    data object Library : Screen
+    data class MovieDetails(val playlistId: Long, val streamId: Long) : Screen
+    data class SeriesDetails(val playlistId: Long, val seriesId: Long) : Screen
+    data class VodPlayer(val item: app.tiviate.data.VodPlay) : Screen
+    data object Recordings : Screen
+    /** Up to four channels at once. */
+    data object MultiView : Screen
 }
 
 /** A tiny back stack; screens are cheap to recreate and state that must survive lives in view models/DB. */

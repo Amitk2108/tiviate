@@ -16,6 +16,7 @@ import app.tiviate.data.sync.PlaylistSyncer
 import app.tiviate.data.sync.SyncScheduler
 import app.tiviate.data.sync.getOrThrow
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -38,6 +39,9 @@ class PlaylistRepository(
     private val playlistSyncer: PlaylistSyncer,
     private val epgSyncer: EpgSyncer,
     private val clock: () -> Long = System::currentTimeMillis,
+    /** Movies & Series (Xtream); loaded in [scope] after the channels, so nothing waits for them. */
+    private val librarySyncer: app.tiviate.data.sync.LibrarySyncer? = null,
+    private val scope: kotlinx.coroutines.CoroutineScope? = null,
 ) {
     val playlists: Flow<List<PlaylistEntity>> = db.playlists().observeAll()
 
@@ -120,12 +124,18 @@ class PlaylistRepository(
                 send(SyncProgress.Guide(0))
                 epgSyncer.syncForPlaylist(playlistId) { trySend(SyncProgress.Guide(it)) }
                 send(SyncProgress.Done)
+                syncLibraryLater(playlistId)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 send(SyncProgress.Failed(e.message ?: "Sync failed"))
             }
         }
+    }
+
+    private fun syncLibraryLater(playlistId: Long) {
+        val syncer = librarySyncer ?: return
+        scope?.launch { syncLock.withLock { runCatching { syncer.sync(playlistId) } } }
     }
 
     suspend fun refreshGuide(playlistId: Long) = syncLock.withLock { epgSyncer.syncForPlaylist(playlistId) }
@@ -178,6 +188,7 @@ class PlaylistRepository(
         val enabled = db.playlists().all().filter { it.enabled }.map { it.id }
         for (id in enabled) runCatching { playlistSyncer.sync(id) }
         runCatching { epgSyncer.syncPlaylists(enabled) } // shared guide links download once
+        for (id in enabled) runCatching { librarySyncer?.sync(id) }
     }
 
     /**
@@ -193,6 +204,7 @@ class PlaylistRepository(
         if (!atStart || due.isNotEmpty() || SyncScheduler.shouldSyncOnStart(guideOnStart, oldestGuideUpdate(enabled), now)) {
             runCatching { epgSyncer.syncPlaylists(enabled.map { it.id }) } // shared guide links download once
         }
+        for (p in due) runCatching { librarySyncer?.sync(p.id) }
     }
 
     /** Is there anything for the start-up update to do? */
@@ -218,6 +230,9 @@ class PlaylistRepository(
                 db.epg().deleteSource(src.id)
             }
             db.channels().deleteAll(playlistId)
+            db.vod().deleteMovies(playlistId)
+            db.vod().deleteSeries(playlistId)
+            db.vod().clearProgress(playlistId)
             db.organise().clearMembersOfPlaylist(playlistId)
             db.organise().clearCustomGroups(playlistId)
             db.organise().clearGroupPrefs(playlistId)

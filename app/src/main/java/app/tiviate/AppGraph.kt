@@ -36,7 +36,12 @@ class AppGraph(context: Context) {
     /** Long press of Back: return to fullscreen from anywhere (TiviMate's "Long Back"). */
     /** A channel picked on the TV home screen (playlist id, channel key), until the app opens it. */
     val openChannel = kotlinx.coroutines.flow.MutableStateFlow<Pair<Long, String>?>(null)
+    /** A programme reminder that is due while the app is on screen. */
+    val reminderDue = kotlinx.coroutines.flow.MutableStateFlow<app.tiviate.data.Reminder?>(null)
     val longBack = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    /** Movies & Series (Xtream). */
+    val library: app.tiviate.data.LibraryRepository by lazy { app.tiviate.data.LibraryRepository(db, http) }
 
     val player: PlayerController by lazy { PlayerController(appContext, http, settings, channels, appScope) }
 
@@ -46,6 +51,8 @@ class AppGraph(context: Context) {
             http = http,
             playlistSyncer = PlaylistSyncer(db, http, openLocal = ::openLocal),
             epgSyncer = EpgSyncer(db, http, newPullParser = { Xml.newPullParser() }, pastDays = { settings.settings.first().epgPastDays }),
+            librarySyncer = app.tiviate.data.sync.LibrarySyncer(db, http),
+            scope = appScope,
         )
     }
 

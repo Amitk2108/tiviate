@@ -6,7 +6,9 @@ import android.os.Looper
 import app.tiviate.data.AppSettings
 import app.tiviate.data.ChannelRepository
 import app.tiviate.data.SettingsStore
+import app.tiviate.core.catchup.Catchup
 import app.tiviate.data.db.ChannelEntity
+import app.tiviate.data.db.PlaylistEntity
 import app.tiviate.data.sync.HttpClients
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -51,6 +53,49 @@ class PlayerController(
 
     private var historyJob: Job? = null
 
+    /** A programme playing from the channel's archive (catch-up). */
+    data class CatchupPlay(val title: String?, val startMs: Long, val stopMs: Long)
+    private val _catchup = MutableStateFlow<CatchupPlay?>(null)
+    /** The archived programme playing, or null while watching live. */
+    val catchup: StateFlow<CatchupPlay?> = _catchup
+    private var catchupUserAgent: String? = null
+
+    /** A film or episode is playing (Movies & Series); live channels are off meanwhile. */
+    @Volatile private var vodActive = false
+    /** The film or episode reached its end. */
+    val vodEnded = MutableStateFlow(false)
+
+    /** Plays a film or episode from [startAtMs]; the live channel stops (it comes back on the live screens). */
+    fun playVod(url: String, key: String, startAtMs: Long, userAgent: String?) {
+        if (!foreground) return
+        rowJob?.cancel()
+        historyJob?.cancel()
+        _current.value = null
+        _catchup.value = null
+        vodActive = true
+        vodEnded.value = false
+        engine.play(url, emptyMap(), userAgent ?: settings.defaultUserAgent ?: HttpClients.defaultUserAgent, "vod:$key", startAtMs)
+    }
+
+    /** Leaves a film or episode: the player stops, so the live screens start the channel again. */
+    fun stopVod() {
+        if (!vodActive) return
+        vodActive = false
+        engineOrNull?.stop()
+    }
+
+    /** The parental PIN was entered: locked channels play until the app leaves the screen. */
+    val unlocked = MutableStateFlow(false)
+    /** A locked channel is waiting for the PIN; runs once the PIN is right. */
+    val pinRequest = MutableStateFlow<(() -> Unit)?>(null)
+
+    /** True when [channel] needs the PIN first (the request is then shown and replayed after it). */
+    private fun needsPin(channel: ChannelEntity, retry: () -> Unit): Boolean {
+        if (unlocked.value || !app.tiviate.data.Parental.locked(settings, channel)) return false
+        pinRequest.value = retry
+        return true
+    }
+
     /** Sleep timer: app-wide, so it keeps counting in the guide too. */
     val sleep = SleepTimer()
     private val _sleepMinutes = MutableStateFlow<Int?>(null)
@@ -69,7 +114,9 @@ class PlayerController(
     val engine: Media3Engine
         get() {
             engineOrNull?.let { return it }
-            if (Looper.myLooper() == Looper.getMainLooper()) return Media3Engine(context, http, settings).also { engineOrNull = it }
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                return Media3Engine(context, http, settings).also { engineOrNull = it; it.onEnded = ::archiveEnded }
+            }
             val created = java.util.concurrent.CompletableFuture<Media3Engine>()
             Handler(Looper.getMainLooper()).post { created.complete(engine) }
             return created.get()
@@ -93,16 +140,52 @@ class PlayerController(
     /** Tunes [channel]. Re-tuning the channel that is already playing is a no-op (no reconnect). */
     fun tune(channel: ChannelEntity, playlistUserAgent: String?) {
         if (!foreground) return
+        if (needsPin(channel) { tune(channel, playlistUserAgent) }) return
         val already = _current.value?.stableKey == channel.stableKey && _current.value?.playlistId == channel.playlistId
         if (already && engine.state.value.error == null && engine.state.value.channelKey == channel.stableKey) return
         _current.value?.takeIf { it.stableKey != channel.stableKey }?.let { _previous.value = it }
         _current.value = channel
-        val headers = buildMap { channel.referrer?.let { put("Referer", it) } }
-        val ua = channel.userAgent ?: playlistUserAgent ?: settings.defaultUserAgent ?: HttpClients.defaultUserAgent
-        engine.play(channel.streamUrl, headers, ua, channel.stableKey)
+        _catchup.value = null
+        vodActive = false
+        engine.play(channel.streamUrl, headers(channel), userAgent(channel, playlistUserAgent), channel.stableKey)
         scope.launch { settingsStore.update { it.copy(lastChannelKey = channel.stableKey) } }
         trackHistory(channel)
         followRow(channel)
+    }
+
+    private fun headers(channel: ChannelEntity) = buildMap { channel.referrer?.let { put("Referer", it) } }
+
+    private fun userAgent(channel: ChannelEntity, playlistUserAgent: String?) =
+        channel.userAgent ?: playlistUserAgent ?: settings.defaultUserAgent ?: HttpClients.defaultUserAgent
+
+    /**
+     * Plays a programme that already aired from the channel's archive. False when the channel has no
+     * archive for it (the caller then plays the channel live).
+     */
+    fun playCatchup(channel: ChannelEntity, playlist: PlaylistEntity?, title: String?, startMs: Long, stopMs: Long): Boolean {
+        if (!foreground) return false
+        val now = System.currentTimeMillis()
+        if (!Catchup.available(channel.catchupType, channel.catchupSource, channel.catchupDays, startMs, stopMs, now)) return false
+        if (needsPin(channel) { playCatchup(channel, playlist, title, startMs, stopMs) }) return true
+        val zone = playlist?.serverTimezone?.let { runCatching { java.time.ZoneId.of(it) }.getOrNull() } ?: java.time.ZoneOffset.UTC
+        val url = Catchup.url(channel.catchupType, channel.catchupSource, channel.streamUrl, startMs, stopMs, now, zone) ?: return false
+        _current.value?.takeIf { it.stableKey != channel.stableKey }?.let { _previous.value = it }
+        _current.value = channel
+        _catchup.value = CatchupPlay(title, startMs, stopMs)
+        vodActive = false
+        catchupUserAgent = playlist?.userAgent
+        engine.play(url, headers(channel), userAgent(channel, playlist?.userAgent), "${channel.stableKey}@$startMs")
+        followRow(channel)
+        return true
+    }
+
+    /** An archived programme reached its end: carry on with the channel live. */
+    private fun archiveEnded(): Boolean {
+        if (vodActive) { vodEnded.value = true; return true }
+        val channel = _current.value ?: return false
+        if (_catchup.value == null) return false
+        Handler(Looper.getMainLooper()).post { tune(channel, catchupUserAgent) }
+        return true
     }
 
     /** Keeps [current] in step with the database: a resync or guide link updates the playing channel. */
@@ -149,6 +232,8 @@ class PlayerController(
     /** The app left the screen: playback stops, and so does the sleep timer (it would close the app next time). */
     fun onAppHidden() {
         foreground = false
+        unlocked.value = false // locked channels ask again next time
+        pinRequest.value = null
         setSleepTimer(null)
         consumeSleepDue()
         stop()
@@ -159,6 +244,7 @@ class PlayerController(
         rowJob?.cancel()
         engineOrNull?.stop()
         _current.value = null
+        _catchup.value = null
     }
 
     fun release() {

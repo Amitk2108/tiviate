@@ -9,6 +9,8 @@ data class XtreamAccount(
     val activeConnections: Int?,
     val authorized: Boolean,
     val allowedFormats: List<String>,
+    /** server_info.timezone, e.g. "Europe/London": catch-up links use the server's local time. */
+    val timezone: String? = null,
 )
 
 data class XtreamCategory(val id: String, val name: String)

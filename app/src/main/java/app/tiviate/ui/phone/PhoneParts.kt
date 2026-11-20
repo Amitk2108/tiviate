@@ -16,10 +16,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.flow.map
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,7 +46,7 @@ import app.tiviate.ui.t
 import app.tiviate.ui.tf
 import app.tiviate.ui.theme.Tokens
 
-enum class PhoneTab { LIVE, GUIDE }
+enum class PhoneTab { LIVE, GUIDE, LIBRARY }
 
 /** Live, Guide, Search and Settings, at the bottom of the phone screens. */
 @Composable
@@ -54,6 +59,15 @@ fun PhoneBottomBar(selected: PhoneTab) {
         BarItem(Icons.Rounded.LiveTv, t("Live"), selected == PhoneTab.LIVE, "tab_live") { if (selected != PhoneTab.LIVE) nav.replaceAll(Screen.Player) }
         BarItem(Icons.Rounded.CalendarMonth, t("TV guide"), selected == PhoneTab.GUIDE, "tab_guide") {
             if (selected != PhoneTab.GUIDE) { nav.replaceAll(Screen.Player); nav.push(Screen.Guide) }
+        }
+        // Movies & Series: Xtream accounts that have them.
+        val graph = app.tiviate.ui.LocalGraph.current
+        val pid by graph.settings.screenSettings.map { it.activePlaylistId }.collectAsState(initial = null)
+        val library by remember(pid) { pid?.let { graph.library.count(it) } ?: kotlinx.coroutines.flow.flowOf(0) }.collectAsState(initial = 0)
+        if (library > 0 || selected == PhoneTab.LIBRARY) {
+            BarItem(Icons.Rounded.Movie, t("Movies"), selected == PhoneTab.LIBRARY, "tab_library") {
+                if (selected != PhoneTab.LIBRARY) { nav.replaceAll(Screen.Player); nav.push(Screen.Library) }
+            }
         }
         BarItem(Icons.Rounded.Search, t("Search"), false, "tab_search") { nav.push(Screen.Search) }
         BarItem(Icons.Rounded.Settings, t("Settings"), false, "tab_settings") { nav.push(Screen.Settings) }

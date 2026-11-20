@@ -11,6 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.Movie
+import androidx.compose.material.icons.rounded.FiberManualRecord
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -220,7 +222,7 @@ fun GroupsColumn(
 
 /** The side menu: Search, TV (this screen) and Settings at the bottom. */
 @Composable
-fun NavRail(onSearch: () -> Unit, onTv: () -> Unit, onSettings: () -> Unit) {
+fun NavRail(onSearch: () -> Unit, onTv: () -> Unit, onSettings: () -> Unit, onLibrary: (() -> Unit)? = null, onRecordings: () -> Unit = {}) {
     val search = remember { FocusRequester() }
     val tv = remember { FocusRequester() }
     val settings = remember { FocusRequester() }
@@ -238,9 +240,18 @@ fun NavRail(onSearch: () -> Unit, onTv: () -> Unit, onSettings: () -> Unit) {
         Text(t("Tiviate"), modifier = Modifier.padding(start = 14.dp, bottom = 20.dp), style = TextStyle(brush = Tokens.BrandGradient, fontSize = Tokens.TitleSize, fontWeight = FontWeight.Bold))
         // Up/Down stay inside the menu (the groups column beside it would otherwise be "closer").
         RailRow(Icons.Rounded.Search, t("Search"), "rail_search", onSearch, Modifier.focusRequester(search).focusProperties { up = FocusRequester.Cancel; down = tv })
-        RailRow(Icons.Rounded.LiveTv, "TV", "rail_tv", onTv, Modifier.focusRequester(tv).focusProperties { up = search; down = settings }, selected = true)
+        val library = remember { FocusRequester() }
+        val recordings = remember { FocusRequester() }
+        RailRow(Icons.Rounded.LiveTv, "TV", "rail_tv", onTv, Modifier.focusRequester(tv).focusProperties { up = search; down = if (onLibrary != null) library else recordings }, selected = true)
+        onLibrary?.let {
+            RailRow(Icons.Rounded.Movie, t("Movies & Series"), "rail_library", it, Modifier.focusRequester(library).focusProperties { up = tv; down = recordings })
+        }
+        RailRow(
+            Icons.Rounded.FiberManualRecord, t("Recordings"), "rail_recordings", onRecordings,
+            Modifier.focusRequester(recordings).focusProperties { up = if (onLibrary != null) library else tv; down = settings },
+        )
         Spacer(Modifier.weight(1f))
-        RailRow(Icons.Rounded.Settings, t("Settings"), "rail_settings", onSettings, Modifier.focusRequester(settings).focusProperties { up = tv; down = FocusRequester.Cancel })
+        RailRow(Icons.Rounded.Settings, t("Settings"), "rail_settings", onSettings, Modifier.focusRequester(settings).focusProperties { up = recordings; down = FocusRequester.Cancel })
     }
 }
 

@@ -179,7 +179,9 @@ class PhoneFlowTest {
         rule.onNodeWithTag("tab_search").performClick()
         rule.waitForIdle()
         shot("07-search")
-        Remote.back()
+        Remote.back() // the first Back closes the keyboard (Search opens with it), the second leaves Search
+        rule.waitForIdle()
+        if (rule.onAllNodesWithTagExists("search_screen")) Remote.back()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("phone_home") }
 
         // Every TV option is one tap away: Options on the video opens them (fullscreen, as on TV).

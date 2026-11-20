@@ -14,11 +14,24 @@ object XtreamJson {
         var account = XtreamAccount(null, null, null, null, authorized = false, allowedFormats = emptyList())
         if (r.peek() != JsonReader.Token.BEGIN_OBJECT) return account
         r.beginObject()
+        var timezone: String? = null
         while (r.hasNext()) {
-            if (r.nextName() == "user_info" && r.peek() == JsonReader.Token.BEGIN_OBJECT) account = readUserInfo(r) else r.skipValue()
+            when (r.nextName()) {
+                "user_info" -> if (r.peek() == JsonReader.Token.BEGIN_OBJECT) account = readUserInfo(r) else r.skipValue()
+                "server_info" -> if (r.peek() == JsonReader.Token.BEGIN_OBJECT) timezone = readTimezone(r) else r.skipValue()
+                else -> r.skipValue()
+            }
         }
         r.endObject()
-        return account
+        return account.copy(timezone = timezone)
+    }
+
+    private fun readTimezone(r: JsonReader): String? {
+        var zone: String? = null
+        r.beginObject()
+        while (r.hasNext()) if (r.nextName() == "timezone") zone = scalar(r)?.takeIf { it.isNotBlank() } else r.skipValue()
+        r.endObject()
+        return zone
     }
 
     private fun readUserInfo(r: JsonReader): XtreamAccount {

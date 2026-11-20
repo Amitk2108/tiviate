@@ -33,6 +33,8 @@ data class PlaylistEntity(
     /** Names editor: comma-separated prefixes / suffixes removed from channel names (e.g. "UK:", "| FHD"). */
     val namePrefixes: String? = null,
     val nameSuffixes: String? = null,
+    /** Xtream: the server's time zone (its catch-up links use local time); null = UTC. */
+    val serverTimezone: String? = null,
 )
 
 @Entity(
@@ -75,6 +77,9 @@ data class ChannelEntity(
     val epgOverride: String? = null,
     /** True when the viewer renamed the channel; syncs then keep [name]. */
     @ColumnInfo(defaultValue = "0") val renamed: Boolean = false,
+    /** Catch-up: the playlist's `catchup` type ("xc" for Xtream archives) and `catchup-source` template. */
+    val catchupType: String? = null,
+    val catchupSource: String? = null,
 )
 
 @Fts4(contentEntity = ChannelEntity::class)

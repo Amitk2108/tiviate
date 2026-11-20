@@ -50,6 +50,10 @@ data class SheetTarget(
     val channel: ChannelEntity?,
     val category: Category,
     val programmeTitle: String? = null,
+    /** When the programme starts (for "Remind me" on programmes still to come). */
+    val programmeStartMs: Long? = null,
+    /** When it ends (for "Record"). */
+    val programmeStopMs: Long? = null,
 )
 
 private sealed interface SheetDialog {
@@ -58,6 +62,8 @@ private sealed interface SheetDialog {
     data object AddToGroup : SheetDialog
     data object RenameGroup : SheetDialog
     data object CreateGroup : SheetDialog
+    /** The PIN first, then [then] (removing a lock needs the PIN). */
+    data class Pin(val then: () -> Unit) : SheetDialog
 }
 
 /**
@@ -76,8 +82,27 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
     LaunchedEffect(dialog) { if (dialog == null) focusSoon(first) }
     val ch = target.channel
     val cat = target.category
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val activeRecordings by remember { graph.db.recordings().observeActive() }.collectAsState(initial = emptyList())
 
-    when (dialog) {
+    // Parental control: locking needs a PIN to exist; unlocking needs the PIN (unless it was just entered).
+    fun lockRow(tag: String, key: String, locked: Boolean, lockLabel: String, unlockLabel: String, lockedMessage: String, set: (AppSettings, Boolean) -> AppSettings): SheetItem.Row =
+        SheetItem.Row(tag, if (locked) unlockLabel else lockLabel) {
+            val change = { scope.launch { graph.settings.update { set(it, !locked) }; onMessage(if (locked) t("Unlocked") else lockedMessage); onClose() } }
+            when {
+                settings.pinHash == null -> { onMessage(t("Set a PIN first: Settings → Parental control")); onClose() }
+                locked && !graph.player.unlocked.value -> dialog = SheetDialog.Pin { change() }
+                else -> change()
+            }
+        }
+
+    when (val d = dialog) {
+        is SheetDialog.Pin -> {
+            app.tiviate.ui.components.PinDialog(t("Enter the PIN"), onPin = { pin ->
+                app.tiviate.data.Parental.matches(settings, pin).also { if (it) { graph.player.unlocked.value = true; d.then() } }
+            }, onCancel = { dialog = null })
+            return
+        }
         SheetDialog.RenameChannel -> if (ch != null) {
             TextInputDialog(t("Rename channel"), t("Channel name"), ch.name, onSave = { name ->
                 scope.launch { graph.channels.renameChannel(ch, name); onMessage(t("Channel renamed")); onClose() }
@@ -127,6 +152,35 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
         if (target.programmeTitle != null && onDescription != null) {
             add(SheetItem.Header(target.programmeTitle))
             add(SheetItem.Row("sheet_description", t("Programme description")) { onClose(); onDescription() })
+            val start = target.programmeStartMs
+            val stop = target.programmeStopMs
+            // Record the programme (on air now, or later).
+            if (ch != null && start != null && stop != null && stop > System.currentTimeMillis()) {
+                val booked = activeRecordings.firstOrNull { it.playlistId == ch.playlistId && it.stableKey == ch.stableKey && it.stopMs >= stop && it.startMs <= maxOf(start, it.startMs) && it.title == target.programmeTitle }
+                add(SheetItem.Row("sheet_record", if (booked != null) t("Cancel recording") else t("Record")) {
+                    scope.launch {
+                        if (booked != null) {
+                            app.tiviate.data.record.Recordings.stop(context, booked.id)
+                            onMessage(t("Recording cancelled"))
+                        } else {
+                            val from = maxOf(start, System.currentTimeMillis())
+                            app.tiviate.data.record.Recordings.schedule(context, ch, target.programmeTitle, from, stop + app.tiviate.data.record.Recordings.LATE_MS)
+                            onMessage(if (start > System.currentTimeMillis()) t("Recording scheduled") else t("Recording started"))
+                        }
+                        onClose()
+                    }
+                })
+            }
+            if (ch != null && start != null && start > System.currentTimeMillis()) {
+                val reminded = app.tiviate.data.Reminders.key(ch.playlistId, ch.stableKey, start) in app.tiviate.data.Reminders.keys(settings)
+                add(SheetItem.Row("sheet_remind", if (reminded) t("Cancel reminder") else t("Remind me")) {
+                    scope.launch {
+                        val set = app.tiviate.data.Reminders.toggle(context, graph.settings, ch, target.programmeTitle, start)
+                        onMessage(if (set) tf("Reminder set for %s", android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date(start))) else t("Reminder cancelled"))
+                        onClose()
+                    }
+                })
+            }
         }
         if (ch != null) {
             add(SheetItem.Header(ch.name))
@@ -136,6 +190,10 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
             })
             add(SheetItem.Row("sheet_hide", t("Hide channel")) {
                 scope.launch { graph.channels.setHidden(target.playlistId, listOf(ch.stableKey), true); onMessage(t("Hidden — show it again in Manage visibility")); onClose() }
+            })
+            val channelKey = app.tiviate.data.Parental.channelKey(ch)
+            add(lockRow("sheet_lock", channelKey, channelKey in settings.lockedChannels, t("Lock channel"), t("Unlock channel"), t("Channel locked")) { s, lock ->
+                s.copy(lockedChannels = if (lock) s.lockedChannels + channelKey else s.lockedChannels - channelKey)
             })
             add(SheetItem.Row("sheet_rename", t("Rename channel")) { dialog = SheetDialog.RenameChannel })
             if (ch.renamed) add(SheetItem.Row("sheet_restore_name", t("Restore channel name")) { scope.launch { graph.channels.restoreChannelName(ch); onClose() } })
@@ -160,6 +218,10 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
         }
         if (cat is Category.Group || cat is Category.Custom) add(SheetItem.Row("sheet_rename_group", t("Rename group")) { dialog = SheetDialog.RenameGroup })
         if (cat is Category.Group) {
+            val groupKey = app.tiviate.data.Parental.groupKey(target.playlistId, cat.name)
+            add(lockRow("sheet_lock_group", groupKey, groupKey in settings.lockedGroups, t("Lock group"), t("Unlock group"), t("Group locked")) { s, lock ->
+                s.copy(lockedGroups = if (lock) s.lockedGroups + groupKey else s.lockedGroups - groupKey)
+            })
             add(SheetItem.Row("sheet_hide_group", t("Hide group")) {
                 scope.launch { graph.channels.setGroupHidden(target.playlistId, cat.name, true); onMessage(t("Group hidden — show it again in Manage groups")); onClose() }
             })

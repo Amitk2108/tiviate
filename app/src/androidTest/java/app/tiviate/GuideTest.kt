@@ -1,6 +1,8 @@
 package app.tiviate
 
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -95,6 +97,34 @@ class GuideTest {
         rule.waitUntil(3_000) { rule.textExists("Beacon Sports Show 3") } // focus back on the programme on air
     }
 
+    @Test
+    fun okOnAnAiredProgrammeWithAnArchivePlaysItFromTheArchiveThenBackToLive() {
+        openGuide() // on Aurora News, whose playlist entry has a 3-day archive
+        // Two hours back (before the guide data starts), then Right: the first programme, which already aired.
+        fun focusedOn(title: String) = rule.onAllNodes(
+            androidx.compose.ui.test.hasTestTag("guide_focused") and androidx.compose.ui.test.hasAnyDescendant(androidx.compose.ui.test.hasText(title)),
+            useUnmergedTree = true,
+        ).fetchSemanticsNodes().isNotEmpty()
+        Remote.press(android.view.KeyEvent.KEYCODE_MEDIA_REWIND)
+        rule.waitForIdle()
+        repeat(4) { if (!focusedOn("Aurora News Show 1") && !focusedOn("Aurora News Show 2")) { Remote.right(); rule.waitForIdle() } }
+        assert(focusedOn("Aurora News Show 1") || focusedOn("Aurora News Show 2")) { "focus on a programme that already aired" }
+        Remote.ok()
+        rule.waitUntil(5_000) { graph.player.catchup.value != null && !rule.onAllNodesWithTagExists("guide_screen") }
+        val url = graph.player.engine.currentUrl.orEmpty()
+        assert(url.contains("archive=")) { "plays the archive link, got $url" }
+        rule.waitUntil(15_000) { graph.player.engine.state.value.isPlaying }
+
+        // Options → Back to live: the channel's own link again.
+        Remote.down()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("option_live") }
+        rule.waitForIdle()
+        Remote.left(6)
+        repeat(12) { if (runCatching { rule.onNodeWithTag("option_live").assertIsFocused() }.isFailure) { Remote.right(); rule.waitForIdle() } }
+        Remote.ok()
+        rule.waitUntil(5_000) { graph.player.catchup.value == null && graph.player.engine.currentUrl == graph.player.current.value?.streamUrl }
+    }
+
     private fun openGuide() {
         Remote.right()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }
@@ -122,7 +152,7 @@ class GuideTest {
         Remote.left()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("guide_rail") }
         rule.waitForIdle()
-        Remote.down() // TV → Settings
+        rule.downToRailSettings()
         Remote.ok()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("settings_screen") }
     }

@@ -21,6 +21,14 @@ object XtreamUrls {
     fun live(c: XtreamCredentials, streamId: Long, ext: String = "ts"): String =
         "${c.server}/live/${segment(c.username)}/${segment(c.password)}/$streamId.$ext"
 
+    /** A film (`get_vod_streams` item). */
+    fun movie(c: XtreamCredentials, streamId: Long, ext: String): String =
+        "${c.server}/movie/${segment(c.username)}/${segment(c.password)}/$streamId.$ext"
+
+    /** An episode (`get_series_info` item). */
+    fun episode(c: XtreamCredentials, episodeId: Long, ext: String): String =
+        "${c.server}/series/${segment(c.username)}/${segment(c.password)}/$episodeId.$ext"
+
     fun xmltv(c: XtreamCredentials): String =
         "${c.server}/xmltv.php?username=${enc(c.username)}&password=${enc(c.password)}"
 

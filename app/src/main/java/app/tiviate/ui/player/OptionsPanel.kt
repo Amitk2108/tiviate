@@ -9,6 +9,8 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Bedtime
+import androidx.compose.material.icons.rounded.FiberManualRecord
+import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.ZoomIn
@@ -150,6 +152,8 @@ fun optionIcon(tag: String): ImageVector = when (tag) {
     "option_quality" -> Icons.Rounded.HighQuality
     "option_stats" -> Icons.Rounded.QueryStats
     "option_sleep" -> Icons.Rounded.Bedtime
+    "option_record" -> Icons.Rounded.FiberManualRecord
+    "option_multiview" -> Icons.Rounded.GridView
     "option_favorite" -> Icons.Rounded.Star
     "option_external" -> Icons.Rounded.OpenInNew
     "option_channel" -> Icons.Rounded.Tune

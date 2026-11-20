@@ -37,7 +37,9 @@ import app.tiviate.ui.components.TvTextField
 import app.tiviate.ui.components.formatTime
 import app.tiviate.ui.player.focusSoon
 import app.tiviate.ui.theme.Tokens
+import androidx.compose.foundation.verticalScroll
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import app.tiviate.ui.t
 import app.tiviate.ui.tf
@@ -51,6 +53,9 @@ fun SearchScreen() {
     var result by remember { mutableStateOf(SearchResult(emptyList(), emptyList())) }
     var userAgent by remember { mutableStateOf<String?>(null) }
     val field = remember { FocusRequester() }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var toast by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(toast) { if (toast != null) { delay(2_500); toast = null } }
 
     LaunchedEffect(Unit) { focusSoon(field) }
     LaunchedEffect(text) {
@@ -65,11 +70,24 @@ fun SearchScreen() {
         nav.back()
     }
 
-    Column(Modifier.fillMaxSize().padding(Tokens.SafeMargin).testTag("search_screen"), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+    fun playArchive(hit: app.tiviate.data.ProgrammeHit) {
+        val p = hit.programme
+        graph.appScope.launch {
+            val playlist = graph.playlists.get(hit.channel.playlistId)
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                if (graph.player.playCatchup(hit.channel, playlist, p.title, p.startMs, p.stopMs)) nav.back() else play(hit.channel)
+            }
+        }
+    }
+
+    Column(
+        Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(Tokens.SafeMargin).testTag("search_screen"),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
+    ) {
         Text(t("Search"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
         TvTextField(t("Channel or programme"), text, { text = it }, Modifier.focusRequester(field), tag = "search_field", hint = t("Type a name…"), keyboardType = KeyboardType.Text)
 
-        if (text.isNotBlank() && result.channels.isEmpty() && result.programmes.isEmpty()) {
+        if (text.isNotBlank() && result.channels.isEmpty() && result.programmes.isEmpty() && result.later.isEmpty() && result.archive.isEmpty()) {
             Text(tf("Nothing found for “%s”", text), style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
         }
         if (result.channels.isNotEmpty()) {
@@ -86,20 +104,39 @@ fun SearchScreen() {
                 }
             }
         }
-        if (result.programmes.isNotEmpty()) {
-            Section(t("On now & next")) {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    itemsIndexed(result.programmes, key = { _, h -> h.programme.id }) { i, hit ->
-                        FocusSurface(onClick = { play(hit.channel) }, modifier = Modifier.width(300.dp).testTag("search_programme_$i")) {
-                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    ChannelLogo(hit.channel, 32.dp)
-                                    Text(hit.channel.name, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
-                                }
-                                Text(hit.programme.title, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium))
-                                Text("${formatTime(hit.programme.startMs)} – ${formatTime(hit.programme.stopMs)}", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.CaptionSize))
-                            }
+        ProgrammeSection(t("On now & next"), result.programmes, "search_programme", withDay = false) { play(it.channel) }
+        // Later programmes: a press sets (or cancels) a reminder instead of switching now.
+        ProgrammeSection(t("Later this week"), result.later, "search_later", withDay = true) { hit ->
+            graph.appScope.launch {
+                val set = app.tiviate.data.Reminders.toggle(context, graph.settings, hit.channel, hit.programme.title, hit.programme.startMs)
+                toast = if (set) tf("Reminder set for %s", app.tiviate.ui.guide.dayLabel(hit.programme.startMs, System.currentTimeMillis()) + " " + android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date(hit.programme.startMs))) else t("Reminder cancelled")
+            }
+        }
+        ProgrammeSection(t("Catch-up"), result.archive, "search_archive", withDay = true, onClick = ::playArchive)
+        toast?.let { Text(it, modifier = Modifier.testTag("search_toast"), style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium)) }
+    }
+}
+
+/** A row of programme cards: channel, title and time (with the day for other days). */
+@Composable
+private fun ProgrammeSection(title: String, hits: List<app.tiviate.data.ProgrammeHit>, tag: String, withDay: Boolean, onClick: (app.tiviate.data.ProgrammeHit) -> Unit) {
+    if (hits.isEmpty()) return
+    val now = System.currentTimeMillis()
+    Section(title) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            itemsIndexed(hits, key = { _, h -> h.programme.id }) { i, hit ->
+                FocusSurface(onClick = { onClick(hit) }, modifier = Modifier.width(300.dp).testTag("${tag}_$i")) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            ChannelLogo(hit.channel, 32.dp)
+                            Text(hit.channel.name, maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize))
                         }
+                        Text(hit.programme.title, maxLines = 2, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium))
+                        val time = "${formatTime(hit.programme.startMs)} – ${formatTime(hit.programme.stopMs)}"
+                        Text(
+                            if (withDay) app.tiviate.ui.guide.dayLabel(hit.programme.startMs, now) + " · " + time else time,
+                            style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.CaptionSize),
+                        )
                     }
                 }
             }

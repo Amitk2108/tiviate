@@ -10,8 +10,9 @@ import androidx.room.RoomDatabase
         PlaylistEntity::class, ChannelEntity::class, ChannelFts::class, FavoriteEntity::class,
         HistoryEntity::class, EpgSourceEntity::class, EpgChannelEntity::class, ProgrammeEntity::class,
         GroupPrefEntity::class, CustomGroupEntity::class, CustomGroupMemberEntity::class,
+        MovieEntity::class, SeriesEntity::class, WatchProgressEntity::class, RecordingEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class TiviateDatabase : RoomDatabase() {
@@ -21,6 +22,8 @@ abstract class TiviateDatabase : RoomDatabase() {
     abstract fun history(): HistoryDao
     abstract fun epg(): EpgDao
     abstract fun organise(): OrganiseDao
+    abstract fun vod(): VodDao
+    abstract fun recordings(): RecordingDao
 
     companion object {
         fun create(context: Context): TiviateDatabase =

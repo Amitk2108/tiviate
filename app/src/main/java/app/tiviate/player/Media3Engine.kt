@@ -64,6 +64,8 @@ class Media3Engine(
         val played: Boolean = false,
         /** Decided when it first plays: a film (fixed length), not live. A live list that later ends stays live. */
         val film: Boolean = false,
+        /** Resume point of a film, used for the first connection only. */
+        val startAtMs: Long = 0,
     )
 
     /** Channels that only played in the other format: later tunes go straight to it (this run of the app). */
@@ -114,6 +116,9 @@ class Media3Engine(
             .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, index)).build()
     }
 
+    /** Called when a stream ends; returning true means the caller takes over (no reconnect). */
+    var onEnded: (() -> Boolean)? = null
+
     /** The link the next (re)connection will use. */
     val currentUrl: String? get() = request?.url
 
@@ -152,7 +157,7 @@ class Media3Engine(
             _state.update { it.copy(isBuffering = playbackState == Player.STATE_BUFFERING) }
             // Live TV never "ends": the provider closed the connection (or the HLS list ended), so reconnect
             // instead of leaving a frozen picture with no spinner.
-            if (playbackState == Player.STATE_ENDED && request != null && pausedAtMs == null) {
+            if (playbackState == Player.STATE_ENDED && request != null && pausedAtMs == null && onEnded?.invoke() != true) {
                 reconnector.onIssue(PlaybackIssue.NO_CONNECTION, "Stream ended")
             }
         }
@@ -284,9 +289,9 @@ class Media3Engine(
         if (request != null) startCurrent(keepPlace = true)
     }
 
-    override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String) {
+    override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long) {
         main.removeCallbacks(retryRunnable)
-        request = Request(workingUrl[channelKey]?.takeIf { StreamFallback.otherFormat(it) == url } ?: url, headers, userAgent, channelKey, originalUrl = url)
+        request = Request(workingUrl[channelKey]?.takeIf { StreamFallback.otherFormat(it) == url } ?: url, headers, userAgent, channelKey, originalUrl = url, startAtMs = startAtMs)
         reconnector.reset()
         pausedAtMs = null
         applyPreferences(settings) // a new channel starts from the "for all channels" choices
@@ -302,13 +307,16 @@ class Media3Engine(
     private fun startCurrent(keepPlace: Boolean = false) {
         val r = request ?: return
         // A film reconnecting mid-way carries on where it was (at its end it starts again, as before).
-        val place = if (keepPlace && isFilm() && player.playbackState != Player.STATE_ENDED) player.currentPosition else null
+        val place = if (keepPlace && isFilm() && player.playbackState != Player.STATE_ENDED) player.currentPosition
+            else r.startAtMs.takeIf { it > 0 && !r.played }
         startCount++
         main.removeCallbacks(retryRunnable)
         reconnector.onStarted()
-        val dataSource = OkHttpDataSource.Factory(http)
+        val network = OkHttpDataSource.Factory(http)
             .setUserAgent(r.userAgent)
             .setDefaultRequestProperties(r.headers)
+        // Links go over the network; recordings (file://) and picked files (content://) are read locally.
+        val dataSource = androidx.media3.datasource.DefaultDataSource.Factory(context, network)
         val item = MediaItem.Builder()
             .setUri(r.url)
             .setMimeType(r.forcedMime ?: StreamType.mimeFromUrl(r.url))
