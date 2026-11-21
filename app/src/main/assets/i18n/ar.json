@@ -467,5 +467,8 @@
 "Unlocked": "تم إلغاء القفل",
 "Watched": "تمت المشاهدة",
 "Wrong PIN": "رمز PIN غير صحيح",
-"● Recording": "● جارٍ التسجيل"
+"● Recording": "● جارٍ التسجيل",
+"This channel's protection couldn't be unlocked": "تعذّر فتح حماية هذه القناة",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "هذه القناة محمية (DRM) ولم يتم قبول الترخيص أو المفاتيح الخاصة بها. ربما تكون المفاتيح في قائمة التشغيل قديمة، أو أن هذا الجهاز لا يدعم هذه الحماية.",
+"Protected (DRM) and DASH channels can't be recorded": "لا يمكن تسجيل القنوات المحمية (DRM) وقنوات DASH"
 }

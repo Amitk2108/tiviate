@@ -50,6 +50,10 @@ class FixtureServer {
                         if (rest.matches(Regex("""\d+\.m3u8"""))) asset("fixture/hls/master.m3u8") else asset("fixture/hls/$rest")
                     }
                     path == "/list.m3u" -> MockResponse().setBody(playlist())
+                    // DRM: a ClearKey-protected DASH stream (12 s), named only as "ClearKey" in its manifest.
+                    path == "/drm.m3u" -> MockResponse().setBody(drmPlaylist())
+                    path == "/drm/manifest" -> asset("fixture/drm/manifest.mpd")
+                    path.startsWith("/drm/") -> asset("fixture" + path)
                     path == "/big.m3u" -> MockResponse().setBody(bigPlaylist())
                     path == "/epg.xml" -> if (failGuide) MockResponse().setResponseCode(404) else MockResponse().setBody(guide())
                     path.startsWith("/hls/") -> if (failStreams) MockResponse().setResponseCode(404) else asset("fixture" + path)
@@ -79,6 +83,21 @@ class FixtureServer {
     }
 
     /** [BIG_COUNT] channels in one list ("Big 1"…), all on the bundled HLS stream. */
+    /** The right keys, then a wrong key ID; the links have no ".mpd", so the playlist says it's DASH. */
+    private fun drmPlaylist() = buildString {
+        appendLine("#EXTM3U")
+        appendLine("#KODIPROP:inputstream.adaptive.license_type=clearkey")
+        appendLine("#KODIPROP:inputstream.adaptive.license_key=$DRM_KID:$DRM_KEY")
+        appendLine("#KODIPROP:inputstream.adaptive.manifest_type=mpd")
+        appendLine("""#EXTINF:-1 tvg-chno="1",Locked Box""")
+        appendLine(url("/drm/manifest"))
+        appendLine("""#EXTINF:-1 tvg-chno="2",Wrong Key""")
+        appendLine("#KODIPROP:inputstream.adaptive.license_type=org.w3.clearkey")
+        appendLine("#KODIPROP:inputstream.adaptive.license_key=00112233445566778899aabbccddeeff:$DRM_KEY")
+        appendLine("#KODIPROP:inputstream.adaptive.manifest_type=mpd")
+        appendLine(url("/drm/manifest") + "?wrong=1")
+    }
+
     private fun bigPlaylist() = buildString {
         appendLine("#EXTM3U")
         for (i in 1..BIG_COUNT) {
@@ -115,6 +134,8 @@ class FixtureServer {
         val type = when {
             path.endsWith(".m3u8") -> "application/vnd.apple.mpegurl"
             path.endsWith(".ts") -> "video/mp2t"
+            path.endsWith(".mpd") -> "application/dash+xml"
+            path.endsWith(".mp4") || path.endsWith(".m4s") -> "video/mp4"
             path.endsWith(".vtt") -> "text/vtt"
             else -> "application/octet-stream"
         }
@@ -125,5 +146,8 @@ class FixtureServer {
 
     companion object {
         const val BIG_COUNT = 400
+        /** The test stream's ClearKey key ID and key. */
+        const val DRM_KID = "a7e61c373e219033c21091fa607bf3b8"
+        const val DRM_KEY = "76a6c65c5ea762046bd749a2e632ccbb"
     }
 }

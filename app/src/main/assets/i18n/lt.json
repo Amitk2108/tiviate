@@ -466,5 +466,8 @@
 "Unlocked": "Atrakinta",
 "Watched": "Peržiūrėta",
 "Wrong PIN": "Neteisingas PIN",
-"● Recording": "● Įrašoma"
+"● Recording": "● Įrašoma",
+"This channel's protection couldn't be unlocked": "Nepavyko atrakinti šio kanalo apsaugos",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kanalas apsaugotas (DRM), o jo licencija ar raktai nebuvo priimti. Jūsų grojaraščio raktai gali būti pasenę arba šis įrenginys nepalaiko šios apsaugos.",
+"Protected (DRM) and DASH channels can't be recorded": "Apsaugotų (DRM) ir DASH kanalų įrašyti negalima"
 }

@@ -75,5 +75,14 @@ object Migrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+    /** v4: DRM (Widevine, ClearKey, PlayReady) and the stated stream type, per channel. */
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `channel` ADD COLUMN `drmScheme` TEXT")
+            db.execSQL("ALTER TABLE `channel` ADD COLUMN `drmLicense` TEXT")
+            db.execSQL("ALTER TABLE `channel` ADD COLUMN `manifestType` TEXT")
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 }

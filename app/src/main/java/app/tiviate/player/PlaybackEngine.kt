@@ -48,7 +48,11 @@ data class SeekInfo(val positionMs: Long, val durationMs: Long, val live: Boolea
 interface PlaybackEngine {
     val state: StateFlow<PlaybackState>
     /** [startAtMs]: where a film starts (resume); 0 = the start, or the live edge. */
-    fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long = 0)
+    fun play(
+        url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long = 0,
+        /** A protected channel's DRM; [manifestMime]: the stream type its playlist states. */
+        drm: DrmSpec? = null, manifestMime: String? = null,
+    )
     fun togglePause()
     fun retryNow()
     fun stop()

@@ -460,5 +460,8 @@
 "Watched": "Sett",
 "Wrong PIN": "Feil PIN",
 "Zoom": "Zoom",
-"● Recording": "● Tar opp"
+"● Recording": "● Tar opp",
+"This channel's protection couldn't be unlocked": "Beskyttelsen på denne kanalen kunne ikke låses opp",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kanalen er beskyttet (DRM), og lisensen eller nøklene ble ikke godtatt. Nøklene i spillelisten din kan være utdaterte, eller denne enheten støtter ikke denne beskyttelsen.",
+"Protected (DRM) and DASH channels can't be recorded": "Beskyttede (DRM) og DASH-kanaler kan ikke tas opp"
 }

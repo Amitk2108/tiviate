@@ -458,5 +458,8 @@
 "Watched": "Bekeken",
 "Wrong PIN": "Onjuiste PIN-code",
 "Zoom": "Zoom",
-"● Recording": "● Opname"
+"● Recording": "● Opname",
+"This channel's protection couldn't be unlocked": "De beveiliging van deze zender kon niet worden ontgrendeld",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "De zender is beveiligd (DRM) en de licentie of sleutels zijn niet geaccepteerd. De sleutels in je afspeellijst zijn misschien verouderd, of dit apparaat ondersteunt deze beveiliging niet.",
+"Protected (DRM) and DASH channels can't be recorded": "Beveiligde (DRM) en DASH-zenders kunnen niet worden opgenomen"
 }

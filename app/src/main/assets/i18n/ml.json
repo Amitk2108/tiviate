@@ -467,5 +467,8 @@
 "Unlocked": "അൺലോക്ക് ചെയ്തു",
 "Watched": "കണ്ടു",
 "Wrong PIN": "തെറ്റായ PIN",
-"● Recording": "● റെക്കോർഡിംഗ്"
+"● Recording": "● റെക്കോർഡിംഗ്",
+"This channel's protection couldn't be unlocked": "ഈ ചാനലിന്റെ സംരക്ഷണം അൺലോക്ക് ചെയ്യാനായില്ല",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "ഈ ചാനൽ സംരക്ഷിതമാണ് (DRM), അതിന്റെ ലൈസൻസോ കീകളോ സ്വീകരിച്ചില്ല. നിങ്ങളുടെ പ്ലേലിസ്റ്റിലെ കീകൾ പഴയതായിരിക്കാം, അല്ലെങ്കിൽ ഈ ഉപകരണം ഈ സംരക്ഷണം പിന്തുണയ്ക്കുന്നില്ല.",
+"Protected (DRM) and DASH channels can't be recorded": "സംരക്ഷിത (DRM), DASH ചാനലുകൾ റെക്കോർഡ് ചെയ്യാനാകില്ല"
 }

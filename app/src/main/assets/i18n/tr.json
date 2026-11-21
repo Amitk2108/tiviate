@@ -467,5 +467,8 @@
 "Video": "Video",
 "Watched": "İzlendi",
 "Wrong PIN": "Yanlış PIN",
-"● Recording": "● Kaydediliyor"
+"● Recording": "● Kaydediliyor",
+"This channel's protection couldn't be unlocked": "Bu kanalın koruması açılamadı",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kanal korumalı (DRM) ve lisansı ya da anahtarları kabul edilmedi. Oynatma listenizdeki anahtarlar güncel olmayabilir veya bu cihaz bu korumayı desteklemiyor.",
+"Protected (DRM) and DASH channels can't be recorded": "Korumalı (DRM) ve DASH kanalları kaydedilemez"
 }

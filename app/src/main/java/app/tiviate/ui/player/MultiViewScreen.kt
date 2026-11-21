@@ -225,12 +225,15 @@ private fun tilePlayer(context: Context, http: OkHttpClient, userAgent: String, 
     val network = OkHttpDataSource.Factory(http).setUserAgent(userAgent)
         .setDefaultRequestProperties(buildMap { channel.referrer?.let { put("Referer", it) } })
     val selector = DefaultTrackSelector(context).apply { setParameters(buildUponParameters().setMaxVideoSize(1280, 720)) }
+    val sources = DefaultMediaSourceFactory(DefaultDataSource.Factory(context, network))
+    app.tiviate.player.DrmSupport.of(channel)?.let { spec -> val manager = app.tiviate.player.DrmSupport.sessionManager(spec, network); sources.setDrmSessionManagerProvider { manager } }
     return ExoPlayer.Builder(context, DefaultRenderersFactory(context).setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON).setEnableDecoderFallback(true))
-        .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(context, network)))
+        .setMediaSourceFactory(sources)
         .setTrackSelector(selector)
         .build()
         .apply {
-            setMediaItem(MediaItem.Builder().setUri(channel.streamUrl).setMimeType(StreamType.mimeFromUrl(channel.streamUrl)).build())
+            val mime = app.tiviate.player.DrmSupport.mime(channel.manifestType) ?: StreamType.mimeFromUrl(channel.streamUrl)
+            setMediaItem(MediaItem.Builder().setUri(channel.streamUrl).setMimeType(mime).build())
             volume = 0f
             playWhenReady = true
             prepare()

@@ -105,6 +105,10 @@ class RecordingWorker(context: Context, params: WorkerParameters) : CoroutineWor
         if (System.currentTimeMillis() >= r.stopMs) { dao.setStatus(id, RecordingStatus.FAILED, t("The programme was over before the recording could start")); return Result.success() }
         val channel = graph.db.channels().byKey(r.playlistId, r.stableKey)
             ?: run { dao.setStatus(id, RecordingStatus.FAILED, t("The channel is no longer in the playlist")); return Result.success() }
+        if (app.tiviate.player.DrmSupport.unrecordable(channel)) {
+            dao.setStatus(id, RecordingStatus.FAILED, t("Protected (DRM) and DASH channels can't be recorded"))
+            return Result.success()
+        }
         val playlist = graph.playlists.get(r.playlistId)
         val settings = graph.settings.settings.first()
         runCatching { setForeground(foregroundInfo(r)) } // without it the system may stop long recordings

@@ -66,6 +66,9 @@ class Media3Engine(
         val film: Boolean = false,
         /** Resume point of a film, used for the first connection only. */
         val startAtMs: Long = 0,
+        val drm: DrmSpec? = null,
+        /** The stream type the playlist states (e.g. DASH for a link without ".mpd"). */
+        val manifestMime: String? = null,
     )
 
     /** Channels that only played in the other format: later tunes go straight to it (this run of the app). */
@@ -289,9 +292,12 @@ class Media3Engine(
         if (request != null) startCurrent(keepPlace = true)
     }
 
-    override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long) {
+    override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long, drm: DrmSpec?, manifestMime: String?) {
         main.removeCallbacks(retryRunnable)
-        request = Request(workingUrl[channelKey]?.takeIf { StreamFallback.otherFormat(it) == url } ?: url, headers, userAgent, channelKey, originalUrl = url, startAtMs = startAtMs)
+        request = Request(
+            workingUrl[channelKey]?.takeIf { StreamFallback.otherFormat(it) == url } ?: url, headers, userAgent, channelKey,
+            originalUrl = url, startAtMs = startAtMs, drm = drm, manifestMime = manifestMime,
+        )
         reconnector.reset()
         pausedAtMs = null
         applyPreferences(settings) // a new channel starts from the "for all channels" choices
@@ -319,10 +325,12 @@ class Media3Engine(
         val dataSource = androidx.media3.datasource.DefaultDataSource.Factory(context, network)
         val item = MediaItem.Builder()
             .setUri(r.url)
-            .setMimeType(r.forcedMime ?: StreamType.mimeFromUrl(r.url))
+            .setMimeType(r.forcedMime ?: r.manifestMime ?: StreamType.mimeFromUrl(r.url))
             .setLiveConfiguration(MediaItem.LiveConfiguration.Builder().setMinPlaybackSpeed(1f).setMaxPlaybackSpeed(1f).build())
             .build()
-        val source = DefaultMediaSourceFactory(dataSource, EXTRACTORS).createMediaSource(item)
+        val factory = DefaultMediaSourceFactory(dataSource, EXTRACTORS)
+        r.drm?.let { spec -> val manager = DrmSupport.sessionManager(spec, network); factory.setDrmSessionManagerProvider { manager } }
+        val source = factory.createMediaSource(item)
         if (place != null) player.setMediaSource(source, place) else player.setMediaSource(source, /* resetPosition = */ true)
         player.prepare()
         if (pausedAtMs == null) player.play() else player.pause()

@@ -466,5 +466,8 @@
 "Video": "Video",
 "Watched": "Đã xem",
 "Wrong PIN": "Sai mã PIN",
-"● Recording": "● Đang ghi"
+"● Recording": "● Đang ghi",
+"This channel's protection couldn't be unlocked": "Không thể mở khóa bảo vệ của kênh này",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kênh này được bảo vệ (DRM) và giấy phép hoặc khóa của kênh không được chấp nhận. Có thể khóa trong danh sách phát của bạn đã cũ, hoặc thiết bị này không hỗ trợ kiểu bảo vệ này.",
+"Protected (DRM) and DASH channels can't be recorded": "Không thể ghi các kênh được bảo vệ (DRM) và kênh DASH"
 }

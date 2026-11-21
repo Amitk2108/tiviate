@@ -467,5 +467,8 @@
 "Unlocked": "Ξεκλειδώθηκε",
 "Watched": "Προβλήθηκε",
 "Wrong PIN": "Λάθος PIN",
-"● Recording": "● Εγγραφή"
+"● Recording": "● Εγγραφή",
+"This channel's protection couldn't be unlocked": "Δεν ήταν δυνατό το ξεκλείδωμα της προστασίας αυτού του καναλιού",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Το κανάλι είναι προστατευμένο (DRM) και η άδεια ή τα κλειδιά του δεν έγιναν αποδεκτά. Τα κλειδιά στη λίστα αναπαραγωγής σας μπορεί να είναι παλιά ή αυτή η συσκευή δεν υποστηρίζει αυτή την προστασία.",
+"Protected (DRM) and DASH channels can't be recorded": "Δεν είναι δυνατή η εγγραφή προστατευμένων (DRM) καναλιών και καναλιών DASH"
 }

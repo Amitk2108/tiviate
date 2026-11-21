@@ -19,6 +19,7 @@ object M3uParser {
         onEntry: (M3uEntry) -> Unit,
     ): M3uStats {
         var pending: Pending? = null
+        val kodiBefore = HashMap<String, String>() // #KODIPROP lines before the next #EXTINF
         var entries = 0
         var skipped = 0
         var firstLine = true
@@ -36,7 +37,13 @@ object M3uParser {
                 line.startsWith("#EXTM3U") -> onHeader(parseHeader(line.removePrefix("#EXTM3U")))
                 line.startsWith("#EXTINF:") -> {
                     if (pending != null) skipped++
-                    pending = parseExtinf(line.removePrefix("#EXTINF:"))
+                    pending = parseExtinf(line.removePrefix("#EXTINF:")).also { it.kodi.putAll(kodiBefore); kodiBefore.clear() }
+                }
+                // Kodi properties (DRM, manifest type) come just before or just after #EXTINF.
+                line.startsWith("#KODIPROP:") -> {
+                    val prop = line.removePrefix("#KODIPROP:")
+                    val eq = prop.indexOf('=')
+                    if (eq > 0) (pending?.kodi ?: kodiBefore)[prop.substring(0, eq).trim().lowercase()] = prop.substring(eq + 1).trim()
                 }
                 line.startsWith("#EXTGRP:") -> pending?.extGroup = line.removePrefix("#EXTGRP:").trim().ifEmpty { null }
                 line.startsWith("#EXTVLCOPT:") -> pending?.let { applyVlcOpt(it, line.removePrefix("#EXTVLCOPT:")) }
@@ -45,7 +52,8 @@ object M3uParser {
                 // instead of the playlist must not turn into "channels".
                 pending == null && !BARE_URL.matches(line) -> skipped++
                 else -> {
-                    onEntry((pending ?: Pending.forBareUrl(line)).toEntry(line))
+                    onEntry((pending ?: Pending.forBareUrl(line).also { it.kodi.putAll(kodiBefore) }).toEntry(line))
+                    kodiBefore.clear()
                     entries++
                     pending = null
                 }
@@ -139,8 +147,19 @@ object M3uParser {
         var extGroup: String? = null
         var userAgent: String? = null
         var referrer: String? = null
+        /** `#KODIPROP` properties, lowercased keys. */
+        val kodi = HashMap<String, String>()
 
         fun attr(key: String): String? = attrs[key]?.takeIf { it.isNotBlank() }
+
+        /** `drm_legacy=keysystem|license…` (newer Kodi) or `license_type` + `license_key`. */
+        private fun drm(): Pair<String?, String?> {
+            kodi["inputstream.adaptive.drm_legacy"]?.let { legacy ->
+                return app.tiviate.core.drm.Drm.scheme(legacy.substringBefore('|')) to legacy.substringAfter('|', "").ifBlank { null }
+            }
+            val scheme = app.tiviate.core.drm.Drm.scheme(kodi["inputstream.adaptive.license_type"])
+            return scheme to kodi["inputstream.adaptive.license_key"]?.ifBlank { null }?.takeIf { scheme != null }
+        }
 
         fun toEntry(url: String): M3uEntry {
             val tvgName = attr("tvg-name")
@@ -159,6 +178,9 @@ object M3uParser {
                 userAgent = userAgent ?: attr("user-agent") ?: attr("http-user-agent"),
                 referrer = referrer ?: attr("http-referrer") ?: attr("referrer"),
                 attrs = attrs,
+                drmScheme = drm().first,
+                drmLicense = drm().second,
+                manifestType = kodi["inputstream.adaptive.manifest_type"]?.lowercase()?.ifBlank { null },
             )
         }
 

@@ -463,5 +463,8 @@
 "Watched": "Gesehen",
 "Wrong PIN": "Falsche PIN",
 "Zoom": "Zoom",
-"● Recording": "● Aufnahme"
+"● Recording": "● Aufnahme",
+"This channel's protection couldn't be unlocked": "Der Schutz dieses Senders konnte nicht entsperrt werden",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Der Sender ist geschützt (DRM) und seine Lizenz oder Schlüssel wurden nicht akzeptiert. Die Schlüssel in deiner Playlist sind vielleicht veraltet, oder dieses Gerät unterstützt diesen Schutz nicht.",
+"Protected (DRM) and DASH channels can't be recorded": "Geschützte (DRM) und DASH-Sender können nicht aufgenommen werden"
 }

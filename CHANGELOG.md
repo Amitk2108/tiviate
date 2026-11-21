@@ -2,6 +2,23 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.5.0 — 2026-11-21
+
+### Added: DRM-protected channels (GitHub issue #3)
+- Channels protected with **Widevine**, **ClearKey** or **PlayReady** now play when your playlist describes them
+  with Kodi-style `#KODIPROP` lines (before or after `#EXTINF`):
+  - `inputstream.adaptive.license_type` = `com.widevine.alpha`, `clearkey` / `org.w3.clearkey` or `com.microsoft.playready`
+  - `inputstream.adaptive.license_key` = a licence server (`https://…|Header=value&…`), or ClearKey keys
+    (`kid:key`, several separated by commas, or JSON)
+  - `inputstream.adaptive.manifest_type=mpd` for DASH links without ".mpd"; `inputstream.adaptive.drm_legacy` works too
+- **DASH (.mpd)** streams play, with or without DRM.
+- When a channel's licence or keys are refused, Tiviate says so clearly instead of "Playback stopped".
+- Tiviate unlocks channels only the way the playlist says (the provider's licence server or its keys), through
+  Android's own DRM; nothing is bypassed.
+
+### Good to know
+- Protected and DASH channels can't be recorded.
+
 ## 0.4.1 — 2026-11-20
 
 ### Phones and tablets

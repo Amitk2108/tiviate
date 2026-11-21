@@ -145,7 +145,7 @@ private fun IssueIcon(issue: PlaybackIssue) {
                 drawCircle(Tokens.Cyan, radius = 0.9f * u, center = Offset(c.x + 1.4f * u, c.y - 0.8f * u), style = stroke)
                 drawArc(Tokens.Cyan, 200f, 140f, false, Offset(c.x - 0.4f * u, c.y + 0.6f * u), Size(3.6f * u, 3.6f * u), style = stroke)
             }
-            PlaybackIssue.ACCESS_DENIED -> {
+            PlaybackIssue.ACCESS_DENIED, PlaybackIssue.DRM_REFUSED -> { // a padlock
                 drawRoundRect(ink, Offset(c.x - 1.8f * u, c.y - 0.4f * u), Size(3.6f * u, 2.8f * u), CornerRadius(0.4f * u), style = stroke)
                 drawArc(ink, 180f, 180f, false, Offset(c.x - 1.2f * u, c.y - 2.6f * u), Size(2.4f * u, 4.2f * u), style = stroke)
             }

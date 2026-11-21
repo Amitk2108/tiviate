@@ -467,5 +467,8 @@
 "Unlocked": "已解锁",
 "Watched": "已观看",
 "Wrong PIN": "PIN 错误",
-"● Recording": "● 正在录制"
+"● Recording": "● 正在录制",
+"This channel's protection couldn't be unlocked": "无法解锁此频道的保护",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "此频道受保护（DRM），其许可证或密钥未被接受。您的播放列表中的密钥可能已过期，或者此设备不支持此保护方式。",
+"Protected (DRM) and DASH channels can't be recorded": "受保护（DRM）和 DASH 频道无法录制"
 }

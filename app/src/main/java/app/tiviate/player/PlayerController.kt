@@ -147,7 +147,10 @@ class PlayerController(
         _current.value = channel
         _catchup.value = null
         vodActive = false
-        engine.play(channel.streamUrl, headers(channel), userAgent(channel, playlistUserAgent), channel.stableKey)
+        engine.play(
+            channel.streamUrl, headers(channel), userAgent(channel, playlistUserAgent), channel.stableKey,
+            drm = DrmSupport.of(channel), manifestMime = DrmSupport.mime(channel.manifestType),
+        )
         scope.launch { settingsStore.update { it.copy(lastChannelKey = channel.stableKey) } }
         trackHistory(channel)
         followRow(channel)
@@ -174,7 +177,7 @@ class PlayerController(
         _catchup.value = CatchupPlay(title, startMs, stopMs)
         vodActive = false
         catchupUserAgent = playlist?.userAgent
-        engine.play(url, headers(channel), userAgent(channel, playlist?.userAgent), "${channel.stableKey}@$startMs")
+        engine.play(url, headers(channel), userAgent(channel, playlist?.userAgent), "${channel.stableKey}@$startMs", drm = DrmSupport.of(channel))
         followRow(channel)
         return true
     }

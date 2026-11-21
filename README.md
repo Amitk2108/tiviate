@@ -122,6 +122,8 @@ Every feature is free. There is no premium version, no account, no activation an
 - **Parental control**: a PIN for chosen channels, groups and Settings
 - **Reminders** for programmes still to come; **search** finds later programmes and the archive
 - **TV guide time offset** for guides in the wrong time zone
+- **DRM channels**: Widevine, ClearKey and PlayReady from `#KODIPROP` lines (the provider's licence server or keys
+  from your playlist), and **DASH (.mpd)** streams
 
 ### 📱 Phones and tablets
 - **Touch everywhere**: tap, long-press and scroll on every screen, with haptic feedback

@@ -16,8 +16,8 @@ android {
         applicationId = "app.tiviate"
         minSdk = 24
         targetSdk = 35
-        versionCode = 13
-        versionName = "0.4.1"
+        versionCode = 14
+        versionName = "0.5.0"
         testInstrumentationRunner = "app.tiviate.TiviateTestRunner"
         // Each instrumented test runs in a fresh process with cleared app data.
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
@@ -112,6 +112,8 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.exoplayer.hls)
+    // DASH (.mpd): most DRM-protected channels (Widevine, ClearKey, PlayReady) come this way.
+    implementation(libs.media3.exoplayer.dash)
     implementation(libs.media3.exoplayer.dash)
     implementation(libs.media3.datasource.okhttp)
     implementation(libs.media3.ui)

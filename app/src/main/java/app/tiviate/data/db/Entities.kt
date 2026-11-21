@@ -80,6 +80,10 @@ data class ChannelEntity(
     /** Catch-up: the playlist's `catchup` type ("xc" for Xtream archives) and `catchup-source` template. */
     val catchupType: String? = null,
     val catchupSource: String? = null,
+    /** DRM from the playlist's `#KODIPROP` lines (see [app.tiviate.core.drm.Drm]) and its stated stream type. */
+    val drmScheme: String? = null,
+    val drmLicense: String? = null,
+    val manifestType: String? = null,
 )
 
 @Fts4(contentEntity = ChannelEntity::class)

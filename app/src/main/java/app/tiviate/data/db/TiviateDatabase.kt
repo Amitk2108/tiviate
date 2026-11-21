@@ -12,7 +12,7 @@ import androidx.room.RoomDatabase
         GroupPrefEntity::class, CustomGroupEntity::class, CustomGroupMemberEntity::class,
         MovieEntity::class, SeriesEntity::class, WatchProgressEntity::class, RecordingEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class TiviateDatabase : RoomDatabase() {

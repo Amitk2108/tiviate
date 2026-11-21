@@ -467,5 +467,8 @@
 "Unlocked": "Разблокировано",
 "Watched": "Просмотрено",
 "Wrong PIN": "Неверный PIN",
-"● Recording": "● Запись"
+"● Recording": "● Запись",
+"This channel's protection couldn't be unlocked": "Не удалось снять защиту этого канала",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Канал защищён (DRM), и его лицензия или ключи не были приняты. Возможно, ключи в вашем плейлисте устарели или это устройство не поддерживает такую защиту.",
+"Protected (DRM) and DASH channels can't be recorded": "Защищённые (DRM) и DASH-каналы нельзя записывать"
 }

@@ -47,6 +47,11 @@ enum class PlaybackIssue(val title: String, val body: String, val retry: RetryPo
         "The channel uses a format this TV can't decode. Try opening it in another player.",
         RetryPolicy(emptyList()),
     ),
+    DRM_REFUSED(
+        "This channel's protection couldn't be unlocked",
+        "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.",
+        RetryPolicy(emptyList()),
+    ),
     UNKNOWN(
         "Playback stopped",
         "Something went wrong while playing this channel.",
@@ -56,6 +61,7 @@ enum class PlaybackIssue(val title: String, val body: String, val retry: RetryPo
 
     companion object {
         fun classify(httpStatus: Int?, errorCode: Int): PlaybackIssue = when {
+            errorCode in PlaybackException.ERROR_CODE_DRM_UNSPECIFIED..PlaybackException.ERROR_CODE_DRM_LICENSE_EXPIRED -> DRM_REFUSED
             httpStatus == 458 || httpStatus == 407 || httpStatus == 429 || httpStatus == 509 -> ACCOUNT_BUSY
             httpStatus == 401 || httpStatus == 403 -> ACCESS_DENIED
             httpStatus != null && httpStatus >= 400 -> CHANNEL_UNAVAILABLE

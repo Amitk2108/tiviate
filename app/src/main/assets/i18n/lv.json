@@ -464,5 +464,8 @@
 "Video": "Video",
 "Watched": "Noskatīts",
 "Wrong PIN": "Nepareizs PIN",
-"● Recording": "● Ierakstīšana"
+"● Recording": "● Ierakstīšana",
+"This channel's protection couldn't be unlocked": "Šī kanāla aizsardzību neizdevās atbloķēt",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kanāls ir aizsargāts (DRM), un tā licence vai atslēgas netika pieņemtas. Iespējams, jūsu atskaņošanas saraksta atslēgas ir novecojušas vai šī ierīce neatbalsta šo aizsardzību.",
+"Protected (DRM) and DASH channels can't be recorded": "Aizsargātus (DRM) un DASH kanālus nevar ierakstīt"
 }

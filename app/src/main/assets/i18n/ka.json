@@ -467,5 +467,8 @@
 "Unlocked": "განბლოკილია",
 "Watched": "ნანახი",
 "Wrong PIN": "არასწორი PIN",
-"● Recording": "● ჩაწერა"
+"● Recording": "● ჩაწერა",
+"This channel's protection couldn't be unlocked": "ამ არხის დაცვის განბლოკვა ვერ მოხერხდა",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "არხი დაცულია (DRM) და მისი ლიცენზია ან გასაღებები არ იქნა მიღებული. შესაძლოა თქვენს პლეილისტში გასაღებები მოძველებულია, ან ეს მოწყობილობა ამ დაცვას მხარს არ უჭერს.",
+"Protected (DRM) and DASH channels can't be recorded": "დაცული (DRM) და DASH არხების ჩაწერა შეუძლებელია"
 }

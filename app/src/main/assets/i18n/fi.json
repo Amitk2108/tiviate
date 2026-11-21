@@ -465,5 +465,8 @@
 "Video": "Video",
 "Watched": "Katsottu",
 "Wrong PIN": "Väärä PIN",
-"● Recording": "● Tallennetaan"
+"● Recording": "● Tallennetaan",
+"This channel's protection couldn't be unlocked": "Tämän kanavan suojausta ei voitu avata",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kanava on suojattu (DRM), eikä sen lisenssiä tai avaimia hyväksytty. Soittolistasi avaimet voivat olla vanhentuneita, tai tämä laite ei tue tätä suojausta.",
+"Protected (DRM) and DASH channels can't be recorded": "Suojattuja (DRM) ja DASH-kanavia ei voi tallentaa"
 }

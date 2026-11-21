@@ -464,5 +464,8 @@
 "Video": "Video",
 "Watched": "Zhlédnuto",
 "Wrong PIN": "Nesprávný PIN",
-"● Recording": "● Nahrává se"
+"● Recording": "● Nahrává se",
+"This channel's protection couldn't be unlocked": "Ochranu tohoto kanálu se nepodařilo odemknout",
+"The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kanál je chráněný (DRM) a jeho licence nebo klíče nebyly přijaty. Klíče ve vašem playlistu mohou být zastaralé, nebo toto zařízení tuto ochranu nepodporuje.",
+"Protected (DRM) and DASH channels can't be recorded": "Chráněné (DRM) a DASH kanály nelze nahrávat"
 }

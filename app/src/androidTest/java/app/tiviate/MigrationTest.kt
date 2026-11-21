@@ -34,7 +34,7 @@ class MigrationTest {
             close()
         }
 
-        val db = helper.runMigrationsAndValidate(name, 3, true, *Migrations.ALL)
+        val db = helper.runMigrationsAndValidate(name, 4, true, *Migrations.ALL)
 
         db.query("SELECT name, originalName, hidden, customSort, addedAt, epgOverride, renamed FROM channel WHERE id = 7").use { c ->
             assertTrue(c.moveToFirst())
@@ -64,5 +64,7 @@ class MigrationTest {
         // v3: catch-up columns start empty.
         db.query("SELECT catchupType, catchupSource FROM channel WHERE id = 7").use { c -> assertTrue(c.moveToFirst() && c.isNull(0) && c.isNull(1)) }
         db.query("SELECT serverTimezone FROM playlist WHERE id = 1").use { c -> assertTrue(c.moveToFirst() && c.isNull(0)) }
+        // v4: no DRM on existing channels.
+        db.query("SELECT drmScheme, drmLicense, manifestType FROM channel WHERE id = 7").use { c -> assertTrue(c.moveToFirst() && c.isNull(0) && c.isNull(1) && c.isNull(2)) }
     }
 }

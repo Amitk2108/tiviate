@@ -18,6 +18,11 @@ data class M3uEntry(
     val userAgent: String?,
     val referrer: String?,
     val attrs: Map<String, String>,
+    /** DRM from `#KODIPROP` lines: the scheme (widevine, clearkey, playready) and its `license_key`. */
+    val drmScheme: String? = null,
+    val drmLicense: String? = null,
+    /** `inputstream.adaptive.manifest_type` (mpd, hls…), for links that don't show it. */
+    val manifestType: String? = null,
 )
 
 data class M3uStats(val entries: Int, val skipped: Int)
