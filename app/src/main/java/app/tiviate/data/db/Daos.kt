@@ -70,6 +70,13 @@ interface ChannelDao {
         insertNewBlocking(fresh)
     }
 
+    /** How many days back this playlist's archives reach (0: no channel has one; a week when it doesn't say). */
+    @Query(
+        """SELECT COALESCE(MAX(CASE WHEN catchupType IS NULL AND catchupSource IS NULL THEN 0
+           WHEN COALESCE(catchupDays, 0) <= 0 THEN 7 ELSE catchupDays END), 0) FROM channel WHERE playlistId = :playlistId""",
+    )
+    fun archiveDays(playlistId: Long): Flow<Int>
+
     @Query("SELECT id, tvgId, tvgName, COALESCE(originalName, name) AS name, epgRef, logoFallback, epgOverride FROM channel WHERE playlistId = :playlistId")
     suspend fun matchRows(playlistId: Long): List<ChannelMatchRow>
 
@@ -363,12 +370,31 @@ interface EpgDao {
     @Query("DELETE FROM programme WHERE sourceId = :sourceId AND generation = :generation")
     suspend fun deleteGeneration(sourceId: Long, generation: Int)
 
-    /** Makes [newGeneration] visible and drops every other generation of the source atomically. */
+    /**
+     * Moves programmes that aired into [newGeneration] where it doesn't list that time any more: most
+     * providers' guides start at "now". Kept since [keepFromMs], or [archiveFromMs] for channels with an archive.
+     */
+    @Query(
+        """UPDATE programme SET generation = :newGeneration
+           WHERE sourceId = :sourceId AND generation = (SELECT activeGeneration FROM epg_source WHERE id = :sourceId) AND startMs < :nowMs
+             AND (stopMs > :keepFromMs OR (stopMs > :archiveFromMs AND epgRef IN (
+               SELECT epgRef FROM channel WHERE epgRef IS NOT NULL AND (catchupType IS NOT NULL OR catchupSource IS NOT NULL))))
+             AND stopMs <= COALESCE((SELECT MIN(n.startMs) FROM programme n WHERE n.epgRef = programme.epgRef AND n.generation = :newGeneration), :nowMs)""",
+    )
+    suspend fun carryOverPast(sourceId: Long, newGeneration: Int, nowMs: Long, keepFromMs: Long, archiveFromMs: Long)
+
+    /** Makes [newGeneration] visible (with what already aired) and drops every other generation of the source atomically. */
     @Transaction
-    suspend fun swapGeneration(sourceId: Long, newGeneration: Int) {
+    suspend fun swapGeneration(sourceId: Long, newGeneration: Int, nowMs: Long = 0, keepFromMs: Long = 0, archiveFromMs: Long = 0) {
+        carryOverPast(sourceId, newGeneration, nowMs, keepFromMs, archiveFromMs)
         setActiveGeneration(sourceId, newGeneration)
         deleteOtherGenerations(sourceId, newGeneration)
     }
 
-    @Query("DELETE FROM programme WHERE stopMs < :beforeMs") suspend fun deleteEndedBefore(beforeMs: Long): Int
+    /** Drops what ended before [beforeMs]; for channels with an archive only what ended before [archiveBeforeMs]. */
+    @Query(
+        """DELETE FROM programme WHERE stopMs < :archiveBeforeMs OR (stopMs < :beforeMs AND epgRef NOT IN (
+             SELECT epgRef FROM channel WHERE epgRef IS NOT NULL AND (catchupType IS NOT NULL OR catchupSource IS NOT NULL)))""",
+    )
+    suspend fun deleteEndedBefore(beforeMs: Long, archiveBeforeMs: Long): Int
 }

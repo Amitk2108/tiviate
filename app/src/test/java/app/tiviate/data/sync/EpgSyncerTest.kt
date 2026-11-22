@@ -51,6 +51,48 @@ class EpgSyncerTest {
         return id
     }
 
+    private fun guideOf(vararg programmes: Triple<Long, Long, String>): String {
+        fun fmt(ms: Long) = java.text.SimpleDateFormat("yyyyMMddHHmmss Z", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(ms))
+        return "<tv>" + listOf("news.one", "9001").joinToString("") { id ->
+            "<channel id=\"$id\"><display-name>${if (id == "9001") "Sport Two" else "News One"}</display-name></channel>"
+        } + listOf("news.one", "9001").joinToString("") { id ->
+            programmes.joinToString("") { (a, b, t) -> "<programme start=\"${fmt(a)}\" stop=\"${fmt(b)}\" channel=\"$id\"><title>$t</title></programme>" }
+        } + "</tv>"
+    }
+
+    /** GitHub issue #4: guides that start at "now" made every refresh empty the archive. */
+    @Test
+    fun aRefreshKeepsProgrammesThatAiredAsFarBackAsTheChannelsArchive() = runBlocking {
+        val hour = 3_600_000L
+        val day = 24 * hour
+        h.now = 1_795_000_000_000L
+        h.routes["/epg.xml.gz"] = { gzipOctet(guideOf(
+            Triple(h.now - 4 * day, h.now - 4 * day + hour, "Too old"),
+            Triple(h.now - 2 * day, h.now - 2 * day + hour, "Two days ago"),
+            Triple(h.now - 2 * day + hour, h.now - 2 * day + 2 * hour, "Then"),
+            Triple(h.now - 3 * hour, h.now - 2 * hour, "Earlier today"),
+            Triple(h.now - hour, h.now + hour, "Just ended"),
+            Triple(h.now + hour, h.now + 3 * hour, "Replaced by the new guide"),
+        )) }
+        val id = setUpPlaylist()
+        // News One has a 3-day archive; Sport Two has none.
+        val news = h.db.channels().allInPlaylist(id).first { it.name == "News One HD" }
+        h.db.channels().updateAllBlocking(listOf(news.copy(catchupType = "flussonic", catchupDays = 3)))
+        h.epgSyncer().syncForPlaylist(id)
+
+        // Tomorrow's guide only lists what is on from now.
+        h.now += 2 * hour
+        h.routes["/epg.xml.gz"] = { gzipOctet(guideOf(Triple(h.now - hour, h.now + hour, "On air, corrected"), Triple(h.now + hour, h.now + 2 * hour, "Next"))) }
+        h.epgSyncer().syncForPlaylist(id)
+
+        suspend fun titles(name: String): List<String> {
+            val ref = h.db.channels().allInPlaylist(id).first { it.name == name }.epgRef!!
+            return h.db.epg().programmesFor(listOf(ref), 0, Long.MAX_VALUE).map { it.title }
+        }
+        assertEquals(listOf("Two days ago", "Then", "Earlier today", "Just ended", "On air, corrected", "Next"), titles("News One HD"))
+        assertEquals("no archive: one day, as set", listOf("Earlier today", "Just ended", "On air, corrected", "Next"), titles("UK: Sport Two FHD"))
+    }
+
     @Test
     fun gzEpgMatchesByIdAndNameAndLinksLogoFallback() = runBlocking {
         h.routes["/epg.xml.gz"] = { gzipOctet(epg("First")) }

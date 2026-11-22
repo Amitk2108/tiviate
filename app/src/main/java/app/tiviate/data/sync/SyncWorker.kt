@@ -44,8 +44,10 @@ object SyncScheduler {
         lastSyncAt == null || (enabled && nowMs - lastSyncAt >= 3_600_000L)
 
     /** Is a playlist last updated at [lastSyncAt] due under [mode]? A playlist that never loaded always is. */
-    fun playlistDue(mode: PlaylistUpdate, lastSyncAt: Long?, nowMs: Long, atStart: Boolean): Boolean = when {
+    fun playlistDue(mode: PlaylistUpdate, lastSyncAt: Long?, nowMs: Long, atStart: Boolean, appUpdatedAt: Long): Boolean = when {
         lastSyncAt == null -> true
+        // Loaded by an older Tiviate: this version may read more from it (catch-up, DRM, films).
+        lastSyncAt < appUpdatedAt -> true
         mode == PlaylistUpdate.ON_START -> atStart && nowMs - lastSyncAt >= 3_600_000L
         else -> nowMs - lastSyncAt >= mode.days * 24 * 3_600_000L
     }

@@ -69,6 +69,8 @@ class Media3Engine(
         val drm: DrmSpec? = null,
         /** The stream type the playlist states (e.g. DASH for a link without ".mpd"). */
         val manifestMime: String? = null,
+        /** Links still to try while nothing has played yet. */
+        val alternatives: List<String> = emptyList(),
     )
 
     /** Channels that only played in the other format: later tunes go straight to it (this run of the app). */
@@ -292,11 +294,11 @@ class Media3Engine(
         if (request != null) startCurrent(keepPlace = true)
     }
 
-    override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long, drm: DrmSpec?, manifestMime: String?) {
+    override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long, drm: DrmSpec?, manifestMime: String?, alternatives: List<String>) {
         main.removeCallbacks(retryRunnable)
         request = Request(
             workingUrl[channelKey]?.takeIf { StreamFallback.otherFormat(it) == url } ?: url, headers, userAgent, channelKey,
-            originalUrl = url, startAtMs = startAtMs, drm = drm, manifestMime = manifestMime,
+            originalUrl = url, startAtMs = startAtMs, drm = drm, manifestMime = manifestMime, alternatives = alternatives,
         )
         reconnector.reset()
         pausedAtMs = null
@@ -353,6 +355,13 @@ class Media3Engine(
         }
         val status = httpStatus(error)
         val issue = PlaybackIssue.classify(status, error.errorCode)
+        // The server doesn't know this link: the next form of it.
+        val next = r.alternatives.firstOrNull()
+        if (next != null && !r.played && StreamFallback.worthTrying(issue, alreadyTried = false)) {
+            request = r.copy(url = next, originalUrl = next, forcedMime = null, alternatives = r.alternatives.drop(1))
+            startCurrent()
+            return
+        }
         val other = StreamFallback.otherFormat(r.url)
         if (other != null && !r.played && StreamFallback.worthTrying(issue, r.triedOtherFormat)) {
             request = r.copy(url = other, forcedMime = null, triedOtherFormat = true)

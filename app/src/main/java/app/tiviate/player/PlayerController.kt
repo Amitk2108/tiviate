@@ -171,13 +171,16 @@ class PlayerController(
         if (!Catchup.available(channel.catchupType, channel.catchupSource, channel.catchupDays, startMs, stopMs, now)) return false
         if (needsPin(channel) { playCatchup(channel, playlist, title, startMs, stopMs) }) return true
         val zone = playlist?.serverTimezone?.let { runCatching { java.time.ZoneId.of(it) }.getOrNull() } ?: java.time.ZoneOffset.UTC
-        val url = Catchup.url(channel.catchupType, channel.catchupSource, channel.streamUrl, startMs, stopMs, now, zone) ?: return false
+        val urls = Catchup.urls(channel.catchupType, channel.catchupSource, channel.streamUrl, startMs, stopMs, now, zone).ifEmpty { return false }
         _current.value?.takeIf { it.stableKey != channel.stableKey }?.let { _previous.value = it }
         _current.value = channel
         _catchup.value = CatchupPlay(title, startMs, stopMs)
         vodActive = false
         catchupUserAgent = playlist?.userAgent
-        engine.play(url, headers(channel), userAgent(channel, playlist?.userAgent), "${channel.stableKey}@$startMs", drm = DrmSupport.of(channel))
+        engine.play(
+            urls.first(), headers(channel), userAgent(channel, playlist?.userAgent), "${channel.stableKey}@$startMs",
+            drm = DrmSupport.of(channel), alternatives = urls.drop(1),
+        )
         followRow(channel)
         return true
     }

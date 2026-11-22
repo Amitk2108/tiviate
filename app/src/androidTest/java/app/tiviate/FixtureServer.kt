@@ -50,6 +50,12 @@ class FixtureServer {
                         if (rest.matches(Regex("""\d+\.m3u8"""))) asset("fixture/hls/master.m3u8") else asset("fixture/hls/$rest")
                     }
                     path == "/list.m3u" -> MockResponse().setBody(playlist())
+                    // GitHub issue #4: that playlist line, on an older Flussonic server (no archive- or index- links).
+                    path == "/flussonic.m3u" -> MockResponse().setBody(
+                        "#EXTM3U url-tvg=\"${url("/epg.xml")}\"\n#EXTINF:0  catchup=\"flussonic\" catchup-days=\"3\",Aurora News\n${url("/fs/ch1/live")}?token=a\n",
+                    )
+                    path == "/fs/ch1/live" || path.matches(Regex("""/fs/ch1/timeshift_abs-\d+\.m3u8""")) -> asset("fixture/hls/master.m3u8")
+                    path.startsWith("/fs/ch1/") -> asset("fixture/hls/" + path.removePrefix("/fs/ch1/"))
                     // DRM: a ClearKey-protected DASH stream (12 s), named only as "ClearKey" in its manifest.
                     path == "/drm.m3u" -> MockResponse().setBody(drmPlaylist())
                     path == "/drm/manifest" -> asset("fixture/drm/manifest.mpd")

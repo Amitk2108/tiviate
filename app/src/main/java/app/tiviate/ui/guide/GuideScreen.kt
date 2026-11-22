@@ -100,7 +100,6 @@ fun GuideScreen() {
 
     val now = rememberNow(30_000)
     val state = remember { GuideState(System.currentTimeMillis()) }
-    LaunchedEffect(settings.epgPastDays) { state.pastDays = settings.epgPastDays }
     var tick by remember { mutableIntStateOf(0) } // bumps after every GuideState change
     var initialised by remember(category) { mutableStateOf(false) }
     LaunchedEffect(ready) { if (!ready) initialised = false }
@@ -108,6 +107,9 @@ fun GuideScreen() {
     var side by remember { mutableStateOf(SideNav.GRID) }
     val playlists by vm.playlists.collectAsStateWithLifecycle()
     val playlist by vm.playlist.collectAsStateWithLifecycle()
+    val archiveDays by remember(playlist?.id) { playlist?.id?.let { graph.db.channels().archiveDays(it) } ?: kotlinx.coroutines.flow.flowOf(0) }
+        .collectAsStateWithLifecycle(0)
+    LaunchedEffect(settings.epgPastDays, archiveDays) { state.pastDays = maxOf(settings.epgPastDays, archiveDays) }
     val libraryCount by remember(playlist?.id) { playlist?.id?.let { graph.library.count(it) } ?: kotlinx.coroutines.flow.flowOf(0) }
         .collectAsStateWithLifecycle(0)
     val leftPress = remember { LongPressDetector() }
@@ -212,7 +214,8 @@ fun GuideScreen() {
         val nowMs = System.currentTimeMillis()
         val live = block == null || (block.startMs <= nowMs && nowMs < block.stopMs)
         // A programme that already aired plays from the channel's archive (catch-up), fullscreen.
-        if (block?.programme != null && block.stopMs <= nowMs && !settings.alwaysExternalPlayer && vm.playCatchup(channel, block)) {
+        // (Also where the guide has no information: that half hour of the archive.)
+        if (block != null && block.stopMs <= nowMs && !settings.alwaysExternalPlayer && vm.playCatchup(channel, block)) {
             nav.back()
             return
         }

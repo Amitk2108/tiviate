@@ -19,11 +19,19 @@ class SyncSchedulerTest {
         assertTrue("turned off, but nothing loaded yet", SyncScheduler.shouldSyncOnStart(enabled = false, lastSyncAt = null, nowMs = now))
     }
 
+    /** New versions read new things from playlists (catch-up, DRM, films): loaded again once, whatever the schedule. */
+    @Test
+    fun anAppUpdateReloadsPlaylistsOnce() {
+        val updated = now - hour
+        assertTrue("last loaded by the old version", SyncScheduler.playlistDue(PlaylistUpdate.MONTHLY, now - 2 * hour, now, atStart = true, appUpdatedAt = updated))
+        assertFalse("already loaded by this version", SyncScheduler.playlistDue(PlaylistUpdate.MONTHLY, now - hour / 2, now, atStart = true, appUpdatedAt = updated))
+    }
+
     @Test
     fun playlistUpdatesFollowTheChosenSchedule() {
         val day = 24 * hour
         fun due(mode: PlaylistUpdate, ageMs: Long?, atStart: Boolean) =
-            SyncScheduler.playlistDue(mode, ageMs?.let { now - it }, now, atStart)
+            SyncScheduler.playlistDue(mode, ageMs?.let { now - it }, now, atStart, appUpdatedAt = 0)
         assertTrue("never loaded", due(PlaylistUpdate.MONTHLY, null, atStart = false))
 
         assertTrue(due(PlaylistUpdate.ON_START, 2 * hour, atStart = true))

@@ -16,6 +16,7 @@ import app.tiviate.data.db.TiviateDatabase
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.xmlpull.v1.XmlPullParser
@@ -52,6 +53,8 @@ class EpgSyncer(
         playlists.forEach { ensureAutoSource(it) }
         val sources = playlists.flatMap { db.epg().sourcesFor(it.id) }.distinctBy { it.id }
         val everyPlaylist = (db.playlists().all().filter { it.enabled }.map { it.id } + playlists.map { it.id }).distinct()
+        // Channels with an archive keep their programmes for as long as the archive reaches (catch-up).
+        val archiveMs = maxOf(pastMs, (everyPlaylist.maxOfOrNull { db.channels().archiveDays(it).first() } ?: 0).coerceAtMost(14) * DAY)
         var shared: WantedChannels? = null
 
         var total = 0
@@ -62,7 +65,7 @@ class EpgSyncer(
             val wanted = if (owner != null) wantedFor(listOf(owner.id)) else shared ?: wantedFor(everyPlaylist).also { shared = it }
             try {
                 val base = total
-                total += syncSource(source, owner?.userAgent, wanted, pastMs) { onProgress(base + it) }
+                total += syncSource(source, owner?.userAgent, wanted, pastMs, archiveMs) { onProgress(base + it) }
                 ok++
             } catch (e: CancellationException) {
                 withContext(NonCancellable) { discardNextGeneration(source.id) }
@@ -75,7 +78,7 @@ class EpgSyncer(
         }
         val relinked = if (shared != null) everyPlaylist else playlists.map { it.id }
         relinked.forEach { EpgLinker(db).relink(it) }
-        db.epg().deleteEndedBefore(clock() - pastMs)
+        db.epg().deleteEndedBefore(clock() - pastMs, clock() - archiveMs)
         EpgSyncResult(total, ok, failed)
     }
 
@@ -97,7 +100,7 @@ class EpgSyncer(
         }
     }
 
-    private suspend fun syncSource(source: EpgSourceEntity, userAgent: String?, wanted: WantedChannels, pastMs: Long, onProgress: (Int) -> Unit): Int {
+    private suspend fun syncSource(source: EpgSourceEntity, userAgent: String?, wanted: WantedChannels, pastMs: Long, archiveMs: Long, onProgress: (Int) -> Unit): Int {
         val generation = source.activeGeneration + 1
         db.epg().deleteGeneration(source.id, generation)
         val now = clock()
@@ -105,14 +108,14 @@ class EpgSyncer(
         val assigned = db.channels().overridesForSource(source.id).map { it.substringAfter(':') }.toSet()
         val handler = Writer(source, generation, wanted, onProgress, assigned)
         http.getOrThrow(source.url, userAgent, "Guide").use { response ->
-            XmltvParser(newPullParser, windowStartMs = now - pastMs, windowEndMs = now + futureMs)
+            XmltvParser(newPullParser, windowStartMs = now - archiveMs, windowEndMs = now + futureMs)
                 .parse(Decompress.wrap(response.body.byteStream()), handler)
         }
         handler.flush()
         if (handler.channels.isEmpty()) throw SyncException("Guide has no channels — is this an XMLTV file?")
 
         db.epg().replaceChannels(source.id, handler.channels)
-        db.epg().swapGeneration(source.id, generation)
+        db.epg().swapGeneration(source.id, generation, now, now - pastMs, now - archiveMs)
         db.epg().source(source.id)?.let { db.epg().updateSource(it.copy(lastSyncAt = now, lastError = null)) }
         return handler.count
     }

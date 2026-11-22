@@ -42,6 +42,8 @@ class PlaylistRepository(
     /** Movies & Series (Xtream); loaded in [scope] after the channels, so nothing waits for them. */
     private val librarySyncer: app.tiviate.data.sync.LibrarySyncer? = null,
     private val scope: kotlinx.coroutines.CoroutineScope? = null,
+    /** When this version of Tiviate was installed: playlists loaded before that are loaded again once. */
+    private val appUpdatedAt: () -> Long = { 0L },
 ) {
     val playlists: Flow<List<PlaylistEntity>> = db.playlists().observeAll()
 
@@ -199,7 +201,7 @@ class PlaylistRepository(
     suspend fun scheduledUpdate(mode: PlaylistUpdate, atStart: Boolean, guideOnStart: Boolean) = syncLock.withLock {
         val enabled = db.playlists().all().filter { it.enabled }
         val now = clock()
-        val due = enabled.filter { SyncScheduler.playlistDue(mode, it.lastSyncAt, now, atStart) }
+        val due = enabled.filter { SyncScheduler.playlistDue(mode, it.lastSyncAt, now, atStart, appUpdatedAt()) }
         for (p in due) runCatching { playlistSyncer.sync(p.id) }
         if (!atStart || due.isNotEmpty() || SyncScheduler.shouldSyncOnStart(guideOnStart, oldestGuideUpdate(enabled), now)) {
             runCatching { epgSyncer.syncPlaylists(enabled.map { it.id }) } // shared guide links download once
@@ -211,7 +213,7 @@ class PlaylistRepository(
     suspend fun needsStartSync(mode: PlaylistUpdate, guideOnStart: Boolean): Boolean {
         val enabled = db.playlists().all().filter { it.enabled }
         val now = clock()
-        return enabled.any { SyncScheduler.playlistDue(mode, it.lastSyncAt, now, atStart = true) } ||
+        return enabled.any { SyncScheduler.playlistDue(mode, it.lastSyncAt, now, atStart = true, appUpdatedAt()) } ||
             (enabled.isNotEmpty() && SyncScheduler.shouldSyncOnStart(guideOnStart, oldestGuideUpdate(enabled), now))
     }
 

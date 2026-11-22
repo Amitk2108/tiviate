@@ -53,6 +53,7 @@ class AppGraph(context: Context) {
             epgSyncer = EpgSyncer(db, http, newPullParser = { Xml.newPullParser() }, pastDays = { settings.settings.first().epgPastDays }),
             librarySyncer = app.tiviate.data.sync.LibrarySyncer(db, http),
             scope = appScope,
+            appUpdatedAt = { appContext.packageManager.getPackageInfo(appContext.packageName, 0).lastUpdateTime },
         )
     }
 

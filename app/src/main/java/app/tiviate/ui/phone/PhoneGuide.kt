@@ -108,6 +108,9 @@ fun PhoneGuide() {
             // About an hour and a half fits a phone held upright; wider screens show more.
             val windowMs = if (maxWidth < 600.dp) 90 * 60_000L else 3 * 60 * 60_000L
             val state = remember(windowMs) { GuideState(System.currentTimeMillis(), windowMs = windowMs) }
+            val archiveDays by remember(playlist?.id) { playlist?.id?.let { graph.db.channels().archiveDays(it) } ?: kotlinx.coroutines.flow.flowOf(0) }
+                .collectAsStateWithLifecycle(0)
+            LaunchedEffect(state, settings.epgPastDays, archiveDays) { state.pastDays = maxOf(settings.epgPastDays, archiveDays) }
             var viewStart by remember(state) { mutableLongStateOf(state.viewStartMs) }
             val stripWidth = maxWidth - LOGO_COLUMN
             val stripPx = with(LocalDensity.current) { stripWidth.toPx() }
@@ -193,7 +196,7 @@ fun PhoneGuide() {
         ProgrammeSheet(ch, block, now, onWatch = {
             details = null
             // A programme that already aired plays from the archive when the channel has one.
-            if (block.programme != null && block.stopMs <= System.currentTimeMillis() && vm.playCatchup(ch, block)) {
+            if (block.stopMs <= System.currentTimeMillis() && vm.playCatchup(ch, block)) {
                 haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                 nav.replaceAll(Screen.Player)
             } else {

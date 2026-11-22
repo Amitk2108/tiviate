@@ -26,19 +26,20 @@ object Catchup {
         type?.trim()?.lowercase() in setOf("xc", "shift", "flussonic", "flussonic-hls", "flussonic-ts", "fs") || !source.isNullOrBlank()
 
     /**
-     * The archive link for the programme from [startMs] to [endMs], or null when the channel has none.
+     * The archive links for the programme from [startMs] to [endMs], best first (empty when the channel has
+     * none): the player tries the next one when a link doesn't open.
      * [zone]: the Xtream server's time zone, as its timeshift links use the server's local time.
      */
-    fun url(type: String?, source: String?, liveUrl: String, startMs: Long, endMs: Long, nowMs: Long, zone: ZoneId = ZoneOffset.UTC): String? {
-        if (!supported(type, source)) return null
+    fun urls(type: String?, source: String?, liveUrl: String, startMs: Long, endMs: Long, nowMs: Long, zone: ZoneId = ZoneOffset.UTC): List<String> {
+        if (!supported(type, source)) return emptyList()
         val t = Times(startMs / 1000, endMs / 1000, nowMs / 1000)
-        return when (type?.trim()?.lowercase()) {
-            "xc" -> xtream(liveUrl, t, zone)
-            "shift" -> liveUrl + (if ('?' in liveUrl) "&" else "?") + "utc=${t.start}&lutc=${t.now}"
-            "flussonic", "flussonic-hls", "flussonic-ts", "fs" -> flussonic(liveUrl, t)
-            "append" -> liveUrl + expand(source!!, t)
+        return when (val kind = type?.trim()?.lowercase()) {
+            "xc" -> listOfNotNull(xtream(liveUrl, t, zone))
+            "shift" -> listOf(liveUrl + (if ('?' in liveUrl) "&" else "?") + "utc=${t.start}&lutc=${t.now}")
+            "flussonic", "flussonic-hls", "flussonic-ts", "fs" -> flussonic(liveUrl, t, preferTs = kind == "flussonic-ts" || kind == "fs")
+            "append" -> listOf(liveUrl + expand(source!!, t))
             // "default" (or no type): the source is the whole link; a relative one is added to the stream link.
-            else -> expand(source!!, t).let { if (it.contains("://")) it else liveUrl + it }
+            else -> listOf(expand(source!!, t).let { if (it.contains("://")) it else liveUrl + it })
         }
     }
 
@@ -57,17 +58,29 @@ object Catchup {
         return "$base/timeshift/$user/$pass/$minutes/$start/$id.ts"
     }
 
-    /** Flussonic: `…/index.m3u8` → `…/archive-<start>-<duration>.m3u8`; `…/mpegts` → `…/timeshift_abs-<start>.ts`. */
-    private fun flussonic(liveUrl: String, t: Times): String? {
+    /**
+     * Flussonic. Servers differ by version and by the shape of the live link, so every form they use is offered:
+     * `…/index.m3u8` → `archive-<start>-<duration>.m3u8` and the older names; `…/mono.m3u8` keeps its track;
+     * `…/mpegts` → `timeshift_abs-<start>.ts`. Any other link: its last part is the output's name, or the
+     * stream itself.
+     */
+    private fun flussonic(liveUrl: String, t: Times, preferTs: Boolean): List<String> {
         val query = liveUrl.substringAfter('?', "").let { if (it.isEmpty()) "" else "?$it" }
-        val path = liveUrl.substringBefore('?')
+        val path = liveUrl.substringBefore('?').trimEnd('/')
         val dir = path.substringBeforeLast('/')
         val file = path.substringAfterLast('/')
-        return when {
-            file.endsWith(".m3u8") -> "$dir/archive-${t.start}-${t.duration}.m3u8$query"
-            file == "mpegts" || file.endsWith(".ts") -> "$dir/timeshift_abs-${t.start}.ts$query"
-            else -> null
+        val span = "${t.start}-${t.duration}"
+        val ago = t.now - t.start
+        fun hls(base: String) = listOf("archive-$span", "index-$span", "timeshift_abs-${t.start}", "timeshift_rel-$ago").map { "$base/$it.m3u8" }
+        fun ts(base: String) = listOf("$base/timeshift_abs-${t.start}.ts", "$base/archive-$span.ts", "$base/archive-$span.m3u8")
+        val track = file.removeSuffix(".m3u8")
+        val links = when {
+            file == "mpegts" || file.endsWith(".ts") -> ts(dir)
+            file == "index.m3u8" -> hls(dir)
+            file.endsWith(".m3u8") -> listOf("$dir/$track-$span.m3u8", "$dir/archive-$span.m3u8", "$dir/$track-timeshift_rel-$ago.m3u8")
+            else -> listOfNotNull(dir.takeIf { '/' in it.substringAfter("://") }, path).flatMap { if (preferTs) ts(it) else hls(it) }
         }
+        return links.map { it + query }
     }
 
     private val PLACEHOLDER = Regex("""\$?\{([A-Za-z-]+)(?::([^}]*))?\}""")

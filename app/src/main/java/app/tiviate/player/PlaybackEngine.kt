@@ -52,6 +52,8 @@ interface PlaybackEngine {
         url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long = 0,
         /** A protected channel's DRM; [manifestMime]: the stream type its playlist states. */
         drm: DrmSpec? = null, manifestMime: String? = null,
+        /** Other links for the same thing, tried in turn while none has opened (archive links vary by server). */
+        alternatives: List<String> = emptyList(),
     )
     fun togglePause()
     fun retryNow()

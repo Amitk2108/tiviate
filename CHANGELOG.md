@@ -2,6 +2,16 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.5.1 — 2026-11-22
+
+### Fixed: programme archives (GitHub issue #4)
+- **Flussonic** archives (`catchup="flussonic"` or `"fs"`) play whatever the channel's link looks like. Servers name
+  their archive links differently, so when one is refused Tiviate tries the next.
+- The guide goes back **as far as the archive does** (`catchup-days`, up to 14 days) instead of one day.
+- Programmes that aired **stay in the guide** after a refresh, also when the provider's guide no longer lists them.
+- **Past half hours without programme information** can be played from the archive too.
+- Playlists reload **once after an app update**, so what a new version reads from them works right away.
+
 ## 0.5.0 — 2026-11-21
 
 ### Added: DRM-protected channels (GitHub issue #3)

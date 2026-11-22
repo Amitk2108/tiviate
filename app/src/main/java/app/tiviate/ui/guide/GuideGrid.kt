@@ -86,20 +86,24 @@ fun GuideRow(
         Box(Modifier.width(stripWidth).fillMaxHeight().clipToBounds()) {
             val viewEnd = viewStartMs + windowMs
             val archive = channel != null && (channel.catchupType != null || !channel.catchupSource.isNullOrBlank())
+            fun replay(startMs: Long, stopMs: Long) =
+                archive && app.tiviate.core.catchup.Catchup.available(channel!!.catchupType, channel.catchupSource, channel.catchupDays, startMs, stopMs, nowMs)
             for (p in programmes) {
                 if (p.stopMs <= viewStartMs || p.startMs >= viewEnd) continue
                 val isFocused = focused?.programme?.id == p.id && focused.programme != null
-                val replay = archive && app.tiviate.core.catchup.Catchup.available(channel!!.catchupType, channel.catchupSource, channel.catchupDays, p.startMs, p.stopMs, nowMs)
                 val reminded = channel != null && reminders.isNotEmpty() && app.tiviate.data.Reminders.key(channel.playlistId, channel.stableKey, p.startMs) in reminders
-                ProgrammeBlock(p.title, p.startMs, p.stopMs, viewStartMs, windowMs, stripWidth, nowMs, isFocused, highlight = highlight, replay = replay, reminded = reminded)
+                ProgrammeBlock(p.title, p.startMs, p.stopMs, viewStartMs, windowMs, stripWidth, nowMs, isFocused, highlight = highlight, replay = replay(p.startMs, p.stopMs), reminded = reminded)
             }
             // Nothing scheduled: "No information" blocks, so the row never ends in a gap.
             for (e in emptyBlocks) {
                 if (focused != null && focused.programme == null && focused.startMs == e.startMs) continue
-                ProgrammeBlock(t("No information"), e.startMs, e.stopMs, viewStartMs, windowMs, stripWidth, nowMs, focused = false, empty = true)
+                ProgrammeBlock(t("No information"), e.startMs, e.stopMs, viewStartMs, windowMs, stripWidth, nowMs, focused = false, empty = true, replay = replay(e.startMs, e.stopMs))
             }
             if (focused != null && focused.programme == null && focused.stopMs > viewStartMs && focused.startMs < viewEnd) {
-                ProgrammeBlock(t("No information"), focused.startMs, focused.stopMs, viewStartMs, windowMs, stripWidth, nowMs, focused = true, empty = true)
+                ProgrammeBlock(
+                    t("No information"), focused.startMs, focused.stopMs, viewStartMs, windowMs, stripWidth, nowMs, focused = true, empty = true,
+                    replay = replay(focused.startMs, focused.stopMs),
+                )
             }
         }
     }

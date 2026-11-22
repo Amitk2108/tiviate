@@ -1,7 +1,10 @@
 package app.tiviate.core.catchup
 
+import app.tiviate.core.m3u.M3uEntry
+import app.tiviate.core.m3u.M3uParser
 import java.time.Instant
 import java.time.ZoneId
+import okio.Buffer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -16,39 +19,72 @@ class CatchupTest {
     private val e = end / 1000
     private val n = now / 1000
 
+    private fun best(type: String?, source: String?, live: String, start: Long, end: Long, now: Long, zone: ZoneId = java.time.ZoneOffset.UTC) =
+        Catchup.urls(type, source, live, start, end, now, zone).firstOrNull()
+
     @Test
     fun xtreamUsesTheServersLocalTime() {
         assertEquals(
             "http://host:8080/timeshift/user/p%40ss/30/2026-11-20:10-00/123.ts",
-            Catchup.url("xc", null, "http://host:8080/live/user/p%40ss/123.m3u8", start, end, now, ZoneId.of("Europe/Amsterdam")),
+            best("xc", null, "http://host:8080/live/user/p%40ss/123.m3u8", start, end, now, ZoneId.of("Europe/Amsterdam")),
         )
         // Links without /live/ work too.
-        assertEquals("http://host/timeshift/u/p/30/2026-11-20:09-00/7.ts", Catchup.url("xc", null, "http://host/u/p/7", start, end, now))
-        assertNull(Catchup.url("xc", null, "http://host/playlist.m3u8", start, end, now))
+        assertEquals("http://host/timeshift/u/p/30/2026-11-20:09-00/7.ts", best("xc", null, "http://host/u/p/7", start, end, now))
+        assertNull(best("xc", null, "http://host/playlist.m3u8", start, end, now))
     }
 
     @Test
     fun defaultAndAppendFillTheTemplate() {
         assertEquals(
             "http://arc.example/ch1?start=$s&end=$e&dur=1800&min=30&now=$n",
-            Catchup.url("default", "http://arc.example/ch1?start={utc}&end={utcend}&dur={duration}&min={duration:60}&now={lutc}", "http://live/ch1", start, end, now),
+            best("default", "http://arc.example/ch1?start={utc}&end={utcend}&dur={duration}&min={duration:60}&now={lutc}", "http://live/ch1", start, end, now),
         )
         assertEquals(
             "http://live/ch1.m3u8?utc=$s&lutc=$n",
-            Catchup.url("append", "?utc=\${start}&lutc=\${timestamp}", "http://live/ch1.m3u8", start, end, now),
+            best("append", "?utc=\${start}&lutc=\${timestamp}", "http://live/ch1.m3u8", start, end, now),
         )
         assertEquals(
             "http://arc/2026/11/20/09-00-00/x?o=2",
-            Catchup.url(null, "http://arc/{Y}/{m}/{d}/{H}-{M}-{S}/x?o={offset:3600}", "http://live", start, end, now),
+            best(null, "http://arc/{Y}/{m}/{d}/{H}-{M}-{S}/x?o={offset:3600}", "http://live", start, end, now),
         )
-        assertEquals("http://arc/2026-11-20 09:00/x", Catchup.url("default", "http://arc/{utc:Y-m-d H:M}/x", "http://live", start, end, now))
+        assertEquals("http://arc/2026-11-20 09:00/x", best("default", "http://arc/{utc:Y-m-d H:M}/x", "http://live", start, end, now))
     }
 
     @Test
     fun shiftAndFlussonic() {
-        assertEquals("http://live/ch?token=a&utc=$s&lutc=$n", Catchup.url("shift", null, "http://live/ch?token=a", start, end, now))
-        assertEquals("http://fs/ch1/archive-$s-1800.m3u8?token=a", Catchup.url("flussonic", null, "http://fs/ch1/index.m3u8?token=a", start, end, now))
-        assertEquals("http://fs/ch1/timeshift_abs-$s.ts", Catchup.url("fs", null, "http://fs/ch1/mpegts", start, end, now))
+        assertEquals("http://live/ch?token=a&utc=$s&lutc=$n", best("shift", null, "http://live/ch?token=a", start, end, now))
+        assertEquals("http://fs/ch1/archive-$s-1800.m3u8?token=a", best("flussonic", null, "http://fs/ch1/index.m3u8?token=a", start, end, now))
+        assertEquals("http://fs/ch1/timeshift_abs-$s.ts", best("fs", null, "http://fs/ch1/mpegts", start, end, now))
+    }
+
+    /** GitHub issue #4: this exact line showed no archive. */
+    @Test
+    fun theFlussonicLineOfIssue4HasAnArchiveWhateverItsLinkLooksLike() {
+        for (link in listOf("http://fs.example:8080/xxxx/index.m3u8?token=a", "http://fs.example/xxxx/mpegts", "http://fs.example/xxxx/live?token=a", "http://fs.example/xxxx", "http://fs.example/xxxx/")) {
+            val entries = ArrayList<M3uEntry>()
+            M3uParser.parse(Buffer().writeUtf8("#EXTM3U\n#EXTINF:0  catchup=\"flussonic\" catchup-days=\"3\",XXXX\n$link\n")) { entries += it }
+            val e = entries.single()
+            assertEquals("flussonic" to 3, e.catchup to e.catchupDays)
+            assertTrue(link, Catchup.available(e.catchup, e.catchupSource, e.catchupDays, start, end, now))
+            assertTrue("no archive link for $link", Catchup.urls(e.catchup, e.catchupSource, e.url, start, end, now).isNotEmpty())
+        }
+    }
+
+    @Test
+    fun flussonicOffersEveryLinkFormItsServersUseBestFirst() {
+        fun urls(live: String, type: String = "flussonic") = Catchup.urls(type, null, live, start, end, now)
+        assertEquals(
+            listOf("archive-$s-1800.m3u8", "index-$s-1800.m3u8", "timeshift_abs-$s.m3u8", "timeshift_rel-7200.m3u8").map { "http://fs/ch/$it?t=1" },
+            urls("http://fs/ch/index.m3u8?t=1"),
+        )
+        // One-track links keep their track.
+        assertEquals(listOf("mono-$s-1800.m3u8", "archive-$s-1800.m3u8", "mono-timeshift_rel-7200.m3u8").map { "http://fs/ch/$it" }, urls("http://fs/ch/mono.m3u8"))
+        assertEquals(listOf("timeshift_abs-$s.ts", "archive-$s-1800.ts", "archive-$s-1800.m3u8").map { "http://fs/ch/$it" }, urls("http://fs/ch/mpegts"))
+        // No known file name: the last part is the output name, or the stream itself.
+        assertEquals("http://fs/ch/archive-$s-1800.m3u8?t=1", urls("http://fs/ch/live?t=1").first())
+        assertTrue("http://fs/ch/live/archive-$s-1800.m3u8?t=1" in urls("http://fs/ch/live?t=1"))
+        assertEquals("http://fs/ch/archive-$s-1800.m3u8", urls("http://fs/ch").first())
+        assertEquals("MPEG-TS asked for", "http://fs/ch/timeshift_abs-$s.ts", urls("http://fs/ch/live", "flussonic-ts").first())
     }
 
     @Test
