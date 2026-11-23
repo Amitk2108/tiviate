@@ -242,9 +242,13 @@ fun GuideScreen() {
                 }
                 return true
             }
+            // "Left goes back to aired programmes" (Settings): on a channel with an archive, a long Left opens the groups.
+            val toArchive = settings.leftToArchive &&
+                channelAt(state.row)?.let { app.tiviate.core.catchup.Catchup.supported(it.catchupType, it.catchupSource) } == true
+            val back = { state.moveTime(-1, rowProgrammes(state.row)); keepRowVisible(); tick++ }
             when (leftPress.onKey(native)) {
-                KeyAction.Short -> side = SideNav.GROUPS
-                KeyAction.Long -> { state.moveTime(-1, rowProgrammes(state.row)); keepRowVisible(); tick++ }
+                KeyAction.Short -> if (toArchive) back() else { side = SideNav.GROUPS }
+                KeyAction.Long -> if (toArchive) { side = SideNav.GROUPS } else back()
                 KeyAction.None -> Unit
             }
             return true

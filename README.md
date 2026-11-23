@@ -213,7 +213,7 @@ Everything works with a basic Fire TV remote.
 | **Up / CH+** | Next channel | Move | Move (CH± pages) |
 | **Down** | Player options (or previous channel, if you choose "Up and Down: change channel") | Move | Move |
 | **CH−** | Previous channel in the list | — | Page |
-| **Left** | Channel list with groups | Groups | Earlier programme; on *now* → groups, again → menu |
+| **Left** | Channel list with groups | Groups | Earlier programme; on *now* → groups, again → menu (with *Left goes back to aired programmes* on: aired programmes on channels with an archive, hold Left for groups) |
 | **Right / Guide** | TV guide | — | Later programme |
 | **Info** | Info bar; then Left/Right peek at other channels, OK switches | — | — |
 | **Menu** | Player options | — | Channel and programme menu |

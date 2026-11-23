@@ -32,6 +32,21 @@ object Remote {
     fun right(times: Int = 1) = press(KeyEvent.KEYCODE_DPAD_RIGHT, times)
     fun back() = press(KeyEvent.KEYCODE_BACK)
     fun menu() = press(KeyEvent.KEYCODE_MENU)
+    /** A key held for [holdMs], with the repeats a real remote sends ("input --longpress" is too short for Tiviate). */
+    fun hold(keyCode: Int, holdMs: Long = 900) {
+        val ui = InstrumentationRegistry.getInstrumentation().uiAutomation
+        val downAt = android.os.SystemClock.uptimeMillis()
+        fun key(action: Int, at: Long, repeat: Int) =
+            KeyEvent(downAt, at, action, keyCode, repeat, 0, -1, 0, 0, android.view.InputDevice.SOURCE_KEYBOARD)
+        ui.injectInputEvent(key(KeyEvent.ACTION_DOWN, downAt, 0), true)
+        var repeat = 1
+        while (android.os.SystemClock.uptimeMillis() - downAt < holdMs) {
+            Thread.sleep(50)
+            ui.injectInputEvent(key(KeyEvent.ACTION_DOWN, android.os.SystemClock.uptimeMillis(), repeat++), true)
+        }
+        ui.injectInputEvent(key(KeyEvent.ACTION_UP, android.os.SystemClock.uptimeMillis(), 0), true)
+        Thread.sleep(200)
+    }
     fun longOk() {
         // A held OK: repeated ACTION_DOWN events over ~700 ms, then ACTION_UP.
         device.executeShellCommand("input keyevent --longpress ${KeyEvent.KEYCODE_DPAD_CENTER}")

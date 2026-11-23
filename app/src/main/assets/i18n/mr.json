@@ -470,5 +470,7 @@
 "● Recording": "● रेकॉर्डिंग",
 "This channel's protection couldn't be unlocked": "या चॅनेलचे संरक्षण अनलॉक करता आले नाही",
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "हा चॅनेल संरक्षित (DRM) आहे आणि त्याचा परवाना किंवा कीज स्वीकारल्या गेल्या नाहीत. तुमच्या प्लेलिस्टमधील कीज जुन्या असू शकतात, किंवा हे डिव्हाइस हे संरक्षण सपोर्ट करत नाही.",
-"Protected (DRM) and DASH channels can't be recorded": "संरक्षित (DRM) आणि DASH चॅनेल रेकॉर्ड करता येत नाहीत"
+"Protected (DRM) and DASH channels can't be recorded": "संरक्षित (DRM) आणि DASH चॅनेल रेकॉर्ड करता येत नाहीत",
+"Left goes back to aired programmes": "डावे प्रसारित कार्यक्रमांवर परत जाते",
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "टीव्ही गाइड, संग्रह असलेले चॅनेल: डावे तुम्ही पुन्हा पाहू शकता अशा कार्यक्रमांवर जाते. गटांसाठी डावे दाबून ठेवा."
 }

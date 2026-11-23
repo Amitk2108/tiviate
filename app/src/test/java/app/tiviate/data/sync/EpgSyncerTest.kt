@@ -60,6 +60,35 @@ class EpgSyncerTest {
         } + "</tv>"
     }
 
+    /** Free-TV's playlist lists over a hundred guide links: each one is read, and one that fails doesn't stop the rest. */
+    @Test
+    fun everyGuideLinkInThePlaylistHeaderIsRead() = runBlocking {
+        val hour = 3_600_000L
+        fun fmt(ms: Long) = java.text.SimpleDateFormat("yyyyMMddHHmmss Z", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(ms))
+        fun programme(channel: String, title: String) = "<programme start=\"${fmt(h.now)}\" stop=\"${fmt(h.now + hour)}\" channel=\"$channel\"><title>$title</title></programme>"
+        fun channel(id: String, name: String) = "<channel id=\"$id\"><display-name>$name</display-name></channel>"
+        h.routes["/a.xml.gz"] = { gzipOctet("<tv>${channel("news.one", "News One")}${programme("news.one", "From A")}</tv>") }
+        h.routes["/b.xml.gz"] = {
+            gzipOctet("<tv>${channel("news.one", "News One")}${channel("9001", "Sport Two")}${programme("news.one", "Also in B")}${programme("9001", "From B")}</tv>")
+        }
+        h.routes["/list.m3u"] = {
+            text(
+                "#EXTM3U x-tvg-url=\"${h.url("/a.xml.gz")}, ${h.url("/missing.xml.gz")}, ${h.url("/b.xml.gz")}\"\n" +
+                    "#EXTINF:-1 tvg-id=\"news.one\",News One HD\nhttp://h/1.m3u8\n#EXTINF:-1,UK: Sport Two FHD\nhttp://h/2.m3u8\n",
+            )
+        }
+        val id = h.db.playlists().insert(PlaylistEntity(name = "P", type = PlaylistType.M3U_URL, url = h.url("/list.m3u")))
+        h.playlistSyncer().sync(id)
+        h.epgSyncer().syncForPlaylist(id)
+
+        suspend fun titles(name: String): List<String> {
+            val ref = h.db.channels().allInPlaylist(id).first { it.name == name }.epgRef ?: return emptyList()
+            return h.db.epg().programmesFor(listOf(ref), 0, Long.MAX_VALUE).map { it.title }
+        }
+        assertEquals("once, from the first link that has it", listOf("From A"), titles("News One HD"))
+        assertEquals("the third link is read too", listOf("From B"), titles("UK: Sport Two FHD"))
+    }
+
     /** GitHub issue #4: guides that start at "now" made every refresh empty the archive. */
     @Test
     fun aRefreshKeepsProgrammesThatAiredAsFarBackAsTheChannelsArchive() = runBlocking {

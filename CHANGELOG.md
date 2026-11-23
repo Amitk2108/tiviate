@@ -2,6 +2,21 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.5.2 — 2026-11-23
+
+### Fixed: programme archives, part 2 (GitHub issue #4)
+- Channel names in **Cyrillic, Greek and other alphabets** find their programmes in the guide when the playlist has
+  no `tvg-id`. Before, Tiviate only compared Latin letters, so every "… HD" name looked the same ("НТВ HD" showed
+  another channel's programmes, or none).
+- New setting, off by default: **Settings → Remote control → Left goes back to aired programmes**. In the TV guide,
+  on channels with an archive, Left then moves to programmes you can watch again (↺); hold Left for the groups.
+  Without it, hold Left or press Rewind to go back in time, as before.
+
+### Fixed: playlists with several guide links
+- When a playlist's header lists several guide links (`x-tvg-url="a, b, c"`), Tiviate now reads all of them, each
+  channel's programmes once. Before, only the first link was read: the Free-TV playlist, for example, got
+  programmes for its Albanian channels only. A link that fails no longer stops the others.
+
 ## 0.5.1 — 2026-11-22
 
 ### Fixed: programme archives (GitHub issue #4)

@@ -285,6 +285,10 @@ private fun RemoteSection() {
             scope.launch { graph.settings.update { it.copy(leftRightZap = !it.leftRightZap) } }
         }, tag = "setting_left_right_zap")
         Caption(t("When on, the channel list and groups are on OK → Channels."))
+        ToggleRow(t("Left goes back to aired programmes"), settings.leftToArchive, {
+            scope.launch { graph.settings.update { it.copy(leftToArchive = !it.leftToArchive) } }
+        }, tag = "setting_left_archive")
+        Caption(t("TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups."))
         val nav = LocalNavigator.current
         ActionButton(t("Option cards (show, hide, order)"), { nav.push(Screen.OptionCards) }, tag = "setting_option_cards")
     }

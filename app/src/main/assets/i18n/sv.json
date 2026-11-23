@@ -464,5 +464,7 @@
 "● Recording": "● Spelar in",
 "This channel's protection couldn't be unlocked": "Kanalens skydd kunde inte låsas upp",
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kanalen är skyddad (DRM) och dess licens eller nycklar godkändes inte. Nycklarna i din spellista kan vara inaktuella, eller så stöder den här enheten inte det här skyddet.",
-"Protected (DRM) and DASH channels can't be recorded": "Skyddade (DRM) och DASH-kanaler kan inte spelas in"
+"Protected (DRM) and DASH channels can't be recorded": "Skyddade (DRM) och DASH-kanaler kan inte spelas in",
+"Left goes back to aired programmes": "Vänster går tillbaka till sända program",
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV-guide, kanaler med arkiv: Vänster går till program du kan se igen. Håll in Vänster för grupperna."
 }

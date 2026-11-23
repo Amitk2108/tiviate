@@ -20,5 +20,5 @@ class StableKeyAssigner {
         return if (occurrence == 1) base else "$base#$occurrence"
     }
 
-    private fun norm(s: String) = NameNormalizer.normalize(s).ifEmpty { s.trim().lowercase() }
+    private fun norm(s: String) = NameNormalizer.latinOnly(s).ifEmpty { s.trim().lowercase() }
 }

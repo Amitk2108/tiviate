@@ -470,5 +470,7 @@
 "● Recording": "● Запис",
 "This channel's protection couldn't be unlocked": "Не вдалося зняти захист цього каналу",
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Канал захищений (DRM), і його ліцензію або ключі не прийнято. Можливо, ключі у вашому плейлисті застаріли або цей пристрій не підтримує такий захист.",
-"Protected (DRM) and DASH channels can't be recorded": "Захищені (DRM) і DASH-канали не можна записувати"
+"Protected (DRM) and DASH channels can't be recorded": "Захищені (DRM) і DASH-канали не можна записувати",
+"Left goes back to aired programmes": "Ліворуч — до вже показаних передач",
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Телегід, канали з архівом: Ліворуч переходить до передач, які можна переглянути знову. Утримуйте Ліворуч, щоб відкрити групи."
 }

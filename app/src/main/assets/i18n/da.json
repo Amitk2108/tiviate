@@ -462,5 +462,7 @@
 "● Recording": "● Optager",
 "This channel's protection couldn't be unlocked": "Kanalens beskyttelse kunne ikke låses op",
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kanalen er beskyttet (DRM), og dens licens eller nøgler blev ikke accepteret. Nøglerne i din playliste er måske forældede, eller denne enhed understøtter ikke denne beskyttelse.",
-"Protected (DRM) and DASH channels can't be recorded": "Beskyttede (DRM) og DASH-kanaler kan ikke optages"
+"Protected (DRM) and DASH channels can't be recorded": "Beskyttede (DRM) og DASH-kanaler kan ikke optages",
+"Left goes back to aired programmes": "Venstre går tilbage til viste programmer",
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV-guide, kanaler med arkiv: Venstre går til programmer, du kan se igen. Hold Venstre nede for grupperne."
 }

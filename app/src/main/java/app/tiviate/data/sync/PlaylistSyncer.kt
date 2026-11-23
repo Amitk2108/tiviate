@@ -70,7 +70,7 @@ class PlaylistSyncer(
         var epgUrl: String? = null
         val stats = M3uParser.parse(
             input.source().buffer(),
-            onHeader = { header -> if (epgUrl == null) epgUrl = header.epgUrls.firstOrNull() },
+            onHeader = { header -> if (epgUrl == null) epgUrl = header.epgUrls.joinToString(",").ifEmpty { null } },
         ) { e ->
             val position = writer.count + 1
             writer.add(

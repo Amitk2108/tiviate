@@ -462,5 +462,7 @@
 "● Recording": "● Enregistrement",
 "This channel's protection couldn't be unlocked": "Impossible de déverrouiller la protection de cette chaîne",
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "La chaîne est protégée (DRM) et sa licence ou ses clés n'ont pas été acceptées. Les clés de votre playlist sont peut-être obsolètes, ou cet appareil ne prend pas en charge cette protection.",
-"Protected (DRM) and DASH channels can't be recorded": "Les chaînes protégées (DRM) et DASH ne peuvent pas être enregistrées"
+"Protected (DRM) and DASH channels can't be recorded": "Les chaînes protégées (DRM) et DASH ne peuvent pas être enregistrées",
+"Left goes back to aired programmes": "Gauche revient aux programmes diffusés",
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Guide TV, chaînes avec archive : Gauche va aux programmes que vous pouvez revoir. Maintenez Gauche pour les groupes."
 }

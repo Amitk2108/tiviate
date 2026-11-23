@@ -19,6 +19,15 @@ class NameNormalizerTest {
         assertEquals("star sports 1 hindi", NameNormalizer.normalize("Star Sports 1 Hindi SD"))
     }
 
+    /** GitHub issue #4: every Cyrillic "… HD" name became "hd". */
+    @Test
+    fun keepsLettersOfEveryAlphabet() {
+        assertEquals("нтв", NameNormalizer.normalize("НТВ HD"))
+        assertEquals("первыи канал", NameNormalizer.normalize("Первый канал HD"))
+        assertEquals("ert world", NameNormalizer.normalize("ERT World"))
+        assertEquals("ελληνικα", NameNormalizer.normalize("Ελληνικά"))
+    }
+
     @Test
     fun keepsShortNamesThatLookLikePrefixes() {
         assertEquals("abc", NameNormalizer.normalize("ABC"))
@@ -44,6 +53,15 @@ class EpgMatcherTest {
         m.add(2, 0, ch("1346", "Sonic Marathi"))
         assertEquals(EpgRef(2, "1346"), m.match("unknown-id", listOf("IN: Sonic Marathi HD")))
         assertEquals(EpgRef(2, "1346"), m.match(null, listOf("sonic marathi")))
+    }
+
+    @Test
+    fun cyrillicNamesFindTheirOwnChannel() {
+        val m = EpgMatcher()
+        m.add(1, 0, ch("perviy", "Первый канал HD"))
+        m.add(1, 0, ch("ntv", "НТВ"))
+        assertEquals(EpgRef(1, "ntv"), m.match(null, listOf("НТВ HD")))
+        assertNull(m.match(null, listOf("Россия 1 HD")))
     }
 
     @Test
@@ -82,6 +100,15 @@ class StableKeyAssignerTest {
         b.keyFor(12, "ignored", "Name", "G")
         assertEquals(first, b.keyFor(null, "cnn.us", "CNN HD", "News"))
         assertEquals(second, b.keyFor(null, "cnn.us", "CNN HD", "News"))
+    }
+
+    /** Favourites hang on these keys: matching guide names better must not change them. */
+    @Test
+    fun keysOfNonLatinNamesStayAsTheyWere() {
+        val k = StableKeyAssigner()
+        assertEquals("n:hd|россия", k.keyFor(null, null, "НТВ HD", "Россия"))
+        assertEquals("n:hd|россия#2", k.keyFor(null, null, "Первый канал HD", "Россия"))
+        assertEquals("t:ntv|bbc one", k.keyFor(null, "ntv", "UK | BBC One FHD", null))
     }
 
     @Test

@@ -463,5 +463,7 @@
 "● Recording": "● Se înregistrează",
 "This channel's protection couldn't be unlocked": "Protecția acestui canal nu a putut fi deblocată",
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Canalul este protejat (DRM), iar licența sau cheile sale nu au fost acceptate. Cheile din lista de redare pot fi învechite sau acest dispozitiv nu acceptă această protecție.",
-"Protected (DRM) and DASH channels can't be recorded": "Canalele protejate (DRM) și DASH nu pot fi înregistrate"
+"Protected (DRM) and DASH channels can't be recorded": "Canalele protejate (DRM) și DASH nu pot fi înregistrate",
+"Left goes back to aired programmes": "Stânga duce la emisiunile difuzate",
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Ghid TV, canale cu arhivă: Stânga duce la emisiunile pe care le poți revedea. Ține apăsat Stânga pentru grupuri."
 }

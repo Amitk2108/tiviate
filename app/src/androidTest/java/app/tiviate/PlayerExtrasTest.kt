@@ -1,8 +1,6 @@
 package app.tiviate
 
 import androidx.compose.ui.test.assertIsFocused
-import android.os.SystemClock
-import android.view.InputDevice
 import android.view.KeyEvent
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -53,20 +51,7 @@ class PlayerExtrasTest {
     private fun current() = graph.player.current.value?.name
 
     /** A Back held for [holdMs], with the repeats a real remote sends. */
-    private fun holdBack(holdMs: Long = 900) {
-        val ui = InstrumentationRegistry.getInstrumentation().uiAutomation
-        val downAt = SystemClock.uptimeMillis()
-        fun key(action: Int, at: Long, repeat: Int) =
-            KeyEvent(downAt, at, action, KeyEvent.KEYCODE_BACK, repeat, 0, -1, 0, 0, InputDevice.SOURCE_KEYBOARD)
-        ui.injectInputEvent(key(KeyEvent.ACTION_DOWN, downAt, 0), true)
-        var repeat = 1
-        while (SystemClock.uptimeMillis() - downAt < holdMs) {
-            Thread.sleep(50)
-            ui.injectInputEvent(key(KeyEvent.ACTION_DOWN, SystemClock.uptimeMillis(), repeat++), true)
-        }
-        ui.injectInputEvent(key(KeyEvent.ACTION_UP, SystemClock.uptimeMillis(), 0), true)
-        Thread.sleep(200)
-    }
+    private fun holdBack(holdMs: Long = 900) = Remote.hold(KeyEvent.KEYCODE_BACK, holdMs)
 
     @Test
     fun lastChannelKeySwapsBetweenTheLastTwoChannels() {

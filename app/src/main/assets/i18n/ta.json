@@ -470,5 +470,7 @@
 "● Recording": "● பதிவாகிறது",
 "This channel's protection couldn't be unlocked": "இந்தச் சேனலின் பாதுகாப்பைத் திறக்க முடியவில்லை",
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "இந்தச் சேனல் பாதுகாக்கப்பட்டது (DRM), அதன் உரிமம் அல்லது கீகள் ஏற்கப்படவில்லை. உங்கள் பிளேலிஸ்ட்டில் உள்ள கீகள் பழையவையாக இருக்கலாம், அல்லது இந்தச் சாதனம் இந்தப் பாதுகாப்பை ஆதரிக்காது.",
-"Protected (DRM) and DASH channels can't be recorded": "பாதுகாக்கப்பட்ட (DRM) மற்றும் DASH சேனல்களைப் பதிவுசெய்ய முடியாது"
+"Protected (DRM) and DASH channels can't be recorded": "பாதுகாக்கப்பட்ட (DRM) மற்றும் DASH சேனல்களைப் பதிவுசெய்ய முடியாது",
+"Left goes back to aired programmes": "இடது ஒளிபரப்பான நிகழ்ச்சிகளுக்குத் திரும்பும்",
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "டிவி வழிகாட்டி, காப்பகம் உள்ள சேனல்கள்: மீண்டும் பார்க்கக்கூடிய நிகழ்ச்சிகளுக்கு இடது செல்லும். குழுக்களுக்கு இடதை அழுத்திப் பிடிக்கவும்."
 }

@@ -22,7 +22,8 @@ object Catchup {
         return startMs >= nowMs - reach
     }
 
-    private fun supported(type: String?, source: String?): Boolean =
+    /** Whether the channel's playlist entry describes an archive Tiviate can play. */
+    fun supported(type: String?, source: String?): Boolean =
         type?.trim()?.lowercase() in setOf("xc", "shift", "flussonic", "flussonic-hls", "flussonic-ts", "fs") || !source.isNullOrBlank()
 
     /**

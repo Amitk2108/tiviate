@@ -470,5 +470,7 @@
 "● Recording": "● מקליט",
 "This channel's protection couldn't be unlocked": "לא ניתן לפתוח את ההגנה של הערוץ הזה",
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "הערוץ מוגן (DRM) והרישיון או המפתחות שלו לא התקבלו. ייתכן שהמפתחות ברשימת ההשמעה אינם עדכניים, או שהמכשיר הזה לא תומך בהגנה הזו.",
-"Protected (DRM) and DASH channels can't be recorded": "לא ניתן להקליט ערוצים מוגנים (DRM) וערוצי DASH"
+"Protected (DRM) and DASH channels can't be recorded": "לא ניתן להקליט ערוצים מוגנים (DRM) וערוצי DASH",
+"Left goes back to aired programmes": "שמאלה חוזר לתוכניות ששודרו",
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "מדריך שידורים, ערוצים עם ארכיון: שמאלה עובר לתוכניות שאפשר לצפות בהן שוב. החזיקו שמאלה לקבוצות."
 }

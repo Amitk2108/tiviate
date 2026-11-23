@@ -107,12 +107,25 @@ class EpgSyncer(
         // Channels assigned to this guide by hand are always wanted, even when no name or tvg-id matches.
         val assigned = db.channels().overridesForSource(source.id).map { it.substringAfter(':') }.toSet()
         val handler = Writer(source, generation, wanted, onProgress, assigned)
-        http.getOrThrow(source.url, userAgent, "Guide").use { response ->
-            XmltvParser(newPullParser, windowStartMs = now - archiveMs, windowEndMs = now + futureMs)
-                .parse(Decompress.wrap(response.body.byteStream()), handler)
+        // A playlist may list several guide links (comma-separated): each is read, one that fails doesn't stop the rest.
+        val links = source.url.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        var failure: Exception? = null
+        for (link in links) {
+            try {
+                http.getOrThrow(link, userAgent, "Guide").use { response ->
+                    XmltvParser(newPullParser, windowStartMs = now - archiveMs, windowEndMs = now + futureMs)
+                        .parse(Decompress.wrap(response.body.byteStream()), handler)
+                }
+                handler.linkDone()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (links.size == 1) throw e
+                failure = e
+            }
         }
         handler.flush()
-        if (handler.channels.isEmpty()) throw SyncException("Guide has no channels — is this an XMLTV file?")
+        if (handler.channels.isEmpty()) throw failure ?: SyncException("Guide has no channels — is this an XMLTV file?")
 
         db.epg().replaceChannels(source.id, handler.channels)
         db.epg().swapGeneration(source.id, generation, now, now - pastMs, now - archiveMs)
@@ -128,21 +141,26 @@ class EpgSyncer(
         assigned: Set<String> = emptySet(),
     ) : XmltvHandler {
         val channels = ArrayList<EpgChannelEntity>()
+        private val channelIds = HashSet<String>()
         private val wantedIds = HashSet<String>(assigned)
+        /** Channels an earlier link of the same source already filled: later links don't add them twice. */
+        private val filled = HashSet<String>()
+        private val filling = HashSet<String>()
         private val buffer = ArrayList<ProgrammeEntity>(BATCH)
         private val offsetMs = source.timeOffsetMin * 60_000L
         var count = 0
             private set
 
         override fun onChannel(c: XmltvChannel) {
-            channels += EpgChannelEntity(source.id, c.id, c.displayNames.joinToString(EpgChannelEntity.NAME_SEPARATOR), c.iconUrl)
+            if (channelIds.add(c.id)) channels += EpgChannelEntity(source.id, c.id, c.displayNames.joinToString(EpgChannelEntity.NAME_SEPARATOR), c.iconUrl)
             if (wanted.matches(c)) wantedIds += c.id
         }
 
         // Programmes listed before their <channel> element can still match directly by tvg-id.
-        override fun wantsChannel(channelId: String) = channelId in wantedIds || wanted.hasTvgId(channelId)
+        override fun wantsChannel(channelId: String) = channelId !in filled && (channelId in wantedIds || wanted.hasTvgId(channelId))
 
         override fun onProgramme(p: XmltvProgramme) {
+            filling += p.channelId
             buffer += ProgrammeEntity(
                 sourceId = source.id,
                 epgRef = "${source.id}:${p.channelId}",
@@ -158,6 +176,11 @@ class EpgSyncer(
             )
             count++
             if (buffer.size >= BATCH) flush()
+        }
+
+        fun linkDone() {
+            filled += filling
+            filling.clear()
         }
 
         fun flush() {

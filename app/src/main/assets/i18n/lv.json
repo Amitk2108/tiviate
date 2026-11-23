@@ -467,5 +467,7 @@
 "● Recording": "● Ierakstīšana",
 "This channel's protection couldn't be unlocked": "Šī kanāla aizsardzību neizdevās atbloķēt",
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kanāls ir aizsargāts (DRM), un tā licence vai atslēgas netika pieņemtas. Iespējams, jūsu atskaņošanas saraksta atslēgas ir novecojušas vai šī ierīce neatbalsta šo aizsardzību.",
-"Protected (DRM) and DASH channels can't be recorded": "Aizsargātus (DRM) un DASH kanālus nevar ierakstīt"
+"Protected (DRM) and DASH channels can't be recorded": "Aizsargātus (DRM) un DASH kanālus nevar ierakstīt",
+"Left goes back to aired programmes": "Pa kreisi atgriežas pie pārraidītajiem raidījumiem",
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV programma, kanāli ar arhīvu: Pa kreisi pāriet uz raidījumiem, kurus var skatīties vēlreiz. Turiet Pa kreisi, lai atvērtu grupas."
 }

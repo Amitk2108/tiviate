@@ -12,13 +12,17 @@ import app.tiviate.data.SyncProgress
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** GitHub issue #4: a Flussonic playlist (`catchup="flussonic" catchup-days="3"`), with the remote. */
+/**
+ * GitHub issue #4, with the remote: the reporter's playlist line (Cyrillic name, no tvg-id,
+ * `catchup="flussonic" catchup-days="3"`) and "Left goes back to aired programmes" turned on.
+ */
 @RunWith(AndroidJUnit4::class)
 class ArchiveTest {
 
@@ -35,14 +39,15 @@ class ArchiveTest {
         runBlocking {
             val id = graph.playlists.addM3uUrl("Flussonic", fixtures.url("/flussonic.m3u"), null, null)
             graph.playlists.sync(id).first { it is SyncProgress.Done || it is SyncProgress.Failed }
-            graph.settings.update { it.copy(activePlaylistId = id, startFullscreen = true) }
+            graph.settings.update { it.copy(activePlaylistId = id, startFullscreen = true, leftToArchive = true) }
         }
         scenario = ActivityScenario.launch(MainActivity::class.java)
         rule.waitUntil(20_000) { graph.player.engine.state.value.isPlaying }
         rule.waitForIdle()
         Remote.right()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }
-        rule.waitUntil(5_000) { rule.textExists("Aurora News Show 3") } // on air
+        // "НТВ HD" finds its own programmes by name (not those of "Первый канал HD", listed first).
+        rule.waitUntil(5_000) { rule.textExists("НТВ Show 3") } // on air
         rule.waitForIdle()
     }
 
@@ -52,19 +57,26 @@ class ArchiveTest {
         fixtures.shutdown()
     }
 
+    private fun focusedOn(title: String) = rule.onAllNodes(hasTestTag("guide_focused") and hasAnyDescendant(hasText(title)), useUnmergedTree = true)
+        .fetchSemanticsNodes().isNotEmpty()
+
     @Test
-    fun aProgrammeThatAiredPlaysFromTheFirstArchiveLinkTheServerKnows() {
-        fun focusedOn(title: String) = rule.onAllNodes(hasTestTag("guide_focused") and hasAnyDescendant(hasText(title)), useUnmergedTree = true)
-            .fetchSemanticsNodes().isNotEmpty()
-        Remote.press(KeyEvent.KEYCODE_MEDIA_REWIND)
-        rule.waitForIdle()
-        repeat(4) { if (!focusedOn("Aurora News Show 1") && !focusedOn("Aurora News Show 2")) { Remote.right(); rule.waitForIdle() } }
-        assertTrue(focusedOn("Aurora News Show 1") || focusedOn("Aurora News Show 2"))
+    fun leftGoesToWhatAiredWhichPlaysFromTheFirstArchiveLinkTheServerKnows() {
+        Remote.left()
+        rule.waitUntil(3_000) { focusedOn("НТВ Show 2") }
+        assertTrue("↺ on what aired", rule.onAllNodesWithContentDescriptionExists("Catch-up"))
+        assertFalse("no groups column", rule.onAllNodesWithTagExists("guide_groups"))
         Remote.ok()
         rule.waitUntil(5_000) { graph.player.catchup.value != null && !rule.onAllNodesWithTagExists("guide_screen") }
-        // The test server refuses the archive- and index- forms, as older Flussonic servers do.
-        rule.waitUntil(20_000) { graph.player.engine.state.value.isPlaying && graph.player.engine.currentUrl.orEmpty().contains("/fs/ch1/timeshift_abs-") }
-        assertTrue("the token stays on the link", graph.player.engine.currentUrl.orEmpty().endsWith("?token=a"))
+        // The server answers the archive- and index- links with a page, as the reporter's does.
+        rule.waitUntil(20_000) { graph.player.engine.state.value.isPlaying && graph.player.engine.currentUrl.orEmpty().contains("/channel/n595c8c2e/timeshift_abs-") }
+        assertTrue("the token stays on the link", graph.player.engine.currentUrl.orEmpty().endsWith("?q=a"))
+    }
+
+    @Test
+    fun aLongLeftOpensTheGroups() {
+        Remote.hold(KeyEvent.KEYCODE_DPAD_LEFT)
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("guide_groups") }
     }
 
     @Test

@@ -50,12 +50,18 @@ class FixtureServer {
                         if (rest.matches(Regex("""\d+\.m3u8"""))) asset("fixture/hls/master.m3u8") else asset("fixture/hls/$rest")
                     }
                     path == "/list.m3u" -> MockResponse().setBody(playlist())
-                    // GitHub issue #4: that playlist line, on an older Flussonic server (no archive- or index- links).
+                    // GitHub issue #4: the reporter's playlist line (Cyrillic, no tvg-id), on a server that answers the
+                    // archive- and index- links with a page instead of an error code, as theirs does.
                     path == "/flussonic.m3u" -> MockResponse().setBody(
-                        "#EXTM3U url-tvg=\"${url("/epg.xml")}\"\n#EXTINF:0  catchup=\"flussonic\" catchup-days=\"3\",Aurora News\n${url("/fs/ch1/live")}?token=a\n",
+                        "#EXTM3U url-tvg=\"${url("/ru-epg.xml")}\"\n" +
+                            "#EXTINF:0 catchup=\"flussonic\" catchup-days=\"3\" tvg-name=\"НТВ HD\" group-title=\"Россия\",НТВ HD\n" +
+                            "${url("/channel/n595c8c2e/index.m3u8")}?q=a\n",
                     )
-                    path == "/fs/ch1/live" || path.matches(Regex("""/fs/ch1/timeshift_abs-\d+\.m3u8""")) -> asset("fixture/hls/master.m3u8")
-                    path.startsWith("/fs/ch1/") -> asset("fixture/hls/" + path.removePrefix("/fs/ch1/"))
+                    path == "/ru-epg.xml" -> MockResponse().setBody(guide(listOf("perviy" to "Первый канал HD", "ntv" to "НТВ")))
+                    path.matches(Regex("""/channel/n595c8c2e/(index|timeshift_abs-\d+)\.m3u8""")) -> asset("fixture/hls/master.m3u8")
+                    path.matches(Regex("""/channel/n595c8c2e/(archive|index)-\d+-\d+\.m3u8""")) ->
+                        MockResponse().setHeader("Content-Type", "text/html; charset=utf-8").setBody("<h1>Forbidden</h1>")
+                    path.startsWith("/channel/n595c8c2e/") -> asset("fixture/hls/" + path.removePrefix("/channel/n595c8c2e/"))
                     // DRM: a ClearKey-protected DASH stream (12 s), named only as "ClearKey" in its manifest.
                     path == "/drm.m3u" -> MockResponse().setBody(drmPlaylist())
                     path == "/drm/manifest" -> asset("fixture/drm/manifest.mpd")
@@ -116,7 +122,7 @@ class FixtureServer {
         """{"num":${i + 1},"name":"$name","stream_id":${i + 1},"stream_icon":"","epg_channel_id":"ch$i","category_id":"${if (i < 2) 1 else 2}","tv_archive":0}"""
     }.joinToString(",", "[", "]")
 
-    private fun guide(): String {
+    private fun guide(channels: List<Pair<String, String>> = channelNames.mapIndexed { i, name -> "ch$i" to name }): String {
         val now = System.currentTimeMillis()
         val slot = 30 * 60_000L
         val start = now - now % slot - 2 * slot
@@ -124,11 +130,11 @@ class FixtureServer {
             .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(ms))
         return buildString {
             appendLine("""<?xml version="1.0" encoding="UTF-8"?><tv>""")
-            channelNames.forEachIndexed { i, name -> appendLine("""<channel id="ch$i"><display-name>$name</display-name></channel>""") }
-            channelNames.forEachIndexed { i, name ->
+            channels.forEach { (id, name) -> appendLine("""<channel id="$id"><display-name>$name</display-name></channel>""") }
+            channels.forEach { (id, name) ->
                 for (k in 0 until 16) {
                     val s = start + k * slot
-                    appendLine("""<programme start="${fmt(s)}" stop="${fmt(s + slot)}" channel="ch$i"><title>$name Show ${k + 1}</title><desc>Episode ${k + 1} of $name.</desc></programme>""")
+                    appendLine("""<programme start="${fmt(s)}" stop="${fmt(s + slot)}" channel="$id"><title>$name Show ${k + 1}</title><desc>Episode ${k + 1} of $name.</desc></programme>""")
                 }
             }
             appendLine("</tv>")

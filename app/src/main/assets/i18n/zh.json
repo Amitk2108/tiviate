@@ -470,5 +470,7 @@
 "● Recording": "● 正在录制",
 "This channel's protection couldn't be unlocked": "无法解锁此频道的保护",
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "此频道受保护（DRM），其许可证或密钥未被接受。您的播放列表中的密钥可能已过期，或者此设备不支持此保护方式。",
-"Protected (DRM) and DASH channels can't be recorded": "受保护（DRM）和 DASH 频道无法录制"
+"Protected (DRM) and DASH channels can't be recorded": "受保护（DRM）和 DASH 频道无法录制",
+"Left goes back to aired programmes": "向左回到已播出的节目",
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "电视节目指南中，有回看的频道：向左移到可以重看的节目。按住向左打开分组。"
 }
