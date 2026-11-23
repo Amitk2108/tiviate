@@ -71,7 +71,11 @@ private sealed interface SheetDialog {
  * and the group you are in — favourites, hiding, renaming, guide link, own groups and managers.
  */
 @Composable
-fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() -> Unit)? = null, onMessage: (String) -> Unit = {}) {
+fun ChannelSheet(
+    target: SheetTarget, onClose: () -> Unit, onDescription: (() -> Unit)? = null, onMessage: (String) -> Unit = {},
+    /** The channel's programmes as a list (phones). */
+    onProgrammes: (() -> Unit)? = null,
+) {
     val graph = LocalGraph.current
     val nav = LocalNavigator.current
     val scope = rememberCoroutineScope()
@@ -190,6 +194,7 @@ fun ChannelSheet(target: SheetTarget, onClose: () -> Unit, onDescription: (() ->
         }
         if (ch != null) {
             add(SheetItem.Header(ch.name))
+            if (onProgrammes != null) add(SheetItem.Row("sheet_programmes", t("Programmes")) { onClose(); onProgrammes() })
             val fav = ch.stableKey in favorites
             add(SheetItem.Row("sheet_favorite", if (fav) t("Remove from Favorites") else t("Add to Favorites")) {
                 scope.launch { val added = graph.channels.toggleFavorite(target.playlistId, ch.stableKey); onMessage(if (added) t("Added to Favorites") else t("Removed from Favorites")); onClose() }

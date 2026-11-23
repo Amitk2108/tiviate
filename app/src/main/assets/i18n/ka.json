@@ -473,5 +473,6 @@
 "Protected (DRM) and DASH channels can't be recorded": "დაცული (DRM) და DASH არხების ჩაწერა შეუძლებელია",
 "Left goes back to aired programmes": "მარცხენა ბრუნდება ნაჩვენებ გადაცემებზე",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "ტელეგიდი, არხები არქივით: მარცხენა გადადის გადაცემებზე, რომელთა ხელახლა ნახვაც შეგიძლიათ. ჯგუფებისთვის დააჭირეთ და გეჭიროთ მარცხენა.",
-"This channel": "ეს არხი"
+"This channel": "ეს არხი",
+"Programmes": "გადაცემები"
 }

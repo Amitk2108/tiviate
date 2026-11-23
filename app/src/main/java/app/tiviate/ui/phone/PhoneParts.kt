@@ -55,6 +55,13 @@ enum class PhoneView { CHANNELS, PROGRAMMES, GUIDE }
 
 object PhoneHomeView {
     var current by mutableStateOf(PhoneView.CHANNELS)
+    /** Whose programmes "This channel" lists (GitHub issue #6); null: the channel playing. */
+    var programmesOf by mutableStateOf<app.tiviate.data.db.ChannelEntity?>(null)
+
+    fun showProgrammes(channel: app.tiviate.data.db.ChannelEntity?) {
+        programmesOf = channel
+        current = PhoneView.PROGRAMMES
+    }
 }
 
 /** Live, Guide, Search and Settings, at the bottom of the phone screens. [onHome]: on the Live screen, Live and TV guide only switch what is below the video. */
@@ -148,7 +155,7 @@ fun ViewChips(selected: PhoneView) {
             Triple(PhoneView.PROGRAMMES, t("This channel"), "phone_view_programmes"),
             Triple(PhoneView.GUIDE, t("TV guide"), "phone_view_guide"),
         )) {
-            Pill(label, view == selected, Modifier.testTag(tag)) { PhoneHomeView.current = view }
+            Pill(label, view == selected, Modifier.testTag(tag)) { if (view == PhoneView.PROGRAMMES) PhoneHomeView.showProgrammes(null) else PhoneHomeView.current = view }
         }
     }
 }

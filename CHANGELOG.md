@@ -2,6 +2,15 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.5.5 — 2026-11-23
+
+### Added: any channel's programmes as a list on phones (GitHub issue #6)
+- **Tap a channel's logo** in the channel list to see that channel's programmes below the video, while the channel
+  you watch keeps playing. A tap on the rest of the row still plays the channel, as before.
+- The **long-press menu** has **Programmes** too.
+- In the list, a tap on what's **on now** plays it (or **Watch** at the top); the other programmes open their card:
+  watch what aired from the archive (↺), or set a reminder or record what's coming.
+
 ## 0.5.4 — 2026-11-23
 
 ### Fixed (GitHub issue #4)

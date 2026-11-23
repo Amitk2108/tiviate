@@ -36,6 +36,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -229,6 +230,8 @@ internal fun ChannelRow(
     modifier: Modifier,
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
+    /** Touch screens: a tap on the logo (instead of the row) shows the channel's programmes. */
+    onLogoClick: (() -> Unit)? = null,
 ) {
     FocusSurface(
         onClick = onClick, onLongClick = onLongClick,
@@ -240,7 +243,14 @@ internal fun ChannelRow(
             if (showNumber) {
                 Text("${channel.number}", modifier = Modifier.width(40.dp), style = TextStyle(color = if (isPlaying) Tokens.Cyan else Tokens.TextSecondary, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
             }
-            ChannelLogo(channel, 48.dp)
+            if (onLogoClick == null) {
+                ChannelLogo(channel, 48.dp)
+            } else {
+                androidx.compose.foundation.layout.Box(
+                    Modifier.clickable(onClickLabel = t("Programmes"), role = androidx.compose.ui.semantics.Role.Button, onClick = onLogoClick)
+                        .testTag("phone_channel_logo"),
+                ) { ChannelLogo(channel, 48.dp) }
+            }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     (if (isFavorite) "★ " else "") + channel.name,

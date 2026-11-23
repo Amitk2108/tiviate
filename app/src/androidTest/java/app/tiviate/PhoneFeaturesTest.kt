@@ -6,6 +6,8 @@ import androidx.compose.ui.test.click
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -122,6 +124,29 @@ class PhoneFeaturesTest {
         rule.onNodeWithTag("search_channel_0").performClick()
         rule.waitUntil(15_000) { graph.player.current.value?.name == "Beacon Sports" }
         assertTrue("still searching", rule.onAllNodesWithTagExists("search_screen"))
+    }
+
+    /** GitHub issue #6: a channel's logo shows its programmes without switching; a tap on what's on now plays it. */
+    @Test
+    fun aChannelsLogoShowsItsProgrammesAndTheProgrammeOnNowPlaysIt() {
+        start(xtream = false)
+        playFirstChannel()
+        rule.onNode(hasTestTag("phone_channel_logo") and hasAnyAncestor(hasTestTag("phone_channel_1")), useUnmergedTree = true).performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("guide_channel_programmes") && rule.textExists("Beacon Sports Show 2") }
+        assertEquals("still watching", "Aurora News", graph.player.current.value?.name)
+        rule.onNode(hasText("Beacon Sports Show 3")).performClick()
+        rule.waitUntil(15_000) { graph.player.current.value?.name == "Beacon Sports" }
+    }
+
+    /** GitHub issue #6: the long-press menu opens a channel's programmes too. */
+    @Test
+    fun theLongPressMenuOpensAChannelsProgrammes() {
+        start(xtream = false)
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("phone_channel_2") }
+        rule.onNodeWithTag("phone_channel_2").performTouchInput { longClick() }
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("sheet_programmes") }
+        rule.onNodeWithTag("sheet_programmes").performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("guide_channel_programmes") && rule.textExists("Cobalt Movies Show 2") }
     }
 
     @Test

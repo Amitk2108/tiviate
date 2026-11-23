@@ -161,7 +161,7 @@ fun PhoneHome() {
         if (view == PhoneView.GUIDE) {
             PhoneGuide(Modifier.weight(1f).fillMaxWidth(), embedded = true)
         } else if (view == PhoneView.PROGRAMMES) {
-            ThisChannel(vm, current, playlist, settings, now, Modifier.weight(1f).fillMaxWidth())
+            ThisChannel(vm, PhoneHomeView.programmesOf ?: current, current, playlist, settings, now, Modifier.weight(1f).fillMaxWidth())
         } else {
         GroupChips(
             entries = remember(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup) {
@@ -208,6 +208,7 @@ fun PhoneHome() {
                                 if (ch.stableKey == current?.stableKey && playback.channelKey != null) fullscreen() else vm.tune(ch)
                             },
                             onLongClick = { ch?.let { sheet = SheetTarget(it.playlistId, it, category) } },
+                            onLogoClick = { ch?.let { PhoneHomeView.showProgrammes(it) } },
                         )
                         if (wide) {
                             Text(
@@ -223,15 +224,18 @@ fun PhoneHome() {
         }
         PhoneBottomBar(if (view == PhoneView.GUIDE) PhoneTab.GUIDE else PhoneTab.LIVE, onHome = true)
     }
-    sheet?.let { s -> ChannelSheet(s, onClose = { sheet = null }, onMessage = vm::showToast) }
+    sheet?.let { s -> ChannelSheet(s, onClose = { sheet = null }, onMessage = vm::showToast, onProgrammes = s.channel?.let { c -> { PhoneHomeView.showProgrammes(c) } }) }
     toast?.let { Toast(it) }
 }
 
-/** The playing channel's programmes below the video (GitHub issue #5): a tap shows one; Watch plays what aired from the archive. */
+/**
+ * A channel's programmes below the video (GitHub issues #5 and #6): the playing one, or one picked by its logo or
+ * its menu. A tap on what's on now plays it; other programmes show their card (Watch plays what aired from the archive).
+ */
 @Composable
 private fun ThisChannel(
-    vm: PlayerViewModel, channel: app.tiviate.data.db.ChannelEntity?, playlist: app.tiviate.data.db.PlaylistEntity?,
-    settings: AppSettings, now: Long, modifier: Modifier,
+    vm: PlayerViewModel, channel: app.tiviate.data.db.ChannelEntity?, playing: app.tiviate.data.db.ChannelEntity?,
+    playlist: app.tiviate.data.db.PlaylistEntity?, settings: AppSettings, now: Long, modifier: Modifier,
 ) {
     val graph = LocalGraph.current
     val programmes = app.tiviate.ui.guide.rememberChannelProgrammes(channel, settings.epgPastDays, now)
@@ -240,8 +244,21 @@ private fun ThisChannel(
         if (programmes.isNotEmpty()) state.scrollToItem((app.tiviate.ui.guide.onAirIndex(programmes, System.currentTimeMillis()) - 2).coerceAtLeast(0))
     }
     var details by remember { mutableStateOf<app.tiviate.ui.guide.FocusBlock?>(null) }
-    app.tiviate.ui.guide.ChannelProgrammes(channel, programmes, now, selected = null, state = state, modifier = modifier.background(Tokens.Background)) { p ->
-        details = app.tiviate.ui.guide.FocusBlock(p.startMs, p.stopMs, p)
+    val other = channel != null && channel.stableKey != playing?.stableKey
+    Column(modifier.background(Tokens.Background)) {
+        // Which channel this is; another channel than the one playing gets Watch.
+        if (channel != null) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                app.tiviate.ui.components.ChannelLogo(channel, 32.dp)
+                Text(channel.name, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+                if (other) app.tiviate.ui.components.ActionButton(t("Watch"), { vm.tune(channel) }, tag = "phone_programmes_watch")
+            }
+        }
+        app.tiviate.ui.guide.ChannelProgrammes(channel, programmes, now, selected = null, state = state, modifier = Modifier.weight(1f).fillMaxWidth()) { p ->
+            val nowMs = System.currentTimeMillis()
+            // What's on now plays at once; the others show their card.
+            if (channel != null && p.startMs <= nowMs && nowMs < p.stopMs) { if (other || graph.player.catchup.value != null) vm.tune(channel) } else details = app.tiviate.ui.guide.FocusBlock(p.startMs, p.stopMs, p)
+        }
     }
     val ch = channel ?: return
     details?.let { block ->

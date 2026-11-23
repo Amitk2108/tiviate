@@ -129,7 +129,8 @@ Every feature is free. There is no premium version, no account, no activation an
 - **Touch everywhere**: tap, long-press and scroll on every screen, with haptic feedback
 - The layout follows the device: **TV**, **phone** or **tablet**, and changes when you turn it
 - **Phones**: video on top, what's on now, and below it **Channels · This channel · TV guide** (the video keeps
-  playing while you browse), and a bottom bar (Live, TV guide, Search, Settings); turn the phone for **fullscreen**
+  playing while you browse; tap a channel's logo for its programmes), and a bottom bar (Live, TV guide, Search,
+  Settings); turn the phone for **fullscreen**
 - **Touch TV guide**: drag through time, tap a programme for details and *Watch*
 - **Options** on the video opens every player option, as on TV
 - **Tablets**: upright like a phone with what's next beside each channel; sideways like the TV app, with touch
