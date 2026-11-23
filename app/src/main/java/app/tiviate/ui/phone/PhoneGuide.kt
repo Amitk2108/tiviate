@@ -66,7 +66,7 @@ private val LOGO_COLUMN = 72.dp
  * scroll up and down. Tap a programme for its details, tap a logo to watch that channel.
  */
 @Composable
-fun PhoneGuide() {
+fun PhoneGuide(modifier: Modifier = Modifier.fillMaxSize(), embedded: Boolean = false) {
     val graph = LocalGraph.current
     val nav = LocalNavigator.current
     val haptics = LocalHapticFeedback.current
@@ -92,10 +92,10 @@ fun PhoneGuide() {
     fun watch(ch: ChannelEntity) {
         haptics.performHapticFeedback(HapticFeedbackType.Confirm)
         vm.tune(ch)
-        nav.replaceAll(Screen.Player)
+        if (!embedded) nav.replaceAll(Screen.Player) // below the video: it plays right there
     }
 
-    Column(Modifier.fillMaxSize().background(Tokens.Background).testTag("phone_guide")) {
+    Column(modifier.background(Tokens.Background).testTag("phone_guide")) {
         GroupChips(
             entries = remember(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup) {
                 groupEntries(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup)
@@ -190,31 +190,43 @@ fun PhoneGuide() {
                 }
             }
         }
-        PhoneBottomBar(PhoneTab.GUIDE)
+        if (!embedded) PhoneBottomBar(PhoneTab.GUIDE)
     }
     details?.let { (ch, block) ->
-        ProgrammeSheet(ch, block, now, onWatch = {
+        ProgrammeDetails(ch, block, now, onWatch = {
             details = null
             // A programme that already aired plays from the archive when the channel has one.
             if (block.stopMs <= System.currentTimeMillis() && vm.playCatchup(ch, block)) {
                 haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-                nav.replaceAll(Screen.Player)
+                if (!embedded) nav.replaceAll(Screen.Player)
             } else {
                 watch(ch)
             }
-        }, onClose = { details = null }, reminded = block.programme?.let { app.tiviate.data.Reminders.key(ch.playlistId, ch.stableKey, it.startMs) in reminders },
-            onRemind = { p ->
-                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-                scope.launch { app.tiviate.data.Reminders.toggle(context, graph.settings, ch, p.title, p.startMs) }
-            },
-            onRecord = { p ->
-                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-                details = null
-                scope.launch {
-                    app.tiviate.data.record.Recordings.schedule(context, ch, p.title, maxOf(p.startMs, System.currentTimeMillis()), p.stopMs + app.tiviate.data.record.Recordings.LATE_MS)
-                }
-            })
+        }, onClose = { details = null })
     }
+}
+
+/** A programme's sheet with Watch, Remind me and Record (the phone guide and "This channel"). */
+@Composable
+internal fun ProgrammeDetails(ch: ChannelEntity, block: FocusBlock, now: Long, onWatch: () -> Unit, onClose: () -> Unit) {
+    val graph = LocalGraph.current
+    val haptics = LocalHapticFeedback.current
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val settings by graph.settings.screenSettings.collectAsStateWithLifecycle(AppSettings())
+    val reminders = remember(settings.reminders) { app.tiviate.data.Reminders.keys(settings) }
+    ProgrammeSheet(ch, block, now, onWatch = onWatch, onClose = onClose, reminded = block.programme?.let { app.tiviate.data.Reminders.key(ch.playlistId, ch.stableKey, it.startMs) in reminders },
+        onRemind = { p ->
+            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+            scope.launch { app.tiviate.data.Reminders.toggle(context, graph.settings, ch, p.title, p.startMs) }
+        },
+        onRecord = { p ->
+            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+            onClose()
+            scope.launch {
+                app.tiviate.data.record.Recordings.schedule(context, ch, p.title, maxOf(p.startMs, System.currentTimeMillis()), p.stopMs + app.tiviate.data.record.Recordings.LATE_MS)
+            }
+        })
 }
 
 /** A programme's details over the bottom of the guide, with Watch. */

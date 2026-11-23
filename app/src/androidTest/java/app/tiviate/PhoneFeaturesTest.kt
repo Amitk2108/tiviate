@@ -6,7 +6,9 @@ import androidx.compose.ui.test.click
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -73,6 +75,53 @@ class PhoneFeaturesTest {
         }
         scenario = ActivityScenario.launch(MainActivity::class.java)
         rule.waitUntil(15_000) { rule.onAllNodesWithTagExists("phone_home") }
+    }
+
+    private fun playFirstChannel() {
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("phone_channel_0") }
+        rule.onNodeWithTag("phone_channel_0").performClick()
+        rule.waitUntil(15_000) { graph.player.current.value?.name == "Aurora News" && graph.player.engine.state.value.isPlaying }
+    }
+
+    /** GitHub issue #5: the guide opens below the video, which keeps playing; a logo plays that channel there. */
+    @Test
+    fun theGuideOpensBelowThePlayingVideo() {
+        start(xtream = false)
+        playFirstChannel()
+        rule.onNodeWithTag("tab_guide").performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("phone_guide_row_1") }
+        assertTrue("the video stays", rule.onAllNodesWithTagExists("phone_video"))
+        rule.onNodeWithTag("phone_guide_row_1").performTouchInput { click(Offset(20f, height / 2f)) }
+        rule.waitUntil(15_000) { graph.player.current.value?.name == "Beacon Sports" }
+        assertTrue("still in the guide", rule.onAllNodesWithTagExists("phone_guide"))
+    }
+
+    /** GitHub issue #5: the playing channel's programmes below the video; one that aired plays from the archive. */
+    @Test
+    fun thisChannelListsItsProgrammesAndPlaysOneThatAiredFromTheArchive() {
+        start(xtream = false)
+        playFirstChannel()
+        rule.onNodeWithTag("phone_view_programmes").performClick()
+        rule.waitUntil(10_000) { rule.textExists("Aurora News Show 2") }
+        rule.onNode(hasText("Aurora News Show 2")).performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("phone_programme_sheet") }
+        rule.onNodeWithTag("phone_watch").performClick()
+        rule.waitUntil(10_000) { graph.player.catchup.value != null }
+        assertTrue("the video stays", rule.onAllNodesWithTagExists("phone_video"))
+    }
+
+    /** GitHub issue #5: watching while searching; a result plays in the video and the search stays. */
+    @Test
+    fun searchKeepsTheVideoAndPlaysAResultThere() {
+        start(xtream = false)
+        playFirstChannel()
+        rule.onNodeWithTag("tab_search").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("search_video") }
+        rule.onNodeWithTag("search_field_input").performTextInput("beacon")
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("search_channel_0") }
+        rule.onNodeWithTag("search_channel_0").performClick()
+        rule.waitUntil(15_000) { graph.player.current.value?.name == "Beacon Sports" }
+        assertTrue("still searching", rule.onAllNodesWithTagExists("search_screen"))
     }
 
     @Test

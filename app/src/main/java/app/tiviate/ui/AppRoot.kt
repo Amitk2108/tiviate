@@ -122,8 +122,8 @@ fun AppRoot() {
     CompositionLocalProvider(LocalNavigator provides nav, app.tiviate.ui.player.LocalVideoLayout provides videoLayout, LocalFormFactor provides formFactor) {
         Box(Modifier.fillMaxSize().background(Tokens.Background)) {
             app.tiviate.ui.player.VideoHost(graph.player.engine)
-            // Only the player and the guide let the video show through; every other screen is opaque.
-            val opaque = nav.current != Screen.Player && nav.current != Screen.Guide && nav.current !is Screen.VodPlayer
+            // Only the player, the guide and search let the video show through; every other screen is opaque.
+            val opaque = nav.current != Screen.Player && nav.current != Screen.Guide && nav.current != Screen.Search && nav.current !is Screen.VodPlayer
             // Parental control: a locked channel waits for the PIN; locked Settings open only with it.
             val appSettings by graph.settings.settings.collectAsState(initial = app.tiviate.data.AppSettings())
             val pinRequest by graph.player.pinRequest.collectAsState()

@@ -128,8 +128,8 @@ Every feature is free. There is no premium version, no account, no activation an
 ### 📱 Phones and tablets
 - **Touch everywhere**: tap, long-press and scroll on every screen, with haptic feedback
 - The layout follows the device: **TV**, **phone** or **tablet**, and changes when you turn it
-- **Phones**: video on top, what's on now, groups as chips, the channel list, and a bottom bar (Live, TV guide,
-  Search, Settings); turn the phone for **fullscreen**
+- **Phones**: video on top, what's on now, and below it **Channels · This channel · TV guide** (the video keeps
+  playing while you browse), and a bottom bar (Live, TV guide, Search, Settings); turn the phone for **fullscreen**
 - **Touch TV guide**: drag through time, tap a programme for details and *Watch*
 - **Options** on the video opens every player option, as on TV
 - **Tablets**: upright like a phone with what's next beside each channel; sideways like the TV app, with touch
@@ -158,7 +158,7 @@ Every feature is free. There is no premium version, no account, no activation an
 - **Channel list** with what's on now, optional preview window, autoplay while browsing, "stay on the list"
 - **Guide over the video** (overlay mode) as an option
 - **Favorites**, **Recent** channels (count and delay adjustable), **your own groups**
-- **Search** over channels and the programmes on now
+- **Search** over channels and the programmes on now, with the playing channel still in view
 - **Previous channel** key and option card; **peek** at the next/previous channel's programme from the info bar (Info, then Left/Right)
 - Opens on the **last group** you used (Favorites, Recent, your own groups included); **no autoplay** on start — OK plays
 
@@ -210,11 +210,11 @@ Everything works with a basic Fire TV remote.
 |---|---|---|---|
 | **OK** | Player options (Channels, TV guide, Pause, Audio, Subtitles, Display, Zoom, Quality, Audio sync, Stats, Sleep…) | Play the channel | Play in the preview; OK again → fullscreen |
 | **Hold OK** | Player options | Channel menu (hide, rename, favorite, groups, guide) | Channel and programme menu |
-| **Up / CH+** | Next channel | Move | Move (CH± pages) |
+| **Up / CH+** | Next channel | Move | Move (CH± pages); on the top row → *TV guide · This channel* (Left/Right switch) |
 | **Down** | Player options (or previous channel, if you choose "Up and Down: change channel") | Move | Move |
 | **CH−** | Previous channel in the list | — | Page |
 | **Left** | Channel list with groups | Groups | Earlier programme; on *now* → groups, again → menu (with *Left goes back to aired programmes* on: aired programmes on channels with an archive, hold Left for groups) |
-| **Right / Guide** | TV guide | — | Later programme |
+| **Right / Guide** | TV guide | — | Later programme (Guide: this channel's programmes, again → back to watching) |
 | **Info** | Info bar; then Left/Right peek at other channels, OK switches | — | — |
 | **Menu** | Player options | — | Channel and programme menu |
 | **Last channel** | Previous channel | | |

@@ -1,6 +1,11 @@
 package app.tiviate.ui.search
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.tiviate.ui.player.VideoSlot
+import app.tiviate.ui.player.backgroundWithHole
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -58,6 +63,10 @@ fun SearchScreen() {
     LaunchedEffect(toast) { if (toast != null) { delay(2_500); toast = null } }
 
     LaunchedEffect(Unit) { focusSoon(field) }
+    // Watching while searching (GitHub issue #5): the playing channel stays in view, above (phones) or beside the title.
+    val current by graph.player.current.collectAsStateWithLifecycle()
+    val phone = app.tiviate.ui.components.usesBottomSheets()
+    var videoRect by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
     LaunchedEffect(text) {
         delay(300) // debounce typing
         val pid = graph.settings.settings.first().activePlaylistId ?: return@LaunchedEffect
@@ -65,9 +74,9 @@ fun SearchScreen() {
         result = if (text.isBlank()) SearchResult(emptyList(), emptyList()) else graph.channels.search(pid, text)
     }
 
+    // A result plays in view and the search stays; the channel already playing goes back to watching.
     fun play(channel: ChannelEntity) {
-        graph.player.tune(channel, userAgent)
-        nav.back()
+        if (channel.stableKey == current?.stableKey && channel.playlistId == current?.playlistId) nav.back() else graph.player.tune(channel, userAgent)
     }
 
     fun playArchive(hit: app.tiviate.data.ProgrammeHit) {
@@ -80,11 +89,20 @@ fun SearchScreen() {
         }
     }
 
+    Column(Modifier.fillMaxSize().backgroundWithHole(Tokens.Background, { videoRect.takeIf { current != null } }).testTag("search_screen")) {
+    if (phone && current != null) {
+        VideoSlot(app.tiviate.data.DisplayMode.FIT, 100, Modifier.fillMaxWidth().aspectRatio(16f / 9f).testTag("search_video"), onBounds = { videoRect = it })
+    }
     Column(
-        Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(Tokens.SafeMargin).testTag("search_screen"),
+        Modifier.weight(1f).fillMaxWidth().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(Tokens.SafeMargin),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        Text(t("Search"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+        Row(verticalAlignment = Alignment.Top) {
+            Text(t("Search"), modifier = Modifier.weight(1f), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
+            if (!phone && current != null) {
+                VideoSlot(app.tiviate.data.DisplayMode.FIT, 100, Modifier.width(320.dp).aspectRatio(16f / 9f).testTag("search_video"), onBounds = { videoRect = it })
+            }
+        }
         TvTextField(t("Channel or programme"), text, { text = it }, Modifier.focusRequester(field), tag = "search_field", hint = t("Type a name…"), keyboardType = KeyboardType.Text)
 
         if (text.isNotBlank() && result.channels.isEmpty() && result.programmes.isEmpty() && result.later.isEmpty() && result.archive.isEmpty()) {
@@ -114,6 +132,7 @@ fun SearchScreen() {
         }
         ProgrammeSection(t("Catch-up"), result.archive, "search_archive", withDay = true, onClick = ::playArchive)
         toast?.let { Text(it, modifier = Modifier.testTag("search_toast"), style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.Medium)) }
+    }
     }
 }
 

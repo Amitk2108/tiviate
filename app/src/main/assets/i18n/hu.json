@@ -472,5 +472,6 @@
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "A csatorna védett (DRM), és a licencét vagy kulcsait nem fogadták el. Lehet, hogy a lejátszási lista kulcsai elavultak, vagy ez az eszköz nem támogatja ezt a védelmet.",
 "Protected (DRM) and DASH channels can't be recorded": "A védett (DRM) és DASH csatornák nem rögzíthetők",
 "Left goes back to aired programmes": "Balra a már leadott műsorokra lép",
-"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Műsorújság, archívummal rendelkező csatornák: Balra az újra megnézhető műsorokra lép. Tartsa lenyomva a Balra gombot a csoportokhoz."
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Műsorújság, archívummal rendelkező csatornák: Balra az újra megnézhető műsorokra lép. Tartsa lenyomva a Balra gombot a csoportokhoz.",
+"This channel": "Ez a csatorna"
 }

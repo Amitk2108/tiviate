@@ -470,5 +470,6 @@
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Kanal je zaštićen (DRM), a njegova licenca ili ključevi nisu prihvaćeni. Ključevi u vašoj playlisti možda su zastarjeli ili ovaj uređaj ne podržava ovu zaštitu.",
 "Protected (DRM) and DASH channels can't be recorded": "Zaštićeni (DRM) i DASH kanali ne mogu se snimati",
 "Left goes back to aired programmes": "Lijevo vodi na emitirane emisije",
-"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV vodič, kanali s arhivom: Lijevo ide na emisije koje možete ponovno gledati. Držite Lijevo za grupe."
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV vodič, kanali s arhivom: Lijevo ide na emisije koje možete ponovno gledati. Držite Lijevo za grupe.",
+"This channel": "Ovaj kanal"
 }

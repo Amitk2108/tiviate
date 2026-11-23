@@ -472,5 +472,6 @@
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "Канал защищён (DRM), и его лицензия или ключи не были приняты. Возможно, ключи в вашем плейлисте устарели или это устройство не поддерживает такую защиту.",
 "Protected (DRM) and DASH channels can't be recorded": "Защищённые (DRM) и DASH-каналы нельзя записывать",
 "Left goes back to aired programmes": "Влево — к уже показанным передачам",
-"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Телегид, каналы с архивом: Влево переходит к передачам, которые можно посмотреть снова. Удерживайте Влево, чтобы открыть группы."
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Телегид, каналы с архивом: Влево переходит к передачам, которые можно посмотреть снова. Удерживайте Влево, чтобы открыть группы.",
+"This channel": "Этот канал"
 }

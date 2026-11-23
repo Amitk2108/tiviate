@@ -155,7 +155,14 @@ fun PhoneHome() {
         // ---- What's on ----
         NowStrip(vm, now)
 
-        // ---- Groups and channels ----
+        // ---- Below the video: the channels, this channel's programmes or the guide (the video keeps playing) ----
+        val view = PhoneHomeView.current
+        ViewChips(view)
+        if (view == PhoneView.GUIDE) {
+            PhoneGuide(Modifier.weight(1f).fillMaxWidth(), embedded = true)
+        } else if (view == PhoneView.PROGRAMMES) {
+            ThisChannel(vm, current, playlist, settings, now, Modifier.weight(1f).fillMaxWidth())
+        } else {
         GroupChips(
             entries = remember(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup) {
                 groupEntries(groups, playlists, playlist?.id, customGroups, settings.showAllChannels, settings.showFavoritesGroup, settings.showRecentGroup)
@@ -213,10 +220,37 @@ fun PhoneHome() {
                 }
             }
         }
-        PhoneBottomBar(PhoneTab.LIVE)
+        }
+        PhoneBottomBar(if (view == PhoneView.GUIDE) PhoneTab.GUIDE else PhoneTab.LIVE, onHome = true)
     }
     sheet?.let { s -> ChannelSheet(s, onClose = { sheet = null }, onMessage = vm::showToast) }
     toast?.let { Toast(it) }
+}
+
+/** The playing channel's programmes below the video (GitHub issue #5): a tap shows one; Watch plays what aired from the archive. */
+@Composable
+private fun ThisChannel(
+    vm: PlayerViewModel, channel: app.tiviate.data.db.ChannelEntity?, playlist: app.tiviate.data.db.PlaylistEntity?,
+    settings: AppSettings, now: Long, modifier: Modifier,
+) {
+    val graph = LocalGraph.current
+    val programmes = app.tiviate.ui.guide.rememberChannelProgrammes(channel, settings.epgPastDays, now)
+    val state = rememberLazyListState()
+    LaunchedEffect(channel?.stableKey, programmes.isNotEmpty()) {
+        if (programmes.isNotEmpty()) state.scrollToItem((app.tiviate.ui.guide.onAirIndex(programmes, System.currentTimeMillis()) - 2).coerceAtLeast(0))
+    }
+    var details by remember { mutableStateOf<app.tiviate.ui.guide.FocusBlock?>(null) }
+    app.tiviate.ui.guide.ChannelProgrammes(channel, programmes, now, selected = null, state = state, modifier = modifier.background(Tokens.Background)) { p ->
+        details = app.tiviate.ui.guide.FocusBlock(p.startMs, p.stopMs, p)
+    }
+    val ch = channel ?: return
+    details?.let { block ->
+        ProgrammeDetails(ch, block, now, onWatch = {
+            details = null
+            val aired = block.stopMs <= System.currentTimeMillis()
+            if (!aired || !graph.player.playCatchup(ch, playlist, block.programme?.title, block.startMs, block.stopMs)) vm.tune(ch)
+        }, onClose = { details = null })
+    }
 }
 
 /** The playing channel and its programme, with time left. */

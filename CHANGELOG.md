@@ -2,6 +2,18 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.5.3 — 2026-11-23
+
+### Added: watching while browsing and searching (GitHub issue #5)
+- **Phones**: below the video, switch between **Channels**, **This channel** (its programmes: what aired, with ↺ to
+  watch again from the archive, what's on and what's next) and the **TV guide**. The video keeps playing; the
+  bottom bar's TV guide opens the guide right there, and a channel's logo in it plays that channel above.
+- **TV**: in the guide, Up on the top row reaches **TV guide · This channel**; This channel lists the channel's
+  programmes (OK plays, what aired from the archive; long OK: remind, record). The remote's Guide key switches to
+  it too, where the TV passes that key on. Back returns to the timetable.
+- **Search** keeps the playing channel in view (on top on phones, beside the title on TV). A result plays there
+  and the search stays open; the channel already playing takes you back to watching.
+
 ## 0.5.2 — 2026-11-23
 
 ### Fixed: programme archives, part 2 (GitHub issue #4)

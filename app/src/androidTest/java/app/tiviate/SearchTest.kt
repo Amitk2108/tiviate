@@ -10,6 +10,7 @@ import app.tiviate.data.SyncProgress
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,14 +54,18 @@ class SearchTest {
         rule.waitForIdle()
     }
 
+    /** GitHub issue #5: watching while searching. OK plays a channel in the preview; OK on it again goes fullscreen. */
     @Test
-    fun typingFindsChannelAndOkTunes() {
+    fun typingFindsChannelOkPreviewsItAndASecondOkGoesFullscreen() {
         openSearch()
+        assertTrue("the playing channel stays in view", rule.onAllNodesWithTagExists("search_video"))
         rule.onNodeWithTag("search_field").activate()
         rule.onNodeWithTag("search_field_input").performTextInput("cobalt")
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("search_channel_0") }
         rule.onNodeWithTag("search_channel_0").activate()
         rule.waitUntil(5_000) { graph.player.current.value?.name == "Cobalt Movies" }
+        assertTrue("still searching", rule.onAllNodesWithTagExists("search_screen"))
+        rule.onNodeWithTag("search_channel_0").activate()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("player_screen") }
     }
 

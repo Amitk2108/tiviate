@@ -468,5 +468,6 @@
 "The channel is protected (DRM) and its licence or keys weren't accepted. The keys in your playlist may be out of date, or this device doesn't support this protection.": "O canal é protegido (DRM) e a licença ou as chaves dele não foram aceitas. As chaves da sua playlist podem estar desatualizadas, ou este aparelho não é compatível com essa proteção.",
 "Protected (DRM) and DASH channels can't be recorded": "Canais protegidos (DRM) e DASH não podem ser gravados",
 "Left goes back to aired programmes": "Esquerda volta aos programas exibidos",
-"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Guia de TV, canais com arquivo: Esquerda vai para programas que você pode assistir de novo. Segure Esquerda para os grupos."
+"TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Guia de TV, canais com arquivo: Esquerda vai para programas que você pode assistir de novo. Segure Esquerda para os grupos.",
+"This channel": "Este canal"
 }

@@ -125,6 +125,36 @@ class GuideTest {
         rule.waitUntil(5_000) { graph.player.catchup.value == null && graph.player.engine.currentUrl == graph.player.current.value?.streamUrl }
     }
 
+    /** GitHub issue #5: Up from the top row reaches the tabs; "This channel" lists its programmes, OK plays one that aired. */
+    @Test
+    fun upFromTheTopRowReachesThisChannelWhichListsItsProgrammes() {
+        openGuide()
+        Remote.up()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("guide_tabs_focused") }
+        Remote.right()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_channel_programmes") && rule.textExists("Aurora News Show 2") }
+        Remote.down() // into the list, on what is on now
+        Remote.up() // the programme before, which aired
+        rule.waitUntil(3_000) {
+            rule.onAllNodes(
+                androidx.compose.ui.test.hasTestTag("guide_programme_selected") and androidx.compose.ui.test.hasAnyDescendant(androidx.compose.ui.test.hasText("Aurora News Show 2")),
+                useUnmergedTree = true,
+            ).fetchSemanticsNodes().isNotEmpty()
+        }
+        Remote.ok()
+        rule.waitUntil(5_000) { graph.player.catchup.value != null && !rule.onAllNodesWithTagExists("guide_screen") }
+    }
+
+    @Test
+    fun backLeavesThisChannelForTheTimetable() {
+        openGuide()
+        Remote.up()
+        Remote.right()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_channel_programmes") }
+        Remote.back()
+        rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("guide_channel_programmes") && rule.onAllNodesWithTagExists("guide_screen") }
+    }
+
     private fun openGuide() {
         Remote.right()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }

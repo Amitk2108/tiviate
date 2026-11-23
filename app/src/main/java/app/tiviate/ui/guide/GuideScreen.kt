@@ -114,6 +114,12 @@ fun GuideScreen() {
         .collectAsStateWithLifecycle(0)
     val leftPress = remember { LongPressDetector() }
     val okPress = remember { LongPressDetector() }
+    // "This channel" (GitHub issue #5): the tabs above the guide (Up from the top row) and one channel's programmes.
+    var tabsFocused by remember { mutableStateOf(false) }
+    var listView by remember { mutableStateOf(false) }
+    var listChannel by remember { mutableStateOf<app.tiviate.data.db.ChannelEntity?>(null) }
+    var listIndex by remember { mutableIntStateOf(-1) }
+    val programmeList = rememberLazyListState()
     var sheet by remember { mutableStateOf<SheetTarget?>(null) }
     val customGroups by vm.customGroups.collectAsStateWithLifecycle()
     FollowCustomGroup(category, customGroups) { vm.selectCategory(it) }
@@ -208,30 +214,88 @@ fun GuideScreen() {
         sheet = SheetTarget(pid, channelAt(state.row), category, state.focused?.programme?.title, state.focused?.programme?.startMs, state.focused?.programme?.stopMs)
     }
 
+    /** OK on [block] of [channel]: what aired plays from the archive, fullscreen (true); otherwise the channel live. */
+    fun okOn(channel: app.tiviate.data.db.ChannelEntity, block: FocusBlock?): Boolean {
+        val nowMs = System.currentTimeMillis()
+        // A programme that already aired plays from the channel's archive (catch-up), fullscreen.
+        // (Also where the guide has no information: that half hour of the archive.)
+        if (block != null && block.stopMs <= nowMs && !settings.alwaysExternalPlayer && vm.playCatchup(channel, block)) {
+            nav.back()
+            return true
+        }
+        // Other programmes play the channel live; a programme's description is in the long-OK menu.
+        when {
+            channel.stableKey == current?.stableKey -> nav.back() // already playing: go fullscreen, no reconnect
+            settings.alwaysExternalPlayer -> app.tiviate.player.ExternalPlayer.open(activity ?: return false, channel.streamUrl, channel.name)
+            else -> vm.tune(channel) // preview it here; a second OK goes fullscreen
+        }
+        return false
+    }
+
     fun onOk() {
         val channel = channelAt(state.row) ?: return
         val block = state.focused
         val nowMs = System.currentTimeMillis()
         val live = block == null || (block.startMs <= nowMs && nowMs < block.stopMs)
-        // A programme that already aired plays from the channel's archive (catch-up), fullscreen.
-        // (Also where the guide has no information: that half hour of the archive.)
-        if (block != null && block.stopMs <= nowMs && !settings.alwaysExternalPlayer && vm.playCatchup(channel, block)) {
-            nav.back()
-            return
-        }
-        // Other programmes play the channel live; a programme's description is in the long-OK menu.
-        when {
-            channel.stableKey == current?.stableKey -> nav.back() // already playing: go fullscreen, no reconnect
-            settings.alwaysExternalPlayer -> app.tiviate.player.ExternalPlayer.open(activity ?: return, channel.streamUrl, channel.name)
-            else -> vm.tune(channel) // preview it here; a second OK goes fullscreen
-        }
+        if (okOn(channel, block)) return
         if (!live) {
             state.backToNow(nowMs, rowProgrammes(state.row))
             tick++
         }
     }
 
+    val listProgrammes = rememberChannelProgrammes(if (listView) listChannel else null, settings.epgPastDays, now)
+    // The list starts on what is on now and keeps the selected programme in view.
+    LaunchedEffect(listProgrammes) { if (listView && listIndex < 0 && listProgrammes.isNotEmpty()) listIndex = onAirIndex(listProgrammes, System.currentTimeMillis()) }
+    LaunchedEffect(listIndex, listView) { if (listView && listIndex >= 0) programmeList.animateScrollToItem((listIndex - 2).coerceAtLeast(0)) }
+
+    fun openList() {
+        listChannel = channelAt(state.row)
+        listIndex = -1
+        listView = true
+    }
+
+    fun listSheet() {
+        val pid = playlist?.id ?: return
+        val p = listProgrammes.getOrNull(listIndex)
+        sheet = SheetTarget(pid, listChannel ?: return, category, p?.title, p?.startMs, p?.stopMs)
+    }
+
+    // The tabs above the guide and "This channel": Up and Down move, OK plays (what aired from the archive), long OK: menu.
+    fun handleListKey(native: AndroidKeyEvent): Boolean {
+        val code = native.keyCode
+        if (!tabsFocused && (code == AndroidKeyEvent.KEYCODE_DPAD_CENTER || code == AndroidKeyEvent.KEYCODE_ENTER)) {
+            when (okPress.onKey(native)) {
+                KeyAction.Short -> listProgrammes.getOrNull(listIndex)?.let { p -> listChannel?.let { okOn(it, FocusBlock(p.startMs, p.stopMs, p)) } }
+                KeyAction.Long -> listSheet()
+                KeyAction.None -> Unit
+            }
+            return true
+        }
+        if (native.action != AndroidKeyEvent.ACTION_DOWN) return false
+        when (code) {
+            AndroidKeyEvent.KEYCODE_DPAD_UP -> when {
+                tabsFocused -> Unit
+                listIndex <= 0 -> tabsFocused = true
+                else -> listIndex--
+            }
+            AndroidKeyEvent.KEYCODE_DPAD_DOWN -> when {
+                tabsFocused -> tabsFocused = false
+                listIndex < listProgrammes.lastIndex -> listIndex++
+            }
+            AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER -> tabsFocused = false
+            AndroidKeyEvent.KEYCODE_DPAD_LEFT -> if (tabsFocused) listView = false
+            AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> if (tabsFocused && !listView) openList()
+            AndroidKeyEvent.KEYCODE_MENU -> if (!tabsFocused) listSheet()
+            AndroidKeyEvent.KEYCODE_GUIDE -> if (listView) nav.back() else openList()
+            else -> return false
+        }
+        tick++
+        return true
+    }
+
     fun handleKey(native: AndroidKeyEvent): Boolean {
+        if (tabsFocused || listView) return handleListKey(native)
         // Left on the programme on air opens the groups column; a long Left (or Left elsewhere) moves in time.
         if (native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_LEFT) {
             if (!state.leftOpensGroups(System.currentTimeMillis())) {
@@ -266,7 +330,8 @@ fun GuideScreen() {
         val rows = items.itemCount
         state.keepUpWith(System.currentTimeMillis(), rowProgrammes(state.row)) // Up/Down land on what is on now
         when (native.keyCode) {
-            AndroidKeyEvent.KEYCODE_DPAD_UP -> state.moveRow(-1, rows, rowProgrammes((state.row - 1).coerceAtLeast(0)))
+            // Up on the top row: the tabs above the guide.
+            AndroidKeyEvent.KEYCODE_DPAD_UP -> if (state.row == 0) { tabsFocused = true } else state.moveRow(-1, rows, rowProgrammes((state.row - 1).coerceAtLeast(0)))
             AndroidKeyEvent.KEYCODE_DPAD_DOWN -> state.moveRow(+1, rows, rowProgrammes((state.row + 1).coerceAtMost(rows - 1)))
             AndroidKeyEvent.KEYCODE_CHANNEL_UP, AndroidKeyEvent.KEYCODE_PAGE_UP ->
                 visibleRows().let { n -> state.moveRow(-n, rows, rowProgrammes((state.row - n).coerceAtLeast(0))) }
@@ -276,7 +341,8 @@ fun GuideScreen() {
             AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD, AndroidKeyEvent.KEYCODE_MEDIA_NEXT -> state.jumpHours(2, rowProgrammes(state.row))
             AndroidKeyEvent.KEYCODE_MEDIA_REWIND, AndroidKeyEvent.KEYCODE_MEDIA_PREVIOUS -> state.jumpHours(-2, rowProgrammes(state.row))
             AndroidKeyEvent.KEYCODE_MENU -> { openSheet(); return true }
-            AndroidKeyEvent.KEYCODE_GUIDE -> { nav.back(); return true }
+            // The Guide key: this channel's programmes; again: back to the video.
+            AndroidKeyEvent.KEYCODE_GUIDE -> { openList(); tick++; return true }
             else -> return false
         }
         keepRowVisible()
@@ -294,6 +360,7 @@ fun GuideScreen() {
             details != null -> details = null
             side == SideNav.RAIL -> side = SideNav.GROUPS
             side == SideNav.GROUPS -> { commitBrowse(); side = SideNav.GRID }
+            listView || tabsFocused -> { listView = false; tabsFocused = false; tick++ }
             !settings.confirmExit || System.currentTimeMillis() - lastBackAt < 2_000 -> activity?.finish()
             else -> {
                 lastBackAt = System.currentTimeMillis()
@@ -385,17 +452,27 @@ fun GuideScreen() {
                     playback.isBuffering -> app.tiviate.ui.components.Spinner(32.dp)
                 }
             }
-            val focusedChannel = withTick(tick) { channelAt(state.row) }
+            val focusedChannel = withTick(tick) { if (listView) listChannel else channelAt(state.row) }
             withTick(tick) {
-                FocusDetails(state.focused, focusedChannel?.name, now, Modifier.weight(1f))
+                val listed = listProgrammes.getOrNull(listIndex)?.takeIf { listView }
+                FocusDetails(listed?.let { FocusBlock(it.startMs, it.stopMs, it) } ?: state.focused.takeIf { !listView }, focusedChannel?.name, now, Modifier.weight(1f))
             }
             Clock(TextStyle(color = Tokens.Text, fontSize = Tokens.HeadingSize, fontWeight = FontWeight.Medium))
         }
 
-        BoxWithConstraints(Modifier.fillMaxWidth().weight(0.6f).padding(horizontal = 12.dp)) {
+        BoxWithConstraints(
+            Modifier.fillMaxWidth().weight(0.6f).padding(horizontal = 12.dp)
+                // One holder takes the keys for the grid and "This channel" alike (the guide's own key handling).
+                .focusRequester(gridFocus).focusable().onKeyEvent { handleKey(it.nativeKeyEvent) },
+        ) {
             val stripWidth = maxWidth - GUIDE_CHANNEL_WIDTH
             val viewStart = withTick(tick) { state.viewStartMs }
             Column(Modifier.fillMaxSize()) {
+                GuideTabs(listView, tabsFocused)
+                if (listView) {
+                    ChannelProgrammes(listChannel, listProgrammes, now, listIndex.takeIf { !tabsFocused }, programmeList, Modifier.fillMaxSize())
+                    return@Column
+                }
                 GuideHeader(viewStart, state.windowMs, state.slotMs, stripWidth, dayLabel(viewStart, now) + "  ·  " + categoryLabel(category))
                 // Touch screens (a tablet held sideways): drag sideways through time, up and down through channels.
                 val touchable = app.tiviate.ui.LocalFormFactor.current != app.tiviate.ui.FormFactor.TV
@@ -425,11 +502,7 @@ fun GuideScreen() {
                     LazyColumn(
                         state = listState,
                         userScrollEnabled = touchable,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .focusRequester(gridFocus)
-                            .focusable()
-                            .onKeyEvent { handleKey(it.nativeKeyEvent) },
+                        modifier = Modifier.fillMaxSize(),
                     ) {
                         items(count = items.itemCount, key = { i -> channelAt(i)?.id ?: -i.toLong() - 1 }, contentType = { "row" }) { i ->
                             val channel = items[i]
