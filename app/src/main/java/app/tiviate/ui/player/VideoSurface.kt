@@ -67,12 +67,15 @@ private fun PlayerSurface(engine: PlaybackEngine, modifier: Modifier, blackOnSwi
     )
 }
 
-/** Keeps the TV from dimming or sleeping while the player screen is visible. */
+/**
+ * Keeps the TV from dimming or starting its screen saver while [on]: while something plays, on whichever screen
+ * shows it (one switch, so moving between screens can't turn it off). Android TV asks apps not to do this while paused.
+ */
 @Composable
-fun KeepScreenOn() {
+fun KeepScreenOn(on: Boolean) {
     val activity = LocalContext.current as? Activity
-    DisposableEffect(activity) {
-        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    DisposableEffect(activity, on) {
+        if (on) activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         onDispose { activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     }
 }

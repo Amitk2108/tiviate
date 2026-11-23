@@ -116,7 +116,6 @@ fun PlayerScreen() {
         }
     }
 
-    KeepScreenOn()
     MatchRefreshRate(enabled = settings.matchRefreshRate, frameRate = playback.frameRate)
     LaunchedEffect(Unit) { graph.longBack.collect { vm.close() } }
     val inPip by graph.player.inPip.collectAsStateWithLifecycle()

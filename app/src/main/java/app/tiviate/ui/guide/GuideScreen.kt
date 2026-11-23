@@ -72,7 +72,6 @@ import app.tiviate.ui.components.formatTime
 import app.tiviate.ui.components.progressOf
 import app.tiviate.ui.components.minutesLeft
 import app.tiviate.ui.components.rememberNow
-import app.tiviate.ui.player.KeepScreenOn
 import app.tiviate.ui.player.VideoSurface
 import app.tiviate.ui.player.categoryLabel
 import app.tiviate.ui.player.focusSoon
@@ -361,6 +360,8 @@ fun GuideScreen() {
             side == SideNav.RAIL -> side = SideNav.GROUPS
             side == SideNav.GROUPS -> { commitBrowse(); side = SideNav.GRID }
             listView || tabsFocused -> { listView = false; tabsFocused = false; tick++ }
+            // Moved back (or ahead) in time: Back returns to what is on now first.
+            !state.followsNow -> { state.backToNow(System.currentTimeMillis(), rowProgrammes(state.row)); tick++ }
             !settings.confirmExit || System.currentTimeMillis() - lastBackAt < 2_000 -> activity?.finish()
             else -> {
                 lastBackAt = System.currentTimeMillis()
@@ -371,7 +372,6 @@ fun GuideScreen() {
     LaunchedEffect(details, side, sheet) { if (details == null && sheet == null && side == SideNav.GRID && initialised) focusSoon(gridFocus) }
     // The group browsed to is saved once the groups column closes (not on every move).
     LaunchedEffect(side) { if (side == SideNav.GRID) vm.rememberGroup() }
-    KeepScreenOn()
 
     // Overlay mode: the guide sits over the full-screen video instead of next to a preview window.
     if (settings.guideOverlay) {

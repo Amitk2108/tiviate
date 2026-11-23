@@ -2,6 +2,16 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.5.4 — 2026-11-23
+
+### Fixed (GitHub issue #4)
+- **Screen saver while watching**: the screen now stays on whenever something plays, on every screen (full screen,
+  the TV guide, search, multi-view, films, the phone's Live screen). Before, only the full-screen player and the guide
+  kept it on, so the screen saver could start on other screens while a channel played. While paused it may start, as
+  Android TV asks of apps.
+- **TV guide**: after moving back (or ahead) in time, **Back** returns to the programme on air instead of offering to
+  exit.
+
 ## 0.5.3 — 2026-11-23
 
 ### Added: watching while browsing and searching (GitHub issue #5)

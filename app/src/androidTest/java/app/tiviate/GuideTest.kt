@@ -155,6 +155,23 @@ class GuideTest {
         rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("guide_channel_programmes") && rule.onAllNodesWithTagExists("guide_screen") }
     }
 
+    /** GitHub issue #4: after going back (or ahead) in time, Back returns to what is on now instead of offering to exit. */
+    @Test
+    fun backFromAnEarlierProgrammeReturnsToNowFirst() {
+        openGuide()
+        Remote.press(android.view.KeyEvent.KEYCODE_MEDIA_REWIND) // two hours back
+        rule.waitForIdle()
+        Remote.back()
+        rule.waitUntil(3_000) {
+            rule.onAllNodes(
+                androidx.compose.ui.test.hasTestTag("guide_focused") and androidx.compose.ui.test.hasAnyDescendant(androidx.compose.ui.test.hasText("Aurora News Show 3")),
+                useUnmergedTree = true,
+            ).fetchSemanticsNodes().isNotEmpty()
+        }
+        assert(rule.onAllNodesWithTagExists("guide_screen")) { "still in the guide" }
+        assert(!rule.textExists("Press Back again to exit")) { "no exit offer yet" }
+    }
+
     private fun openGuide() {
         Remote.right()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_screen") }
