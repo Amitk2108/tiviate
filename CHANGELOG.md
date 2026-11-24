@@ -2,6 +2,25 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.5.6 — 2026-11-24
+
+### Fixed: guide gone after an update (GitHub issue #9)
+- When several guides know a channel, the one with programmes for it now wins over one that only names it. Since
+  0.5.2 Tiviate reads every guide link a playlist lists; a playlist's own guides come first, so one that named the
+  channel but had no programmes could take it from the guide you added ("No EPG", channel logos gone).
+
+### Fixed: archives and doubled programmes (GitHub issue #7)
+- Archives a playlist states **for all its channels** on its first line (`#EXTM3U catchup="…" catchup-days="…"
+  catchup-source="…"`) and archive **days without a type** (`tvg-rec="3"`, `timeshift="3"`) now count. With days
+  only, the link decides: Xtream links use Xtream's archive, Flussonic-style links Flussonic's, others the common
+  `?utc=` form (tried in turn). `tvg-rec="0"` keeps a channel out of the playlist's archive.
+- Guides that list every programme twice (once with a "." added) show it once.
+
+### Fixed: phones held upright (GitHub issue #8)
+- **Open last channel fullscreen on start** (Settings → General) plays the last channel on the Live screen too, in
+  the video on top.
+- **Picture-in-picture when Home is pressed** (Settings → Playback) works from the Live screen too.
+
 ## 0.5.5 — 2026-11-23
 
 ### Added: any channel's programmes as a list on phones (GitHub issue #6)

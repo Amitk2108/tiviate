@@ -55,13 +55,13 @@ class PhoneFeaturesTest {
     @After
     fun tearDown() {
         WorkManager.getInstance(context).cancelAllWork()
-        runBlocking { graph.settings.update { it.copy(reminders = emptySet()) } }
+        runBlocking { graph.settings.update { it.copy(reminders = emptySet(), startFullscreen = false, pipOnHome = false) } }
         InstrumentationRegistry.getInstrumentation().uiAutomation.setRotation(UiAutomation.ROTATION_UNFREEZE)
         scenario?.close()
         if (::fixtures.isInitialized) fixtures.shutdown()
     }
 
-    private fun start(xtream: Boolean) {
+    private fun start(xtream: Boolean, configure: (app.tiviate.data.AppSettings) -> app.tiviate.data.AppSettings = { it }) {
         runBlocking {
             graph.playlists.playlists.first().forEach { graph.playlists.delete(it.id) }
             val id = if (xtream) {
@@ -70,7 +70,7 @@ class PhoneFeaturesTest {
                 graph.playlists.addM3uUrl("My IPTV", fixtures.url("/list.m3u"), null, null)
             }
             graph.playlists.sync(id).first { it is SyncProgress.Done || it is SyncProgress.Failed }
-            graph.settings.update { it.copy(activePlaylistId = id, reminders = emptySet()) }
+            graph.settings.update { configure(it.copy(activePlaylistId = id, reminders = emptySet())) }
             if (xtream) {
                 while (graph.library.count(id).first() < 2) kotlinx.coroutines.delay(200)
             }
@@ -124,6 +124,23 @@ class PhoneFeaturesTest {
         rule.onNodeWithTag("search_channel_0").performClick()
         rule.waitUntil(15_000) { graph.player.current.value?.name == "Beacon Sports" }
         assertTrue("still searching", rule.onAllNodesWithTagExists("search_screen"))
+    }
+
+    /** GitHub issue #8: "Open last channel fullscreen on start" plays it on the phone's Live screen too (in the video on top). */
+    @Test
+    fun theLastChannelPlaysOnStartWhenTheSettingIsOn() {
+        start(xtream = false) { it.copy(startFullscreen = true) }
+        rule.waitUntil(15_000) { graph.player.current.value != null && graph.player.engine.state.value.isPlaying }
+        assertTrue("the Live screen, video on top", rule.onAllNodesWithTagExists("phone_home"))
+    }
+
+    /** GitHub issue #8: Home switches to picture-in-picture from the Live screen too. */
+    @Test
+    fun homeSwitchesToPictureInPictureFromTheLiveScreen() {
+        start(xtream = false) { it.copy(pipOnHome = true) }
+        playFirstChannel()
+        androidx.test.uiautomator.UiDevice.getInstance(InstrumentationRegistry.getInstrumentation()).pressHome()
+        rule.waitUntil(10_000) { graph.player.inPip.value }
     }
 
     /** GitHub issue #6: a channel's logo shows its programmes without switching; a tap on what's on now plays it. */

@@ -24,7 +24,7 @@ object Catchup {
 
     /** Whether the channel's playlist entry describes an archive Tiviate can play. */
     fun supported(type: String?, source: String?): Boolean =
-        type?.trim()?.lowercase() in setOf("xc", "shift", "flussonic", "flussonic-hls", "flussonic-ts", "fs") || !source.isNullOrBlank()
+        type?.trim()?.lowercase() in setOf("xc", "shift", "flussonic", "flussonic-hls", "flussonic-ts", "fs", "auto") || !source.isNullOrBlank()
 
     /**
      * The archive links for the programme from [startMs] to [endMs], best first (empty when the channel has
@@ -36,7 +36,8 @@ object Catchup {
         val t = Times(startMs / 1000, endMs / 1000, nowMs / 1000)
         return when (val kind = type?.trim()?.lowercase()) {
             "xc" -> listOfNotNull(xtream(liveUrl, t, zone))
-            "shift" -> listOf(liveUrl + (if ('?' in liveUrl) "&" else "?") + "utc=${t.start}&lutc=${t.now}")
+            "shift" -> listOf(shift(liveUrl, t))
+            "auto" -> auto(liveUrl, t, zone)
             "flussonic", "flussonic-hls", "flussonic-ts", "fs" -> flussonic(liveUrl, t, preferTs = kind == "flussonic-ts" || kind == "fs")
             "append" -> listOf(liveUrl + expand(source!!, t))
             // "default" (or no type): the source is the whole link; a relative one is added to the stream link.
@@ -46,6 +47,19 @@ object Catchup {
 
     private class Times(val start: Long, val end: Long, val now: Long) {
         val duration get() = (end - start).coerceAtLeast(0)
+    }
+
+    /** The "shift" form most servers take: `?utc=<start>&lutc=<now>` on the live link. */
+    private fun shift(liveUrl: String, t: Times) = liveUrl + (if ('?' in liveUrl) "&" else "?") + "utc=${t.start}&lutc=${t.now}"
+
+    /**
+     * Days of archive but no type (tvg-rec, timeshift): the link tells. Xtream links get Xtream's archive; links that
+     * look like Flussonic get its forms; every link ends with the "shift" form (the player tries them in turn).
+     */
+    private fun auto(liveUrl: String, t: Times, zone: ZoneId): List<String> {
+        val file = liveUrl.substringBefore('?').trimEnd('/').substringAfterLast('/')
+        val flussonic = file == "mpegts" || file in setOf("index.m3u8", "mono.m3u8", "video.m3u8")
+        return listOfNotNull(xtream(liveUrl, t, zone)) + (if (flussonic) flussonic(liveUrl, t, preferTs = file == "mpegts") else emptyList()) + shift(liveUrl, t)
     }
 
     private val XTREAM_LIVE = Regex("""^(https?://[^/]+)/(?:live/)?([^/]+)/([^/]+)/(\d+)(?:\.\w+)?(?:\?.*)?$""")

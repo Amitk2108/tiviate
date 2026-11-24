@@ -117,7 +117,8 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
      * Resumes the last watched channel (or the first one) unless something is already playing.
      * [autoplay] = false only loads the playlist and group (the phone screen waits for a tap).
      */
-    fun ensurePlaying(autoplay: Boolean = true) {
+    /** [autoplay] null: as "Open last channel fullscreen on start" says (the phone's Live screen). */
+    fun ensurePlaying(autoplay: Boolean? = true) {
         viewModelScope.launch {
             val settings = graph.settings.settings.first()
             val pid = settings.activePlaylistId ?: return@launch
@@ -127,7 +128,7 @@ class PlayerViewModel(private val graph: AppGraph) : ViewModel() {
             // picked, also after switching playlist in the guide.
             _category.value = Category.restore(settings.lastGroup)
             savedGroup = settings.lastGroup
-            if (!autoplay || (controller.current.value != null && controller.engine.state.value.channelKey != null)) return@launch
+            if (!(autoplay ?: settings.startFullscreen) || (controller.current.value != null && controller.engine.state.value.channelKey != null)) return@launch
             val channel = settings.lastChannelKey?.let { repo.byKey(pid, it) }
                 ?: repo.first(pid, Category.All)
                 ?: return@launch

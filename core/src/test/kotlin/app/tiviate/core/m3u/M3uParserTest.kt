@@ -14,6 +14,30 @@ class M3uParserTest {
         return Triple(headers, entries, stats)
     }
 
+    /** GitHub issue #7: archives the playlist states on its first line, or as days only (tvg-rec, timeshift). */
+    @Test
+    fun archivesStatedForTheWholePlaylistOrAsDaysOnly() {
+        val (_, entries, _) = parse(
+            """#EXTM3U catchup="shift" catchup-days="5"
+            |#EXTINF:-1,Uses the playlist's archive
+            |http://h/1.m3u8
+            |#EXTINF:-1 catchup="flussonic" catchup-days="2",Has its own
+            |http://h/2/index.m3u8
+            |#EXTINF:-1 tvg-rec="0",No archive here
+            |http://h/3.m3u8
+            |""".trimMargin(),
+        )
+        assertEquals(listOf("shift", "flussonic", null), entries.map { it.catchup })
+        assertEquals(listOf(5, 2, 0), entries.map { it.catchupDays })
+
+        val (_, days, _) = parse("#EXTM3U\n#EXTINF:-1 tvg-rec=\"3\",A\nhttp://h/a\n#EXTINF:-1 timeshift=\"4\",B\nhttp://h/b\n#EXTINF:-1,C\nhttp://h/c\n")
+        assertEquals("days only: the link decides the type", listOf("auto", "auto", null), days.map { it.catchup })
+        assertEquals(listOf(3, 4, null), days.map { it.catchupDays })
+
+        val (_, sourced, _) = parse("#EXTM3U catchup-source=\"?utc={utc}\"\n#EXTINF:-1,D\nhttp://h/d\n")
+        assertEquals("the playlist's archive link", "?utc={utc}", sourced.single().catchupSource)
+    }
+
     @Test
     fun parsesBasicAttributes() {
         val (_, entries, stats) = parse(

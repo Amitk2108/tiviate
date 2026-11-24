@@ -89,6 +89,45 @@ class EpgSyncerTest {
         assertEquals("the third link is read too", listOf("From B"), titles("UK: Sport Two FHD"))
     }
 
+    /** GitHub issue #7: some guides list every programme twice (once with a "." added): it is shown once. */
+    @Test
+    fun aProgrammeListedTwiceIsKeptOnce() = runBlocking {
+        val hour = 3_600_000L
+        fun fmt(ms: Long) = java.text.SimpleDateFormat("yyyyMMddHHmmss Z", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(ms))
+        fun programme(start: Long, title: String) = "<programme start=\"${fmt(start)}\" stop=\"${fmt(start + hour)}\" channel=\"bcu\"><title>$title</title></programme>"
+        h.routes["/epg.xml.gz"] = {
+            gzipOctet("<tv><channel id=\"bcu\"><display-name>BCU Comedy HD</display-name></channel>" +
+                programme(h.now, "Batya 2 (2025).") + programme(h.now, "Batya 2 (2025)") + programme(h.now + hour, "Minecraft (2025).") + programme(h.now + hour, "Minecraft (2025)") + "</tv>")
+        }
+        h.routes["/list.m3u"] = { text("#EXTM3U url-tvg=\"${h.url("/epg.xml.gz")}\"\n#EXTINF:-1,BCU Comedy HD\nhttp://h/1.m3u8\n") }
+        val id = h.db.playlists().insert(PlaylistEntity(name = "P", type = PlaylistType.M3U_URL, url = h.url("/list.m3u")))
+        h.playlistSyncer().sync(id)
+        h.epgSyncer().syncForPlaylist(id)
+        val ref = h.db.channels().allInPlaylist(id).single().epgRef!!
+        assertEquals(listOf("Batya 2 (2025).", "Minecraft (2025)."), h.db.epg().programmesFor(listOf(ref), 0, Long.MAX_VALUE).map { it.title })
+    }
+
+    /** GitHub issue #9: a guide of the playlist that names the channel but has no programmes for it doesn't win over one that has them. */
+    @Test
+    fun aGuideWithProgrammesWinsOverOneThatOnlyNamesTheChannel() = runBlocking {
+        val hour = 3_600_000L
+        fun fmt(ms: Long) = java.text.SimpleDateFormat("yyyyMMddHHmmss Z", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date(ms))
+        // The playlist's own guide knows the channel but lists nothing for it; the guide the viewer added has its programmes.
+        h.routes["/own.xml.gz"] = { gzipOctet("<tv><channel id=\"stale\"><display-name>Markíza</display-name></channel></tv>") }
+        h.routes["/added.xml.gz"] = {
+            gzipOctet("<tv><channel id=\"8-markiza\"><display-name>Markíza</display-name></channel><programme start=\"${fmt(h.now)}\" stop=\"${fmt(h.now + hour)}\" channel=\"8-markiza\"><title>Kobra 11</title></programme></tv>")
+        }
+        h.routes["/list.m3u"] = { text("#EXTM3U url-tvg=\"${h.url("/own.xml.gz")}\"\n#EXTINF:-1,Markíza\nhttp://h/1.m3u8\n") }
+        val id = h.db.playlists().insert(PlaylistEntity(name = "P", type = PlaylistType.M3U_URL, url = h.url("/list.m3u")))
+        h.db.epg().insertSource(EpgSourceEntity(url = h.url("/added.xml.gz"), name = "Added", origin = EpgOrigin.MANUAL))
+        h.playlistSyncer().sync(id)
+        h.epgSyncer().syncForPlaylist(id)
+
+        val ch = h.db.channels().allInPlaylist(id).single()
+        assertTrue("linked to the guide with programmes, was ${ch.epgRef}", ch.epgRef.orEmpty().endsWith(":8-markiza"))
+        assertEquals(listOf("Kobra 11"), h.db.epg().programmesFor(listOf(ch.epgRef!!), 0, Long.MAX_VALUE).map { it.title })
+    }
+
     /** GitHub issue #4: guides that start at "now" made every refresh empty the archive. */
     @Test
     fun aRefreshKeepsProgrammesThatAiredAsFarBackAsTheChannelsArchive() = runBlocking {

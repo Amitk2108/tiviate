@@ -22,6 +22,20 @@ class CatchupTest {
     private fun best(type: String?, source: String?, live: String, start: Long, end: Long, now: Long, zone: ZoneId = java.time.ZoneOffset.UTC) =
         Catchup.urls(type, source, live, start, end, now, zone).firstOrNull()
 
+    /** GitHub issue #7: days of archive without a type: Xtream, Flussonic or "shift", from the look of the link. */
+    @Test
+    fun anArchiveWithoutATypeFollowsTheLink() {
+        val start = 1_792_756_800_000L
+        val end = start + 3_600_000L
+        val now = end + 600_000L
+        assertTrue(best("auto", null, "http://h:8080/live/u/p/123.ts", start, end, now)!!.startsWith("http://h:8080/timeshift/u/p/60/"))
+        val fs = Catchup.urls("auto", null, "http://h/ch/index.m3u8?q=1", start, end, now)
+        assertEquals("http://h/ch/archive-${start / 1000}-3600.m3u8?q=1", fs.first())
+        assertEquals("and the common form last", "http://h/ch/index.m3u8?q=1&utc=${start / 1000}&lutc=${now / 1000}", fs.last())
+        assertEquals(listOf("http://h/tv/5.m3u8?utc=${start / 1000}&lutc=${now / 1000}"), Catchup.urls("auto", null, "http://h/tv/5.m3u8", start, end, now))
+        assertTrue(Catchup.available("auto", null, 3, start, end, now))
+    }
+
     @Test
     fun xtreamUsesTheServersLocalTime() {
         assertEquals(

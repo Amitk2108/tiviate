@@ -23,6 +23,7 @@ object M3uParser {
         var entries = 0
         var skipped = 0
         var firstLine = true
+        var header = emptyMap<String, String>()
 
         while (true) {
             var line = source.readUtf8Line() ?: break
@@ -34,7 +35,7 @@ object M3uParser {
             if (line.isEmpty()) continue
 
             when {
-                line.startsWith("#EXTM3U") -> onHeader(parseHeader(line.removePrefix("#EXTM3U")))
+                line.startsWith("#EXTM3U") -> parseHeader(line.removePrefix("#EXTM3U")).let { header = it.attrs; onHeader(it) }
                 line.startsWith("#EXTINF:") -> {
                     if (pending != null) skipped++
                     pending = parseExtinf(line.removePrefix("#EXTINF:")).also { it.kodi.putAll(kodiBefore); kodiBefore.clear() }
@@ -52,7 +53,7 @@ object M3uParser {
                 // instead of the playlist must not turn into "channels".
                 pending == null && !BARE_URL.matches(line) -> skipped++
                 else -> {
-                    onEntry((pending ?: Pending.forBareUrl(line).also { it.kodi.putAll(kodiBefore) }).toEntry(line))
+                    onEntry((pending ?: Pending.forBareUrl(line).also { it.kodi.putAll(kodiBefore) }).toEntry(line, header))
                     kodiBefore.clear()
                     entries++
                     pending = null
@@ -161,8 +162,21 @@ object M3uParser {
             return scheme to kodi["inputstream.adaptive.license_key"]?.ifBlank { null }?.takeIf { scheme != null }
         }
 
-        fun toEntry(url: String): M3uEntry {
+        fun toEntry(url: String, header: Map<String, String> = emptyMap()): M3uEntry {
             val tvgName = attr("tvg-name")
+            // Archive: the channel's own attributes, else the playlist's (#EXTM3U line). tvg-rec and timeshift give
+            // the days other players read; days without a type leave the type to the link ("auto").
+            fun fromHeader(key: String) = header[key]?.takeIf { it.isNotBlank() }
+            val ownDays = attr("catchup-days") ?: attr("tvg-rec") ?: attr("timeshift")
+            val days = (ownDays ?: fromHeader("catchup-days") ?: fromHeader("tvg-rec") ?: fromHeader("timeshift"))?.toIntOrNull()
+            val ownType = attr("catchup") ?: attr("catchup-type")
+            val noArchive = ownType == null && ownDays?.toIntOrNull() == 0 // the playlist's archive, but not on this channel
+            val source = (attr("catchup-source") ?: fromHeader("catchup-source")).takeIf { !noArchive }
+            val type = when {
+                noArchive -> null
+                ownType != null -> ownType
+                else -> fromHeader("catchup") ?: fromHeader("catchup-type") ?: "auto".takeIf { source == null && (days ?: 0) > 0 }
+            }
             val name = title.ifEmpty { tvgName ?: nameFromUrl(url) }
             return M3uEntry(
                 name = name,
@@ -172,9 +186,9 @@ object M3uParser {
                 tvgLogo = attr("tvg-logo") ?: attr("logo"),
                 groupTitle = attr("group-title") ?: extGroup,
                 tvgChno = attr("tvg-chno")?.toIntOrNull() ?: attr("channel-number")?.toIntOrNull(),
-                catchup = attr("catchup") ?: attr("catchup-type"),
-                catchupSource = attr("catchup-source"),
-                catchupDays = attr("catchup-days")?.toIntOrNull(),
+                catchup = type,
+                catchupSource = source,
+                catchupDays = days,
                 userAgent = userAgent ?: attr("user-agent") ?: attr("http-user-agent"),
                 referrer = referrer ?: attr("http-referrer") ?: attr("referrer"),
                 attrs = attrs,

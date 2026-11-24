@@ -77,7 +77,7 @@ class EpgSyncer(
             }
         }
         val relinked = if (shared != null) everyPlaylist else playlists.map { it.id }
-        relinked.forEach { EpgLinker(db).relink(it) }
+        relinked.forEach { EpgLinker(db, clock).relink(it) }
         db.epg().deleteEndedBefore(clock() - pastMs, clock() - archiveMs)
         EpgSyncResult(total, ok, failed)
     }
@@ -217,17 +217,21 @@ class EpgSyncer(
 }
 
 /** Re-applies EPG matches (and EPG logos) to a playlist's channels from the stored guide channel lists. */
-class EpgLinker(private val db: TiviateDatabase) {
+class EpgLinker(private val db: TiviateDatabase, private val clock: () -> Long = System::currentTimeMillis) {
 
     suspend fun relink(playlistId: Long) {
         val sources = db.epg().sourcesFor(playlistId)
         if (sources.isEmpty()) return
+        // A guide with programmes for a channel wins over one that only names it (GitHub issue #9: a playlist's
+        // own guides come first, and one of them knowing the name took channels from the guide the viewer added).
+        val listed = db.epg().refsWithProgrammesAfter(clock()).toHashSet()
         val matcher = EpgMatcher()
         val icons = HashMap<String, String?>()
         sources.forEachIndexed { priority, source ->
             for (row in db.epg().channels(source.id)) {
                 val names = row.displayNames.split(EpgChannelEntity.NAME_SEPARATOR).filter { it.isNotEmpty() }
-                matcher.add(source.id, priority, XmltvChannel(row.xmltvId, names, row.iconUrl))
+                val rank = if ("${source.id}:${row.xmltvId}" in listed) priority else priority + sources.size
+                matcher.add(source.id, rank, XmltvChannel(row.xmltvId, names, row.iconUrl))
                 icons["${source.id}:${row.xmltvId}"] = row.iconUrl
             }
         }

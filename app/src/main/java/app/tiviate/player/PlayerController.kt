@@ -41,6 +41,7 @@ class PlayerController(
     val previous: StateFlow<ChannelEntity?> = _previous
 
     /** True while the fullscreen player is on screen (picture-in-picture on Home only applies there). */
+    /** The video is in view (fullscreen, or on top of the phone's Live screen): Home may switch to picture-in-picture. */
     @Volatile var fullscreenVisible: Boolean = false
 
     /** Picture-in-picture is showing; the player screen hides its panels then. */

@@ -100,10 +100,16 @@ fun PhoneHome() {
     val channels = vm.channels.collectAsLazyPagingItems()
     val now = rememberNow()
     var sheet by remember { mutableStateOf<SheetTarget?>(null) }
-    // Nothing starts by itself (as on TV): the playlist and group load, a tap plays.
+    // The playlist and group load; the last channel plays if "Open last channel fullscreen on start" says so
+    // (GitHub issue #8), else a tap plays.
     LifecycleStartEffect(Unit) {
-        vm.ensurePlaying(autoplay = false)
+        vm.ensurePlaying(autoplay = null)
         onStopOrDispose { }
+    }
+    // The video is in view here: Home can switch to picture-in-picture, as from fullscreen (GitHub issue #8).
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        graph.player.fullscreenVisible = true
+        onDispose { graph.player.fullscreenVisible = false }
     }
     fun fullscreen() { (context as? Activity)?.let { Rotation.fullscreen(it, on = true) } }
 

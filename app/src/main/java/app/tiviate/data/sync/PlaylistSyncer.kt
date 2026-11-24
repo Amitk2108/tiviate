@@ -54,7 +54,7 @@ class PlaylistSyncer(
             db.channels().deleteStale(playlist.id, keepStamp = stamp)
             db.playlists().markSynced(playlist.id, stamp, result.detectedEpgUrl)
             result.serverTimezone?.let { db.playlists().setServerTimezone(playlist.id, it) }
-            EpgLinker(db).relink(playlist.id)
+            EpgLinker(db, clock).relink(playlist.id)
             result
         } catch (e: CancellationException) {
             throw e

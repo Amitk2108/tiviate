@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
         }.getOrDefault(false)
     }
 
-    /** "Switch to picture-in-picture on Home": only from fullscreen, only while something plays. */
+    /** "Switch to picture-in-picture on Home": only where the video is in view (fullscreen, the phone's Live screen), only while something plays. */
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         val player = graph.player

@@ -325,6 +325,10 @@ interface EpgDao {
     )
     suspend fun sourcesFor(playlistId: Long): List<EpgSourceEntity>
 
+    /** Guide channels ("sourceId:xmltvId") with programmes that end after [afterMs]. */
+    @Query("SELECT DISTINCT epgRef FROM programme WHERE stopMs > :afterMs")
+    suspend fun refsWithProgrammesAfter(afterMs: Long): List<String>
+
     @Query("SELECT * FROM epg_source WHERE origin = 'AUTO' AND playlistId = :playlistId LIMIT 1")
     suspend fun autoSource(playlistId: Long): EpgSourceEntity?
 
@@ -383,9 +387,17 @@ interface EpgDao {
     )
     suspend fun carryOverPast(sourceId: Long, newGeneration: Int, nowMs: Long, keepFromMs: Long, archiveFromMs: Long)
 
+    /** Programmes a guide lists twice for a channel and start (GitHub issue #7: once more with a "." added): the first stays. */
+    @Query(
+        """DELETE FROM programme WHERE sourceId = :sourceId AND generation = :generation AND id NOT IN (
+             SELECT MIN(id) FROM programme WHERE sourceId = :sourceId AND generation = :generation GROUP BY epgRef, startMs)""",
+    )
+    suspend fun deleteRepeats(sourceId: Long, generation: Int)
+
     /** Makes [newGeneration] visible (with what already aired) and drops every other generation of the source atomically. */
     @Transaction
     suspend fun swapGeneration(sourceId: Long, newGeneration: Int, nowMs: Long = 0, keepFromMs: Long = 0, archiveFromMs: Long = 0) {
+        deleteRepeats(sourceId, newGeneration)
         carryOverPast(sourceId, newGeneration, nowMs, keepFromMs, archiveFromMs)
         setActiveGeneration(sourceId, newGeneration)
         deleteOtherGenerations(sourceId, newGeneration)
