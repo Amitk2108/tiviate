@@ -2,6 +2,16 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.5.7 — 2026-11-24
+
+### Fixed
+- **Settings on TV**: the last section, **About**, showed as a blank row. On a TV screen the list of sections didn't
+  fit, and the last one got no room for its name. The list now scrolls to whichever section is selected.
+
+### Also
+- A 60-second video shows Tiviate: on the [website](https://amitk2108.github.io/tiviate/#video) and at the top of the
+  README.
+
 ## 0.5.6 — 2026-11-24
 
 ### Fixed: guide gone after an update (GitHub issue #9)

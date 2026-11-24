@@ -13,6 +13,10 @@ TV, phone and tablet · remote and touch · M3U links · Xtream Codes · full TV
 ![Min Android 7.0](https://img.shields.io/badge/Android-7.0%2B-informational.svg)
 ![Made by Amit Kumar](https://img.shields.io/badge/made%20by-Amit%20Kumar-ff69b4.svg)
 
+[![Watch Tiviate in 60 seconds](docs/video/tiviate-launch.jpg)](https://amitk2108.github.io/tiviate/video/tiviate-launch.mp4)
+
+**▶ [Watch Tiviate in 60 seconds](https://amitk2108.github.io/tiviate/video/tiviate-launch.mp4)**
+
 [Website](https://amitk2108.github.io/tiviate/) · [Download](#-download) · [Features](#-features) · [Screenshots](#-screenshots) · [Remote control](#-remote-control) · [Build](#-building-from-source) · [Contributing](CONTRIBUTING.md) · [Legal](#%EF%B8%8F-legal)
 
 </div>

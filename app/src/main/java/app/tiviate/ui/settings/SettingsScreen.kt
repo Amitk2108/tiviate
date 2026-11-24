@@ -137,7 +137,7 @@ private fun TwoPaneSettings() {
     Row(Modifier.fillMaxSize().padding(horizontal = Tokens.SafeMargin, vertical = 20.dp).testTag("settings_screen"), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
         Column(Modifier.width(210.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(t("Settings"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.Bold), modifier = Modifier.padding(start = 12.dp, bottom = 14.dp))
-            SectionList(section, first) { section = it }
+            SectionList(section, first, Modifier.weight(1f), spacing = 4.dp) { section = it }
         }
         Box(Modifier.weight(1f).fillMaxHeight()) { SectionContent(section) }
     }
@@ -152,7 +152,7 @@ private fun PhoneSettings() {
         val s = open
         if (s == null) {
             Text(t("Settings"), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.Bold), modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
-            SectionList(null, remember { FocusRequester() }) { open = it }
+            SectionList(null, remember { FocusRequester() }, Modifier.weight(1f), spacing = 10.dp) { open = it }
         } else {
             FocusSurface(onClick = { open = null }, container = Color.Transparent, shape = Tokens.SmallShape, scale = 1f, modifier = Modifier.testTag("settings_back")) {
                 Row(Modifier.padding(horizontal = 4.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -165,8 +165,10 @@ private fun PhoneSettings() {
     }
 }
 
+/** The sections; the list scrolls, so on a short screen (a TV, larger text) the last ones come into view too. */
 @Composable
-private fun SectionList(selectedSection: Section?, first: FocusRequester, onPick: (Section) -> Unit) {
+private fun SectionList(selectedSection: Section?, first: FocusRequester, modifier: Modifier, spacing: androidx.compose.ui.unit.Dp, onPick: (Section) -> Unit) {
+    Column(modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(spacing)) {
             Section.entries.forEachIndexed { i, s ->
                 val selected = s == selectedSection
                 FocusSurface(
@@ -182,6 +184,7 @@ private fun SectionList(selectedSection: Section?, first: FocusRequester, onPick
                     }
                 }
             }
+    }
 }
 
 @Composable

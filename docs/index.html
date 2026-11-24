@@ -190,6 +190,7 @@ nav.links a.pill { color: var(--ink); border: 1px solid var(--line-strong); padd
 
 /* ---------- Sections ---------- */
 section.block { padding-block: 96px; position: relative; }
+.launch-video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; margin-top: 32px; border-radius: 22px; background: #000; border: 1px solid rgba(56, 198, 238, .25); box-shadow: 0 30px 90px rgba(0, 0, 0, .5), 0 0 90px rgba(79, 124, 255, .18); }
 .head { display: flex; flex-direction: column; gap: 14px; max-width: 64ch; margin-bottom: 44px; }
 .bento { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .card { --mx: 50%; --my: 50%; position: relative; border-radius: 18px; padding: 24px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
@@ -409,6 +410,20 @@ footer p { max-width: 95ch; }
       <span>M3U &amp; M3U8 playlists</span><span>Xtream Codes</span><span>XMLTV TV guide</span><span>Favourites &amp; your own groups</span><span>AC3 · E-AC3 · DTS</span><span>Picture-in-picture</span><span>Backup &amp; restore</span><span>40 languages</span><span>Left / Right channel switching</span>
     </div>
   </div>
+
+  <section class="block" id="video" aria-labelledby="video-h">
+    <div class="wrap">
+      <div class="head reveal">
+        <span class="eyebrow">Video</span>
+        <h2 id="video-h">See Tiviate in 60 seconds</h2>
+        <p class="muted">The TV guide, catch-up, multi-view, the phone app and every free feature, in one minute.</p>
+      </div>
+      <video class="launch-video" controls preload="none" playsinline poster="video/tiviate-launch.jpg" width="1920" height="1080">
+        <source src="video/tiviate-launch.mp4" type="video/mp4">
+        <a href="video/tiviate-launch.mp4">Watch the video</a>
+      </video>
+    </div>
+  </section>
 
   <section class="block lazy" id="features" aria-labelledby="features-h">
     <div class="wrap">

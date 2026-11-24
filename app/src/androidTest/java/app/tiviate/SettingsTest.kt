@@ -2,6 +2,7 @@ package app.tiviate
 
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
@@ -61,6 +62,28 @@ class SettingsTest {
         Remote.ok()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("settings_screen") }
         rule.waitForIdle()
+    }
+
+    /** On a short screen (a TV, a phone turned sideways) the list scrolls to the last section, "About", instead of hiding its name. */
+    @Test
+    fun theLastSectionComesIntoViewOnAShortScreen() {
+        val automation = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation
+        automation.setRotation(android.app.UiAutomation.ROTATION_FREEZE_90)
+        try {
+            launchWith(xtream = false)
+            rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("section_general") }
+            repeat(12) { Remote.down(); rule.waitForIdle() } // to the last section
+            val about = rule.onNodeWithTag("section_about").fetchSemanticsNode()
+            val screen = rule.onRoot().fetchSemanticsNode().size.height
+            // Squeezed by the sections above, it was 0 px tall: a blank row that still opened "About".
+            org.junit.Assert.assertTrue("About has room for its name (${about.size})", about.size.height > 0)
+            org.junit.Assert.assertTrue(
+                "About is on screen (bottom ${about.positionInRoot.y + about.size.height} of $screen)",
+                about.positionInRoot.y + about.size.height <= screen,
+            )
+        } finally {
+            automation.setRotation(android.app.UiAutomation.ROTATION_UNFREEZE)
+        }
     }
 
     @Test
