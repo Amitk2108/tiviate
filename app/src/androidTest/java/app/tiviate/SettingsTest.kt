@@ -86,6 +86,16 @@ class SettingsTest {
         }
     }
 
+    /** Asked by a viewer coming from TiviMate: hiding groups (categories) opens from Settings too. */
+    @Test
+    fun manageGroupsOpensFromSettings() {
+        launchWith(xtream = false)
+        rule.onNodeWithTag("section_appearance").activate()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("setting_manage_groups") }
+        rule.onNodeWithTag("setting_manage_groups").activate()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("manage_groups") }
+    }
+
     @Test
     fun changeBufferPresetPersists() {
         launchWith(xtream = false)

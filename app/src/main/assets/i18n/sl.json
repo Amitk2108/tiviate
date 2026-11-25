@@ -472,5 +472,7 @@
 "Left goes back to aired programmes": "Levo gre na predvajane oddaje",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV-vodnik, kanali z arhivom: Levo gre na oddaje, ki si jih lahko ogledate znova. Pridržite Levo za skupine.",
 "This channel": "Ta kanal",
-"Programmes": "Oddaje"
+"Programmes": "Oddaje",
+"Swap channel up and down": "Zamenjaj kanal gor in dol",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Gor in CH+ preklopita na prejšnji kanal, Dol in CH− na naslednjega."
 }

@@ -472,5 +472,7 @@
 "Left goes back to aired programmes": "Vasen palaa jo esitettyihin ohjelmiin",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV-opas, kanavat, joilla on arkisto: Vasen siirtyy ohjelmiin, jotka voit katsoa uudelleen. Pidä Vasen pohjassa avataksesi ryhmät.",
 "This channel": "Tämä kanava",
-"Programmes": "Ohjelmat"
+"Programmes": "Ohjelmat",
+"Swap channel up and down": "Vaihda kanava ylös ja alas toisin päin",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Ylös ja CH+ siirtyvät edelliselle kanavalle, Alas ja CH− seuraavalle."
 }

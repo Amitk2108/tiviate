@@ -2,6 +2,19 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.5.8 — 2026-11-25
+
+### Fixed: This channel in the TV guide (GitHub issue #7)
+- **This channel** listed the top row's channel, because the tabs sit above the top row. It now lists the channel
+  playing in the preview.
+- **Any channel's programmes:** hold OK on a channel in the guide and pick **Programmes**.
+
+### Added
+- **Settings → Remote control → Swap channel up and down**: Up and CH+ go to the previous channel, Down and CH− to
+  the next. Off by default.
+- **Settings → Appearance → Groups list → Manage groups**: show, hide and reorder groups (also in a channel's menu,
+  hold OK).
+
 ## 0.5.7 — 2026-11-24
 
 ### Fixed

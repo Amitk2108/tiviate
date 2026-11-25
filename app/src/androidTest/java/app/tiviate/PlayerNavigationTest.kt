@@ -46,6 +46,7 @@ class PlayerNavigationTest {
 
     @After
     fun tearDown() {
+        runBlocking { graph.settings.update { it.copy(invertChannelKeys = false) } }
         scenario.close()
         fixtures.shutdown()
     }
@@ -58,6 +59,18 @@ class PlayerNavigationTest {
         Remote.press(KeyEvent.KEYCODE_CHANNEL_DOWN)
         rule.waitUntil(5_000) { current() == "Ember Music" } // CH− = previous channel, wrapping around
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("zap_banner") }
+        Remote.press(KeyEvent.KEYCODE_CHANNEL_UP)
+        rule.waitUntil(5_000) { current() == "Aurora News" }
+    }
+
+    /** Asked by a viewer coming from TiviMate: channel up and down the other way round. */
+    @Test
+    fun channelUpAndDownCanBeSwapped() {
+        runBlocking { graph.settings.update { it.copy(invertChannelKeys = true) } }
+        rule.waitForIdle()
+        assertEquals("Aurora News", current())
+        Remote.press(KeyEvent.KEYCODE_CHANNEL_DOWN)
+        rule.waitUntil(5_000) { current() == "Beacon Sports" } // CH− = next channel now
         Remote.press(KeyEvent.KEYCODE_CHANNEL_UP)
         rule.waitUntil(5_000) { current() == "Aurora News" }
     }

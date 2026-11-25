@@ -474,5 +474,7 @@
 "Left goes back to aired programmes": "اليسار يعود إلى البرامج المعروضة",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "دليل التلفزيون، القنوات التي لها أرشيف: اليسار ينتقل إلى البرامج التي يمكنك مشاهدتها مجددًا. اضغط مطولًا على اليسار لفتح المجموعات.",
 "This channel": "هذه القناة",
-"Programmes": "البرامج"
+"Programmes": "البرامج",
+"Swap channel up and down": "تبديل القناة التالية والسابقة",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "الأعلى وCH+ ينتقلان إلى القناة السابقة، والأسفل وCH− إلى التالية."
 }

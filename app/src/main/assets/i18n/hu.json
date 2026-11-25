@@ -474,5 +474,7 @@
 "Left goes back to aired programmes": "Balra a már leadott műsorokra lép",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Műsorújság, archívummal rendelkező csatornák: Balra az újra megnézhető műsorokra lép. Tartsa lenyomva a Balra gombot a csoportokhoz.",
 "This channel": "Ez a csatorna",
-"Programmes": "Műsorok"
+"Programmes": "Műsorok",
+"Swap channel up and down": "Csatorna fel és le felcserélése",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "A Fel és a CH+ az előző csatornára vált, a Le és a CH− a következőre."
 }

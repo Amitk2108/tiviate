@@ -474,5 +474,7 @@
 "Left goes back to aired programmes": "שמאלה חוזר לתוכניות ששודרו",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "מדריך שידורים, ערוצים עם ארכיון: שמאלה עובר לתוכניות שאפשר לצפות בהן שוב. החזיקו שמאלה לקבוצות.",
 "This channel": "הערוץ הזה",
-"Programmes": "תוכניות"
+"Programmes": "תוכניות",
+"Swap channel up and down": "החלפת ערוץ למעלה ולמטה",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "למעלה ו-CH+ עוברים לערוץ הקודם, למטה ו-CH− לערוץ הבא."
 }

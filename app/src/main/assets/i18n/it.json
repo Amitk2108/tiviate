@@ -466,5 +466,7 @@
 "Left goes back to aired programmes": "Sinistra torna ai programmi trasmessi",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Guida TV, canali con archivio: Sinistra va ai programmi che puoi rivedere. Tieni premuto Sinistra per i gruppi.",
 "This channel": "Questo canale",
-"Programmes": "Programmi"
+"Programmes": "Programmi",
+"Swap channel up and down": "Inverti canale su e giù",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Su e CH+ vanno al canale precedente, Giù e CH− al successivo."
 }

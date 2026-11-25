@@ -474,5 +474,7 @@
 "Left goes back to aired programmes": "მარცხენა ბრუნდება ნაჩვენებ გადაცემებზე",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "ტელეგიდი, არხები არქივით: მარცხენა გადადის გადაცემებზე, რომელთა ხელახლა ნახვაც შეგიძლიათ. ჯგუფებისთვის დააჭირეთ და გეჭიროთ მარცხენა.",
 "This channel": "ეს არხი",
-"Programmes": "გადაცემები"
+"Programmes": "გადაცემები",
+"Swap channel up and down": "არხის ზემოთ და ქვემოთ გადართვის შებრუნება",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "ზემოთ და CH+ გადადის წინა არხზე, ქვემოთ და CH− — შემდეგზე."
 }

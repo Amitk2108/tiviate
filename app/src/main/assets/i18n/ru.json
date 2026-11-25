@@ -474,5 +474,7 @@
 "Left goes back to aired programmes": "Влево — к уже показанным передачам",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Телегид, каналы с архивом: Влево переходит к передачам, которые можно посмотреть снова. Удерживайте Влево, чтобы открыть группы.",
 "This channel": "Этот канал",
-"Programmes": "Передачи"
+"Programmes": "Передачи",
+"Swap channel up and down": "Поменять переключение каналов вверх и вниз",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Вверх и CH+ переключают на предыдущий канал, Вниз и CH− — на следующий."
 }

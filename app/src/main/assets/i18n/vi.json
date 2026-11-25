@@ -473,5 +473,7 @@
 "Left goes back to aired programmes": "Trái quay lại các chương trình đã phát",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "Lịch phát sóng, kênh có lưu trữ: Trái chuyển đến các chương trình bạn có thể xem lại. Giữ Trái để mở các nhóm.",
 "This channel": "Kênh này",
-"Programmes": "Chương trình"
+"Programmes": "Chương trình",
+"Swap channel up and down": "Đảo chiều chuyển kênh lên và xuống",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Lên và CH+ chuyển về kênh trước, Xuống và CH− chuyển sang kênh sau."
 }

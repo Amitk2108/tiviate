@@ -474,5 +474,7 @@
 "Left goes back to aired programmes": "Sol, yayınlanmış programlara döner",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV rehberi, arşivi olan kanallar: Sol, yeniden izleyebileceğiniz programlara gider. Gruplar için Sol'u basılı tutun.",
 "This channel": "Bu kanal",
-"Programmes": "Programlar"
+"Programmes": "Programlar",
+"Swap channel up and down": "Kanal yukarı ve aşağıyı değiştir",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Yukarı ve CH+ önceki kanala, Aşağı ve CH− sonrakine gider."
 }

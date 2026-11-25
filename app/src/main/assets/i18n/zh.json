@@ -474,5 +474,7 @@
 "Left goes back to aired programmes": "向左回到已播出的节目",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "电视节目指南中，有回看的频道：向左移到可以重看的节目。按住向左打开分组。",
 "This channel": "此频道",
-"Programmes": "节目"
+"Programmes": "节目",
+"Swap channel up and down": "互换频道上下键",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "上键和 CH+ 切换到上一个频道，下键和 CH− 切换到下一个频道。"
 }

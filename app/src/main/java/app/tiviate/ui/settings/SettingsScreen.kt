@@ -284,6 +284,10 @@ private fun RemoteSection() {
             }
         }
         Caption(t("Menu or a long press of OK always opens the options. CH+ and CH− always change channel."))
+        ToggleRow(t("Swap channel up and down"), settings.invertChannelKeys, {
+            scope.launch { graph.settings.update { it.copy(invertChannelKeys = !it.invertChannelKeys) } }
+        }, tag = "setting_invert_channel_keys")
+        Caption(t("Up and CH+ go to the previous channel, Down and CH− to the next."))
         ToggleRow(t("Left / Right change channel"), settings.leftRightZap, {
             scope.launch { graph.settings.update { it.copy(leftRightZap = !it.leftRightZap) } }
         }, tag = "setting_left_right_zap")
@@ -677,6 +681,11 @@ private fun AppearanceSection() {
         ToggleRow(t("Show \"All channels\""), settings.showAllChannels, { update { it.copy(showAllChannels = !it.showAllChannels) } }, tag = "setting_show_all")
         ToggleRow(t("Show \"Favorites\""), settings.showFavoritesGroup, { update { it.copy(showFavoritesGroup = !it.showFavoritesGroup) } }, tag = "setting_show_favorites")
         ToggleRow(t("Show \"Recent\""), settings.showRecentGroup, { update { it.copy(showRecentGroup = !it.showRecentGroup) } }, tag = "setting_show_recent")
+        // Hide, show and order the playlist's groups (also in a channel's menu): where people coming from other players look.
+        settings.activePlaylistId?.let { pid ->
+            val nav = LocalNavigator.current
+            ActionButton(t("Manage groups"), { nav.push(Screen.ManageGroups(pid)) }, tag = "setting_manage_groups")
+        }
         Heading(t("Screens"))
         ToggleRow(t("TV guide over the full-screen video"), settings.guideOverlay, { update { it.copy(guideOverlay = !it.guideOverlay) } }, tag = "setting_guide_overlay")
         ToggleRow(t("Channel list with a small video window"), settings.listPreview, { update { it.copy(listPreview = !it.listPreview) } }, tag = "setting_list_preview")

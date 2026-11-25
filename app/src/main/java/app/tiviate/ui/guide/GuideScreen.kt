@@ -248,8 +248,8 @@ fun GuideScreen() {
     LaunchedEffect(listProgrammes) { if (listView && listIndex < 0 && listProgrammes.isNotEmpty()) listIndex = onAirIndex(listProgrammes, System.currentTimeMillis()) }
     LaunchedEffect(listIndex, listView) { if (listView && listIndex >= 0) programmeList.animateScrollToItem((listIndex - 2).coerceAtLeast(0)) }
 
-    fun openList() {
-        listChannel = channelAt(state.row)
+    fun openList(channel: app.tiviate.data.db.ChannelEntity? = channelAt(state.row)) {
+        listChannel = channel
         listIndex = -1
         listView = true
     }
@@ -284,7 +284,8 @@ fun GuideScreen() {
             }
             AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER -> tabsFocused = false
             AndroidKeyEvent.KEYCODE_DPAD_LEFT -> if (tabsFocused) listView = false
-            AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> if (tabsFocused && !listView) openList()
+            // The tabs sit above the top row: This channel is the one in the preview (GitHub issue #7), not that row's.
+            AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> if (tabsFocused && !listView) openList(current ?: channelAt(state.row))
             AndroidKeyEvent.KEYCODE_MENU -> if (!tabsFocused) listSheet()
             AndroidKeyEvent.KEYCODE_GUIDE -> if (listView) nav.back() else openList()
             else -> return false
@@ -544,7 +545,11 @@ fun GuideScreen() {
     }
     details?.let { ProgrammeDetailsDialog(it) { details = null } }
     sheet?.let { t ->
-        ChannelSheet(t, onClose = { sheet = null }, onDescription = state.focused?.let { b -> { details = b } }, onMessage = { toast = it })
+        ChannelSheet(
+            t, onClose = { sheet = null }, onDescription = state.focused?.let { b -> { details = b } }, onMessage = { toast = it },
+            // Any channel's programmes as a list (GitHub issue #7).
+            onProgrammes = t.channel?.let { c -> { tabsFocused = false; openList(c) } },
+        )
     }
     toast?.let { app.tiviate.ui.player.Toast(it) }
 }

@@ -468,5 +468,7 @@
 "Left goes back to aired programmes": "Vänster går tillbaka till sända program",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV-guide, kanaler med arkiv: Vänster går till program du kan se igen. Håll in Vänster för grupperna.",
 "This channel": "Den här kanalen",
-"Programmes": "Program"
+"Programmes": "Program",
+"Swap channel up and down": "Byt kanal upp och ner",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Upp och CH+ går till föregående kanal, Ner och CH− till nästa."
 }

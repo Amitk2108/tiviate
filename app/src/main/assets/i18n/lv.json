@@ -471,5 +471,7 @@
 "Left goes back to aired programmes": "Pa kreisi atgriežas pie pārraidītajiem raidījumiem",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV programma, kanāli ar arhīvu: Pa kreisi pāriet uz raidījumiem, kurus var skatīties vēlreiz. Turiet Pa kreisi, lai atvērtu grupas.",
 "This channel": "Šis kanāls",
-"Programmes": "Raidījumi"
+"Programmes": "Raidījumi",
+"Swap channel up and down": "Samainīt kanālu uz augšu un uz leju",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Uz augšu un CH+ pārslēdz uz iepriekšējo kanālu, Uz leju un CH− uz nākamo."
 }

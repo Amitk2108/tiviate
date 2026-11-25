@@ -474,5 +474,7 @@
 "Left goes back to aired programmes": "बायाँ प्रसारित कार्यक्रमों पर वापस जाता है",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "टीवी गाइड, आर्काइव वाले चैनल: बायाँ उन कार्यक्रमों पर जाता है जिन्हें आप फिर से देख सकते हैं। ग्रुप के लिए बायाँ दबाए रखें।",
 "This channel": "यह चैनल",
-"Programmes": "कार्यक्रम"
+"Programmes": "कार्यक्रम",
+"Swap channel up and down": "चैनल ऊपर और नीचे की दिशा बदलें",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "ऊपर और CH+ पिछले चैनल पर जाते हैं, नीचे और CH− अगले पर।"
 }

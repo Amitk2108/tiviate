@@ -145,6 +145,32 @@ class GuideTest {
         rule.waitUntil(5_000) { graph.player.catchup.value != null && !rule.onAllNodesWithTagExists("guide_screen") }
     }
 
+    /** GitHub issue #7: This channel lists the channel playing in the preview, not the top row's (the tabs sit above it). */
+    @Test
+    fun thisChannelListsThePlayingChannelNotTheTopRow() {
+        openGuide()
+        Remote.down() // Beacon Sports
+        Remote.ok() // preview it
+        rule.waitUntil(10_000) { graph.player.current.value?.name == "Beacon Sports" }
+        Remote.up() // the top row
+        Remote.up() // the tabs
+        Remote.right()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_channel_programmes") && rule.textExists("Beacon Sports Show 2") }
+        assert(!rule.textExists("Aurora News Show 2")) { "not the top row's channel" }
+    }
+
+    /** GitHub issue #7: holding OK on any channel offers its programmes. */
+    @Test
+    fun holdingOkOnAnyChannelOpensItsProgrammes() {
+        openGuide()
+        Remote.down(2) // Cobalt Movies
+        rule.waitForIdle()
+        Remote.hold(android.view.KeyEvent.KEYCODE_DPAD_CENTER)
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("sheet_programmes") }
+        rule.onNodeWithTag("sheet_programmes").activate()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("guide_channel_programmes") && rule.textExists("Cobalt Movies Show 2") }
+    }
+
     @Test
     fun backLeavesThisChannelForTheTimetable() {
         openGuide()

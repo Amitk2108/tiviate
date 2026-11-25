@@ -169,21 +169,22 @@ fun PlayerScreen() {
                 }
                 return true
             }
+            // "Swap channel up and down" (Settings) turns these the other way round.
             AndroidKeyEvent.KEYCODE_DPAD_UP, AndroidKeyEvent.KEYCODE_CHANNEL_UP, AndroidKeyEvent.KEYCODE_PAGE_UP -> {
-                if (down && native.repeatCount % 3 == 0) vm.zap(forward = true)
+                if (down && native.repeatCount % 3 == 0) vm.zap(forward = !settings.invertChannelKeys)
                 return true
             }
             // Down opens the options (owner's choice); with "Up/Down change channel" it zaps back instead.
             AndroidKeyEvent.KEYCODE_DPAD_DOWN -> {
                 if (settings.upDownMode == UpDownMode.ZAP) {
-                    if (down && native.repeatCount % 3 == 0) vm.zap(forward = false)
+                    if (down && native.repeatCount % 3 == 0) vm.zap(forward = settings.invertChannelKeys)
                 } else if (down && native.repeatCount == 0) {
                     vm.open(Overlay.Options)
                 }
                 return true
             }
             AndroidKeyEvent.KEYCODE_CHANNEL_DOWN, AndroidKeyEvent.KEYCODE_PAGE_DOWN -> {
-                if (down && native.repeatCount % 3 == 0) vm.zap(forward = false)
+                if (down && native.repeatCount % 3 == 0) vm.zap(forward = settings.invertChannelKeys)
                 return true
             }
             // Info bar opened with Info: Left/Right look at the previous/next channel's programme; OK switches to it.

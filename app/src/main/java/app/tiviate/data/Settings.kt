@@ -120,6 +120,8 @@ data class AppSettings(
     val upDownMode: UpDownMode = UpDownMode.UP_NEXT_DOWN_OPTIONS,
     /** Left/Right in fullscreen switch to the previous/next channel (instead of groups / TV guide). */
     val leftRightZap: Boolean = false,
+    /** Up / CH+ go to the previous channel and Down / CH- to the next (as some remotes and players have it). */
+    val invertChannelKeys: Boolean = false,
     /** TV guide, channels with an archive: Left on what's on now goes back to what aired; a long Left opens the groups. */
     val leftToArchive: Boolean = false,
     /** Off: no TV guide screen; Tiviate opens fullscreen and Back leaves the app. */
@@ -262,6 +264,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p[CONFIRM_EXIT] = next.confirmExit
             p[UP_DOWN] = next.upDownMode.name
             p[LEFT_RIGHT_ZAP] = next.leftRightZap
+            p[INVERT_CHANNEL_KEYS] = next.invertChannelKeys
             p[LEFT_TO_ARCHIVE] = next.leftToArchive
             p[GUIDE_SCREEN] = next.guideScreen
             p.setOrRemove(AUDIO_LANG, next.preferredAudioLanguage)
@@ -340,6 +343,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         confirmExit = p[CONFIRM_EXIT] ?: true,
         upDownMode = p[UP_DOWN]?.let { runCatching { UpDownMode.valueOf(it) }.getOrNull() } ?: UpDownMode.UP_NEXT_DOWN_OPTIONS,
         leftRightZap = p[LEFT_RIGHT_ZAP] ?: false,
+        invertChannelKeys = p[INVERT_CHANNEL_KEYS] ?: false,
         leftToArchive = p[LEFT_TO_ARCHIVE] ?: false,
         guideScreen = p[GUIDE_SCREEN] ?: true,
         preferredAudioLanguage = p[AUDIO_LANG],
@@ -429,6 +433,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val CONFIRM_EXIT = booleanPreferencesKey("confirm_exit")
         private val UP_DOWN = stringPreferencesKey("up_down_mode")
         private val LEFT_RIGHT_ZAP = booleanPreferencesKey("left_right_zap")
+        private val INVERT_CHANNEL_KEYS = booleanPreferencesKey("invert_channel_keys")
         private val LEFT_TO_ARCHIVE = booleanPreferencesKey("left_to_archive")
         private val GUIDE_SCREEN = booleanPreferencesKey("guide_screen")
         private val AUDIO_LANG = stringPreferencesKey("preferred_audio_language")

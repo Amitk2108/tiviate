@@ -472,5 +472,7 @@
 "Left goes back to aired programmes": "Lijevo vodi na emitirane emisije",
 "TV guide, channels with an archive: Left moves to programmes you can watch again. Hold Left for the groups.": "TV vodič, kanali s arhivom: Lijevo ide na emisije koje možete ponovno gledati. Držite Lijevo za grupe.",
 "This channel": "Ovaj kanal",
-"Programmes": "Emisije"
+"Programmes": "Emisije",
+"Swap channel up and down": "Zamijeni kanal gore i dolje",
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Gore i CH+ idu na prethodni kanal, Dolje i CH− na sljedeći."
 }

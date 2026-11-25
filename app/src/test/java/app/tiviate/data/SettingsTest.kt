@@ -44,10 +44,10 @@ class SettingsTest {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val store = SettingsStore.forFile(File(context.filesDir, "settings-lr-${System.nanoTime()}.preferences_pb"))
         val d = store.settings.first()
-        assertTrue(!d.leftRightZap && d.guideScreen && !d.leftToArchive)
-        store.update { it.copy(leftRightZap = true, guideScreen = false, leftToArchive = true) }
+        assertTrue(!d.leftRightZap && d.guideScreen && !d.leftToArchive && !d.invertChannelKeys)
+        store.update { it.copy(leftRightZap = true, guideScreen = false, leftToArchive = true, invertChannelKeys = true) }
         val s = store.settings.first()
-        assertTrue(s.leftRightZap && !s.guideScreen && s.leftToArchive)
+        assertTrue(s.leftRightZap && !s.guideScreen && s.leftToArchive && s.invertChannelKeys)
     }
 
     @Test
