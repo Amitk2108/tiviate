@@ -476,5 +476,7 @@
 "This channel": "Этот канал",
 "Programmes": "Передачи",
 "Swap channel up and down": "Поменять переключение каналов вверх и вниз",
-"Up and CH+ go to the previous channel, Down and CH− to the next.": "Вверх и CH+ переключают на предыдущий канал, Вниз и CH− — на следующий."
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Вверх и CH+ переключают на предыдущий канал, Вниз и CH− — на следующий.",
+"OK opens the channel list": "OK открывает список каналов",
+"Hold OK or press Menu for the player options.": "Удерживайте OK или нажмите Меню, чтобы открыть настройки плеера."
 }

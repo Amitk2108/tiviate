@@ -476,5 +476,7 @@
 "This channel": "هذه القناة",
 "Programmes": "البرامج",
 "Swap channel up and down": "تبديل القناة التالية والسابقة",
-"Up and CH+ go to the previous channel, Down and CH− to the next.": "الأعلى وCH+ ينتقلان إلى القناة السابقة، والأسفل وCH− إلى التالية."
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "الأعلى وCH+ ينتقلان إلى القناة السابقة، والأسفل وCH− إلى التالية.",
+"OK opens the channel list": "زر OK يفتح قائمة القنوات",
+"Hold OK or press Menu for the player options.": "اضغط مطولًا على OK أو اضغط القائمة لخيارات المشغل."
 }

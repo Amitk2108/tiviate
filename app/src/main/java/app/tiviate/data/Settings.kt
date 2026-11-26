@@ -122,6 +122,8 @@ data class AppSettings(
     val leftRightZap: Boolean = false,
     /** Up / CH+ go to the previous channel and Down / CH- to the next (as some remotes and players have it). */
     val invertChannelKeys: Boolean = false,
+    /** OK while watching opens the channel list instead of the options (GitHub issue #10); long OK and Menu still open them. */
+    val okOpensChannelList: Boolean = false,
     /** TV guide, channels with an archive: Left on what's on now goes back to what aired; a long Left opens the groups. */
     val leftToArchive: Boolean = false,
     /** Off: no TV guide screen; Tiviate opens fullscreen and Back leaves the app. */
@@ -265,6 +267,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
             p[UP_DOWN] = next.upDownMode.name
             p[LEFT_RIGHT_ZAP] = next.leftRightZap
             p[INVERT_CHANNEL_KEYS] = next.invertChannelKeys
+            p[OK_OPENS_LIST] = next.okOpensChannelList
             p[LEFT_TO_ARCHIVE] = next.leftToArchive
             p[GUIDE_SCREEN] = next.guideScreen
             p.setOrRemove(AUDIO_LANG, next.preferredAudioLanguage)
@@ -344,6 +347,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         upDownMode = p[UP_DOWN]?.let { runCatching { UpDownMode.valueOf(it) }.getOrNull() } ?: UpDownMode.UP_NEXT_DOWN_OPTIONS,
         leftRightZap = p[LEFT_RIGHT_ZAP] ?: false,
         invertChannelKeys = p[INVERT_CHANNEL_KEYS] ?: false,
+        okOpensChannelList = p[OK_OPENS_LIST] ?: false,
         leftToArchive = p[LEFT_TO_ARCHIVE] ?: false,
         guideScreen = p[GUIDE_SCREEN] ?: true,
         preferredAudioLanguage = p[AUDIO_LANG],
@@ -434,6 +438,7 @@ class SettingsStore private constructor(private val store: DataStore<Preferences
         private val UP_DOWN = stringPreferencesKey("up_down_mode")
         private val LEFT_RIGHT_ZAP = booleanPreferencesKey("left_right_zap")
         private val INVERT_CHANNEL_KEYS = booleanPreferencesKey("invert_channel_keys")
+        private val OK_OPENS_LIST = booleanPreferencesKey("ok_opens_channel_list")
         private val LEFT_TO_ARCHIVE = booleanPreferencesKey("left_to_archive")
         private val GUIDE_SCREEN = booleanPreferencesKey("guide_screen")
         private val AUDIO_LANG = stringPreferencesKey("preferred_audio_language")

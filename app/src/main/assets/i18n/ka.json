@@ -476,5 +476,7 @@
 "This channel": "ეს არხი",
 "Programmes": "გადაცემები",
 "Swap channel up and down": "არხის ზემოთ და ქვემოთ გადართვის შებრუნება",
-"Up and CH+ go to the previous channel, Down and CH− to the next.": "ზემოთ და CH+ გადადის წინა არხზე, ქვემოთ და CH− — შემდეგზე."
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "ზემოთ და CH+ გადადის წინა არხზე, ქვემოთ და CH− — შემდეგზე.",
+"OK opens the channel list": "OK ხსნის არხების სიას",
+"Hold OK or press Menu for the player options.": "დამკვრელის პარამეტრებისთვის დააჭირეთ და გეჭიროთ OK ან დააჭირეთ მენიუს."
 }

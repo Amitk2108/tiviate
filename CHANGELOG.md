@@ -2,9 +2,11 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
-## Unreleased
+## 0.5.9 — 2026-11-26
 
 ### Added
+- **Settings → Remote control → OK opens the channel list** (GitHub issue #10): OK while watching opens the channel
+  list on the playing channel, as in TiviMate; hold OK or press Menu for the player options. Off by default.
 - **European Portuguese** (Português, Portugal): thanks to Ricardo Simões (pull request #11). Choose it in Settings →
   General → Language; phones and TVs set to Portuguese outside Brazil use it by themselves (before, they showed
   English).

@@ -163,7 +163,8 @@ fun PlayerScreen() {
         when (native.keyCode) {
             AndroidKeyEvent.KEYCODE_DPAD_CENTER, AndroidKeyEvent.KEYCODE_ENTER, AndroidKeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 when (okPress.onKey(native)) {
-                    KeyAction.Short -> if (!vm.commitPeek()) vm.open(Overlay.Options)
+                    // "OK opens the channel list" (Settings): the list on the playing channel, as TiviMate has it.
+                    KeyAction.Short -> if (!vm.commitPeek()) { if (settings.okOpensChannelList) openPanel(categories = false) else vm.open(Overlay.Options) }
                     KeyAction.Long -> vm.open(Overlay.Options)
                     KeyAction.None -> Unit
                 }

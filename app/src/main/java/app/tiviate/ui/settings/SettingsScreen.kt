@@ -292,6 +292,10 @@ private fun RemoteSection() {
             scope.launch { graph.settings.update { it.copy(leftRightZap = !it.leftRightZap) } }
         }, tag = "setting_left_right_zap")
         Caption(t("When on, the channel list and groups are on OK → Channels."))
+        ToggleRow(t("OK opens the channel list"), settings.okOpensChannelList, {
+            scope.launch { graph.settings.update { it.copy(okOpensChannelList = !it.okOpensChannelList) } }
+        }, tag = "setting_ok_list")
+        Caption(t("Hold OK or press Menu for the player options."))
         ToggleRow(t("Left goes back to aired programmes"), settings.leftToArchive, {
             scope.launch { graph.settings.update { it.copy(leftToArchive = !it.leftToArchive) } }
         }, tag = "setting_left_archive")

@@ -213,7 +213,7 @@ Everything works with a basic Fire TV remote.
 
 | Key | Fullscreen | Channel list | TV guide |
 |---|---|---|---|
-| **OK** | Player options (Channels, TV guide, Pause, Audio, Subtitles, Display, Zoom, Quality, Audio sync, Stats, Sleep…) | Play the channel | Play in the preview; OK again → fullscreen |
+| **OK** | Player options (Channels, TV guide, Pause, Audio, Subtitles, Display, Zoom, Quality, Audio sync, Stats, Sleep…), or the channel list with *OK opens the channel list* on | Play the channel | Play in the preview; OK again → fullscreen |
 | **Hold OK** | Player options | Channel menu (hide, rename, favorite, groups, guide) | Channel and programme menu |
 | **Up / CH+** | Next channel | Move | Move (CH± pages); on the top row → *TV guide · This channel* (Left/Right switch) |
 | **Down** | Player options (or previous channel, if you choose "Up and Down: change channel") | Move | Move |

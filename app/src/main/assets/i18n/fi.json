@@ -474,5 +474,7 @@
 "This channel": "Tämä kanava",
 "Programmes": "Ohjelmat",
 "Swap channel up and down": "Vaihda kanava ylös ja alas toisin päin",
-"Up and CH+ go to the previous channel, Down and CH− to the next.": "Ylös ja CH+ siirtyvät edelliselle kanavalle, Alas ja CH− seuraavalle."
+"Up and CH+ go to the previous channel, Down and CH− to the next.": "Ylös ja CH+ siirtyvät edelliselle kanavalle, Alas ja CH− seuraavalle.",
+"OK opens the channel list": "OK avaa kanavaluettelon",
+"Hold OK or press Menu for the player options.": "Pidä OK pohjassa tai paina Valikko soittimen asetuksia varten."
 }

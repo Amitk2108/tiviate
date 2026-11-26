@@ -46,7 +46,7 @@ class PlayerNavigationTest {
 
     @After
     fun tearDown() {
-        runBlocking { graph.settings.update { it.copy(invertChannelKeys = false) } }
+        runBlocking { graph.settings.update { it.copy(invertChannelKeys = false, okOpensChannelList = false) } }
         scenario.close()
         fixtures.shutdown()
     }
@@ -61,6 +61,23 @@ class PlayerNavigationTest {
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("zap_banner") }
         Remote.press(KeyEvent.KEYCODE_CHANNEL_UP)
         rule.waitUntil(5_000) { current() == "Aurora News" }
+    }
+
+    /** GitHub issue #10: OK opens the channel list (TiviMate's way) when turned on; holding OK still opens the options. */
+    @Test
+    fun okCanOpenTheChannelList() {
+        runBlocking { graph.settings.update { it.copy(okOpensChannelList = true) } }
+        rule.waitForIdle()
+        Remote.ok()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
+        assert(!rule.onAllNodesWithTagExists("options_panel")) { "the list, not the options" }
+        Remote.down() // Beacon Sports
+        Remote.ok()
+        rule.waitUntil(5_000) { current() == "Beacon Sports" }
+        if (rule.onAllNodesWithTagExists("channel_panel")) Remote.back()
+        rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("channel_panel") }
+        Remote.hold(KeyEvent.KEYCODE_DPAD_CENTER)
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("options_panel") }
     }
 
     /** Asked by a viewer coming from TiviMate: channel up and down the other way round. */
