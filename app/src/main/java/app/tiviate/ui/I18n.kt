@@ -18,7 +18,7 @@ object I18n {
         "el" to "Ελληνικά", "en" to "English", "es" to "Español", "fi" to "Suomi", "fr" to "Français", "gu" to "ગુજરાતી",
         "he" to "עברית", "hi" to "हिन्दी", "hr" to "Hrvatski", "hu" to "Magyar", "it" to "Italiano", "ka" to "ქართული",
         "kn" to "ಕನ್ನಡ", "lt" to "Lietuvių", "lv" to "Latviešu", "ml" to "മലയാളം", "mr" to "मराठी", "nb" to "Norsk",
-        "nl" to "Nederlands", "pa" to "ਪੰਜਾਬੀ", "pl" to "Polski", "pt-BR" to "Português (Brasil)", "ro" to "Română",
+        "nl" to "Nederlands", "pa" to "ਪੰਜਾਬੀ", "pl" to "Polski", "pt-BR" to "Português (Brasil)", "pt-PT" to "Português (Portugal)", "ro" to "Română",
         "ru" to "Русский", "sk" to "Slovenčina", "sl" to "Slovenščina", "sr" to "Српски", "sv" to "Svenska",
         "ta" to "தமிழ்", "te" to "తెలుగు", "tr" to "Türkçe", "uk" to "Українська", "vi" to "Tiếng Việt", "zh" to "中文",
     )
@@ -27,9 +27,15 @@ object I18n {
     var current by mutableStateOf("en")
         private set
 
+    /** The language file for a device language: Brazilian Portuguese in Brazil, European Portuguese elsewhere. */
+    fun tagFor(locale: Locale): String = when {
+        locale.language == "pt" -> if (locale.country == "BR") "pt-BR" else "pt-PT"
+        else -> locale.language
+    }
+
     /** Loads [tag], or the TV's language when null. */
     fun use(context: Context, tag: String?) {
-        val wanted = tag ?: Locale.getDefault().let { if (it.language == "pt" && it.country == "BR") "pt-BR" else it.language }
+        val wanted = tag ?: tagFor(Locale.getDefault())
         val resolved = when (wanted) { "iw" -> "he"; "in" -> "id"; else -> wanted }
         if (resolved == current && table.isNotEmpty()) return
         current = resolved
