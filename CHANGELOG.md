@@ -2,6 +2,13 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## Unreleased
+
+### Added
+- **European Portuguese** (Português, Portugal): thanks to Ricardo Simões (pull request #11). Choose it in Settings →
+  General → Language; phones and TVs set to Portuguese outside Brazil use it by themselves (before, they showed
+  English).
+
 ## 0.5.8 — 2026-11-25
 
 ### Fixed: This channel in the TV guide (GitHub issue #7)

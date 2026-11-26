@@ -6,7 +6,7 @@
 
 Free and open-source IPTV player · a TiviMate alternative where every feature is free
 
-TV, phone and tablet · remote and touch · M3U links · Xtream Codes · full TV guide · 40 languages · every feature free
+TV, phone and tablet · remote and touch · M3U links · Xtream Codes · full TV guide · 41 languages · every feature free
 
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue.svg)](LICENSE)
 ![Platform: Android TV · Fire TV · Phone · Tablet](https://img.shields.io/badge/platform-Android%20TV%20%C2%B7%20Fire%20TV%20%C2%B7%20Phone%20%C2%B7%20Tablet-3ddc84.svg)
@@ -188,7 +188,7 @@ Every feature is free. There is no premium version, no account, no activation an
 - **12 accent colours**, 3 backgrounds, **font size**, panel transparency, logo style, two-line names and titles
 - Clock size, date and position, clock over the video; show or hide *All channels*, *Favorites* and *Recent*
 - Animations on/off (everything stays light on low-memory TV boxes)
-- **40 languages**, following the TV's language or chosen in Settings
+- **41 languages**, following the TV's language or chosen in Settings
 
 ### ⚙️ System
 - Start Tiviate when the TV turns on, open the last channel fullscreen on start, confirm exit
