@@ -8,10 +8,18 @@ Free and open-source IPTV player · a TiviMate alternative where every feature i
 
 TV, phone and tablet · remote and touch · M3U links · Xtream Codes · full TV guide · 41 languages · every feature free
 
+[![GitHub stars](https://img.shields.io/github/stars/Amitk2108/tiviate?style=flat&logo=github&label=stars&color=yellow)](https://github.com/Amitk2108/tiviate/stargazers)
+[![Downloads](https://img.shields.io/github/downloads/Amitk2108/tiviate/total?label=downloads&color=brightgreen)](https://github.com/Amitk2108/tiviate/releases)
+[![Latest release](https://img.shields.io/github/v/release/Amitk2108/tiviate?label=latest&color=blue)](https://github.com/Amitk2108/tiviate/releases/latest)
+[![Forks](https://img.shields.io/github/forks/Amitk2108/tiviate?style=flat&label=forks)](https://github.com/Amitk2108/tiviate/network/members)
 [![Licence: GPL-3.0](https://img.shields.io/badge/licence-GPL--3.0-blue.svg)](LICENSE)
 ![Platform: Android TV · Fire TV · Phone · Tablet](https://img.shields.io/badge/platform-Android%20TV%20%C2%B7%20Fire%20TV%20%C2%B7%20Phone%20%C2%B7%20Tablet-3ddc84.svg)
 ![Min Android 7.0](https://img.shields.io/badge/Android-7.0%2B-informational.svg)
-![Made by Amit Kumar](https://img.shields.io/badge/made%20by-Amit%20Kumar-ff69b4.svg)
+[![Made by Amit Kumar](https://img.shields.io/badge/made%20by-Amit%20Kumar-ff69b4.svg)](https://github.com/Amitk2108)
+[![Follow @Amitk2108 on GitHub](https://img.shields.io/github/followers/Amitk2108?label=follow%20%40Amitk2108&style=social)](https://github.com/Amitk2108)
+
+Used on thousands of TVs and phones. If Tiviate is useful to you, **[give it a ⭐ on GitHub](https://github.com/Amitk2108/tiviate)**: it helps
+others find it.
 
 [![Watch Tiviate in 60 seconds](docs/video/tiviate-launch.jpg)](https://amitk2108.github.io/tiviate/video/tiviate-launch.mp4)
 
