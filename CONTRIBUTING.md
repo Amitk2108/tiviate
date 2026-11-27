@@ -58,6 +58,8 @@ To improve a language: edit its JSON file. Keep `%s` / `%d` placeholders, and ke
 
 ## Reporting bugs
 
+Questions and setup help get quicker answers on [r/Tiviate](https://www.reddit.com/r/Tiviate/).
+
 Open an issue with:
 - your device (for example *Fire TV Stick 4K, Fire OS 8*) and the Tiviate version (*Settings → About*);
 - what you did, what you expected and what happened;

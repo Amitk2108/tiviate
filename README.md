@@ -17,7 +17,7 @@ TV, phone and tablet · remote and touch · M3U links · Xtream Codes · full TV
 
 **▶ [Watch Tiviate in 60 seconds](https://amitk2108.github.io/tiviate/video/tiviate-launch.mp4)**
 
-[Website](https://amitk2108.github.io/tiviate/) · [Download](#-download) · [Features](#-features) · [Screenshots](#-screenshots) · [Remote control](#-remote-control) · [Build](#-building-from-source) · [Contributing](CONTRIBUTING.md) · [Legal](#%EF%B8%8F-legal)
+[Website](https://amitk2108.github.io/tiviate/) · [Download](#-download) · [Features](#-features) · [Screenshots](#-screenshots) · [Remote control](#-remote-control) · [Build](#-building-from-source) · [Community](#-community) · [Contributing](CONTRIBUTING.md) · [Legal](#%EF%B8%8F-legal)
 
 </div>
 
@@ -277,6 +277,12 @@ Kotlin · Jetpack Compose & Compose for TV · AndroidX Media3 (ExoPlayer) · Jel
 WorkManager · DataStore · Paging · OkHttp · Moshi · Coil · XZ for Java.
 
 ---
+
+## 💬 Community
+
+Questions, setup help and feature ideas: join **[r/Tiviate](https://www.reddit.com/r/Tiviate/)** on Reddit.
+Found a bug? Open a [GitHub issue](https://github.com/Amitk2108/tiviate/issues), or post it on r/Tiviate with the
+*Bug* flair. Please don't share playlists, links or logins in either place.
 
 ## 🤝 Contributing
 
