@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use or mention Tiviate, please cite it as below."
+title: "Tiviate"
+abstract: "Free, open-source IPTV player for Android TV, Fire TV, phones and tablets."
+type: software
+authors:
+  - given-names: Amit
+    family-names: Kumar
+    alias: Amitk2108
+repository-code: "https://github.com/Amitk2108/tiviate"
+url: "https://amitk2108.github.io/tiviate/"
+license: GPL-3.0
+version: 0.5.9
+date-released: 2026-11-26
+keywords:
+  - iptv
+  - android-tv
+  - fire-tv
+  - m3u
+  - xtream-codes

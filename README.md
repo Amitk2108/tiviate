@@ -289,6 +289,13 @@ Found a bug? Open a [GitHub issue](https://github.com/Amitk2108/tiviate/issues),
 
 Bug reports, ideas, translations and pull requests are welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
+## 👥 Maintainer and contributors
+
+- **[Amit Kumar](https://github.com/Amitk2108)** (@Amitk2108): creator and maintainer
+- **[Ricardo Simões](https://github.com/Ricardo-Simoes)** (@Ricardo-Simoes): European Portuguese translation ([#11](https://github.com/Amitk2108/tiviate/pull/11))
+
+[![Contributors](https://contrib.rocks/image?repo=Amitk2108/tiviate)](https://github.com/Amitk2108/tiviate/graphs/contributors)
+
 ## ⚖️ Legal
 
 - **Player only.** Tiviate is media-player software. It does not provide, sell, host, store, index or link
