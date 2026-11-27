@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
-  - name: Questions, setup help and ideas
+  - name: Questions and ideas
+    url: https://github.com/Amitk2108/tiviate/discussions
+    about: Ask a question or suggest a feature in GitHub Discussions. Keep Issues for bugs.
+  - name: Reddit community
     url: https://www.reddit.com/r/Tiviate/
-    about: Ask on r/Tiviate. Please don't share playlists, links or logins.
+    about: Chat with other Tiviate users on r/Tiviate. Please don't share playlists, links or logins.

@@ -280,7 +280,8 @@ WorkManager · DataStore · Paging · OkHttp · Moshi · Coil · XZ for Java.
 
 ## 💬 Community
 
-Questions, setup help and feature ideas: join **[r/Tiviate](https://www.reddit.com/r/Tiviate/)** on Reddit.
+Questions, setup help and feature ideas: use **[GitHub Discussions](https://github.com/Amitk2108/tiviate/discussions)**
+or join **[r/Tiviate](https://www.reddit.com/r/Tiviate/)** on Reddit.
 Found a bug? Open a [GitHub issue](https://github.com/Amitk2108/tiviate/issues), or post it on r/Tiviate with the
 *Bug* flair. Please don't share playlists, links or logins in either place.
 
