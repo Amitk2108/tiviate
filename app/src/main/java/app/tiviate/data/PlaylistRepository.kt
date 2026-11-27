@@ -235,6 +235,8 @@ class PlaylistRepository(
             db.vod().deleteMovies(playlistId)
             db.vod().deleteSeries(playlistId)
             db.vod().clearProgress(playlistId)
+            db.vod().clearMarks(playlistId)
+            db.vod().clearPrefs(playlistId)
             db.organise().clearMembersOfPlaylist(playlistId)
             db.organise().clearCustomGroups(playlistId)
             db.organise().clearGroupPrefs(playlistId)

@@ -11,8 +11,9 @@ import androidx.room.RoomDatabase
         HistoryEntity::class, EpgSourceEntity::class, EpgChannelEntity::class, ProgrammeEntity::class,
         GroupPrefEntity::class, CustomGroupEntity::class, CustomGroupMemberEntity::class,
         MovieEntity::class, SeriesEntity::class, WatchProgressEntity::class, RecordingEntity::class,
+        VodMarkEntity::class, TitlePrefEntity::class, MetaCacheEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class TiviateDatabase : RoomDatabase() {

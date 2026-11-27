@@ -9,6 +9,56 @@ class XtreamVodJsonTest {
     private fun src(json: String) = Buffer().writeUtf8(json)
 
     @Test
+    fun seriesListCarriesBackdropTrailerAndLastModified() {
+        val list = mutableListOf<XtreamSeries>()
+        XtreamVodJson.series(
+            src(
+                """[{"series_id":21,"name":"Agent 327","backdrop_path":["http://x/b.png","http://x/c.png"],"youtube_trailer":"mN0zPOpADL4",""" +
+                    """"last_modified":"1735689600","cast":"Agent 327, Boris","director":"Colin Levy"}]""",
+            ),
+        ) { list += it }
+        val s = list.single()
+        assertEquals("http://x/b.png", s.backdrop)
+        assertEquals("mN0zPOpADL4", s.trailer)
+        assertEquals(1_735_689_600_000L, s.lastModified)
+        assertEquals("Agent 327, Boris", s.cast)
+        assertEquals("Colin Levy", s.director)
+    }
+
+    @Test
+    fun detailsCarryTheTrailerAndTheFullDate() {
+        val d = XtreamVodJson.movieDetails(src("""{"info":{"youtube_trailer":"eRsGyueVLvQ","releasedate":"2010-09-27"}}"""))
+        assertEquals("eRsGyueVLvQ", d.trailer)
+        assertEquals("2010", d.year)
+        assertEquals("2010-09-27", d.releaseDate)
+    }
+
+    @Test
+    fun episodesCarryTheirAirDate() {
+        val info = XtreamVodJson.seriesInfo(
+            src(
+                """{"episodes":{"1":[{"id":"1","episode_num":1,"info":{"air_date":"2017-05-15"}},""" +
+                    """{"id":"2","episode_num":2,"info":{"releasedate":"2017-06-01 00:00:00"}},{"id":"3","episode_num":3}]}}""",
+            ),
+        )
+        assertEquals(listOf("2017-05-15", "2017-06-01", null), info.episodes.map { it.airDate })
+    }
+
+    /** Providers that send nothing, or empty strings, for the extras. */
+    @Test
+    fun missingExtrasAreNull() {
+        val list = mutableListOf<XtreamSeries>()
+        XtreamVodJson.series(src("""[{"series_id":1,"name":"Plain","backdrop_path":[],"youtube_trailer":"","last_modified":"0","cast":"","director":null}]""")) { list += it }
+        val s = list.single()
+        assertNull(s.backdrop)
+        assertNull(s.trailer)
+        assertNull(s.lastModified)
+        assertNull(s.cast)
+        assertNull(s.director)
+        assertNull(XtreamVodJson.movieDetails(src("""{"info":{"youtube_trailer":""}}""")).trailer)
+    }
+
+    @Test
     fun moviesToleratesStringsNumbersAndGaps() {
         val out = ArrayList<XtreamMovie>()
         val n = XtreamVodJson.movies(
@@ -56,7 +106,7 @@ class XtreamVodJsonTest {
     @Test
     fun movieDetails() {
         val d = XtreamVodJson.movieDetails(src("""{"info":{"plot":"Sand.","cast":"Paul","releasedate":"2021-10-22","duration_secs":"9360","rating":"8"},"movie_data":{"stream_id":501}}"""))
-        assertEquals(XtreamDetails(plot = "Sand.", cast = "Paul", year = "2021", durationSec = 9360, rating = "8"), d)
+        assertEquals(XtreamDetails(plot = "Sand.", cast = "Paul", year = "2021", durationSec = 9360, rating = "8", releaseDate = "2021-10-22"), d)
         assertEquals(XtreamDetails(), XtreamVodJson.movieDetails(src("[]")))
     }
 

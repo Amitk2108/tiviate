@@ -8,6 +8,7 @@ dependencies {
     api(libs.okio)
     implementation(libs.moshi)
     implementation(libs.xz)
+    implementation(libs.zxing.core)
     compileOnly(libs.xmlpull)
 
     testImplementation(libs.junit)

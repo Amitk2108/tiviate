@@ -126,6 +126,16 @@ fun AppRoot() {
             app.tiviate.ui.player.KeepScreenOn((playing.channelKey != null && !playing.isPaused) || nav.current == Screen.MultiView)
             // Only the player, the guide and search let the video show through; every other screen is opaque.
             val opaque = nav.current != Screen.Player && nav.current != Screen.Guide && nav.current != Screen.Search && nav.current !is Screen.VodPlayer
+            // Live TV stops on screens without the video (Settings, Movies & Series…) and plays again on the way back.
+            // Films and multi-view play video of their own.
+            LaunchedEffect(nav.current) {
+                val screen = nav.current
+                when {
+                    screen is Screen.VodPlayer || screen == Screen.MultiView -> Unit
+                    opaque -> graph.player.pauseForScreen()
+                    else -> graph.player.resumeAfterScreen()
+                }
+            }
             // Parental control: a locked channel waits for the PIN; locked Settings open only with it.
             val appSettings by graph.settings.settings.collectAsState(initial = app.tiviate.data.AppSettings())
             val pinRequest by graph.player.pinRequest.collectAsState()
@@ -169,6 +179,8 @@ fun AppRoot() {
                 Screen.OptionCards -> app.tiviate.ui.organise.OptionCardsScreen()
                 Screen.Settings -> SettingsScreen()
                 Screen.Library -> app.tiviate.ui.library.LibraryScreen()
+                is Screen.Person -> app.tiviate.ui.library.PersonScreen(screen.playlistId, screen.personId)
+                is Screen.LibraryAll -> app.tiviate.ui.library.LibraryAllScreen(screen.series, screen.category, screen.all, screen.newest)
                 is Screen.MovieDetails -> app.tiviate.ui.library.MovieDetailsScreen(screen.playlistId, screen.streamId)
                 is Screen.SeriesDetails -> app.tiviate.ui.library.SeriesDetailsScreen(screen.playlistId, screen.seriesId)
                 is Screen.VodPlayer -> app.tiviate.ui.library.VodPlayerScreen(screen.item)

@@ -67,7 +67,7 @@ class PlayerController(
     val vodEnded = MutableStateFlow(false)
 
     /** Plays a film or episode from [startAtMs]; the live channel stops (it comes back on the live screens). */
-    fun playVod(url: String, key: String, startAtMs: Long, userAgent: String?) {
+    fun playVod(url: String, key: String, startAtMs: Long, userAgent: String?, subtitle: ExternalSubtitle? = null) {
         if (!foreground) return
         rowJob?.cancel()
         historyJob?.cancel()
@@ -75,7 +75,7 @@ class PlayerController(
         _catchup.value = null
         vodActive = true
         vodEnded.value = false
-        engine.play(url, emptyMap(), userAgent ?: settings.defaultUserAgent ?: HttpClients.defaultUserAgent, "vod:$key", startAtMs)
+        engine.play(url, emptyMap(), userAgent ?: settings.defaultUserAgent ?: HttpClients.defaultUserAgent, "vod:$key", startAtMs, subtitle = subtitle)
     }
 
     /** Leaves a film or episode: the player stops, so the live screens start the channel again. */
@@ -141,6 +141,7 @@ class PlayerController(
     /** Tunes [channel]. Re-tuning the channel that is already playing is a no-op (no reconnect). */
     fun tune(channel: ChannelEntity, playlistUserAgent: String?) {
         if (!foreground) return
+        lastUserAgent = playlistUserAgent
         if (needsPin(channel) { tune(channel, playlistUserAgent) }) return
         val already = _current.value?.stableKey == channel.stableKey && _current.value?.playlistId == channel.playlistId
         if (already && engine.state.value.error == null && engine.state.value.channelKey == channel.stableKey) return
@@ -244,6 +245,25 @@ class PlayerController(
         setSleepTimer(null)
         consumeSleepDue()
         stop()
+    }
+
+    /** The live channel stopped by [pauseForScreen], with its playlist's User-Agent. */
+    private var stoppedForScreen: Pair<ChannelEntity, String?>? = null
+    private var lastUserAgent: String? = null
+
+    /** A screen without the video opened (Settings, Movies & Series…): live TV stops instead of playing on behind it. */
+    fun pauseForScreen() {
+        val channel = _current.value ?: return
+        if (vodActive || _catchup.value != null || engineOrNull?.state?.value?.channelKey == null) return
+        stoppedForScreen = channel to lastUserAgent
+        stop()
+    }
+
+    /** Back on a screen with the video: the channel [pauseForScreen] stopped plays again, live. */
+    fun resumeAfterScreen() {
+        val (channel, userAgent) = stoppedForScreen ?: return
+        stoppedForScreen = null
+        if (_current.value == null) tune(channel, userAgent)
     }
 
     fun stop() {

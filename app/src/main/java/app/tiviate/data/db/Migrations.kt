@@ -84,5 +84,19 @@ object Migrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+    /** v5: Movies & Series extras (backdrop, trailer, new episodes), My list / favorites, per-title memory, online answers. */
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `series` ADD COLUMN `backdrop` TEXT")
+            db.execSQL("ALTER TABLE `series` ADD COLUMN `trailer` TEXT")
+            db.execSQL("ALTER TABLE `series` ADD COLUMN `lastModified` INTEGER")
+            db.execSQL("ALTER TABLE `series` ADD COLUMN `castNames` TEXT")
+            db.execSQL("ALTER TABLE `series` ADD COLUMN `director` TEXT")
+            db.execSQL("CREATE TABLE IF NOT EXISTS `vod_mark` (`playlistId` INTEGER NOT NULL, `itemKey` TEXT NOT NULL, `kind` INTEGER NOT NULL, `addedAt` INTEGER NOT NULL, PRIMARY KEY(`playlistId`, `itemKey`, `kind`))")
+            db.execSQL("CREATE TABLE IF NOT EXISTS `title_pref` (`playlistId` INTEGER NOT NULL, `titleKey` TEXT NOT NULL, `audioLang` TEXT, `textLang` TEXT, `introEndMs` INTEGER, `seenAt` INTEGER, `subtitlePath` TEXT, PRIMARY KEY(`playlistId`, `titleKey`))")
+            db.execSQL("CREATE TABLE IF NOT EXISTS `meta_cache` (`kind` TEXT NOT NULL, `query` TEXT NOT NULL, `json` TEXT NOT NULL, `fetchedAt` INTEGER NOT NULL, PRIMARY KEY(`kind`, `query`))")
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
 }

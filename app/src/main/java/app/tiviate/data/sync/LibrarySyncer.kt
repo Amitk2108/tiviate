@@ -48,7 +48,10 @@ class LibrarySyncer(
         val seriesCount = http.getOrThrow(XtreamUrls.api(creds, "get_series"), p.userAgent, "Series").use { response ->
             XtreamVodJson.series(response.body.source()) { s ->
                 val (category, rank) = seriesCats[s.categoryId] ?: (null to seriesCats.size)
-                series += SeriesEntity(p.id, s.seriesId, s.name, category, s.cover, s.plot, s.rating, s.genre, s.year, sortIndex(rank, ++position), stamp)
+                series += SeriesEntity(
+                    p.id, s.seriesId, s.name, category, s.cover, s.plot, s.rating, s.genre, s.year, sortIndex(rank, ++position), stamp,
+                    backdrop = s.backdrop, trailer = s.trailer, lastModified = s.lastModified, castNames = s.cast, director = s.director,
+                )
                 if (series.size >= BATCH) { db.vod().upsertSeriesBlocking(ArrayList(series)); series.clear() }
             }
         }

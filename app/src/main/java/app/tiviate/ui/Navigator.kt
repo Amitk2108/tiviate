@@ -21,6 +21,10 @@ sealed interface Screen {
     data object OptionCards : Screen
     /** Movies & Series (Xtream accounts). */
     data object Library : Screen
+    /** A Movies & Series row in full: a group ([category]), every title ([all]) or the newest films first ([newest]). */
+    /** Someone from a title's cast (TMDB). */
+    data class Person(val playlistId: Long, val personId: Long) : Screen
+    data class LibraryAll(val series: Boolean, val category: String?, val all: Boolean, val newest: Boolean = false) : Screen
     data class MovieDetails(val playlistId: Long, val streamId: Long) : Screen
     data class SeriesDetails(val playlistId: Long, val seriesId: Long) : Screen
     data class VodPlayer(val item: app.tiviate.data.VodPlay) : Screen

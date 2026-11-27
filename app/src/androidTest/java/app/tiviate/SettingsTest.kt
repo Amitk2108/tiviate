@@ -56,12 +56,42 @@ class SettingsTest {
         rule.waitUntil(15_000) { graph.player.engine.state.value.isPlaying }
         rule.waitForIdle()
         // Left opens the rail on "All channels"; Settings is the last entry (after 2 groups).
-        Remote.left()
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("categories_rail") }
+        rule.openCategories()
         Remote.down(5)
         Remote.ok()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("settings_screen") }
         rule.waitForIdle()
+    }
+
+    /** Settings → API keys: each key is checked; a key the service doesn't know is reported (Review Focus 2). */
+    @Test
+    fun apiKeysAreCheckedAndAnInvalidOneIsReported() {
+        app.tiviate.data.MetaEndpoints.tmdb = fixtures.url("/tmdb/3").trimEnd('/')
+        app.tiviate.data.MetaEndpoints.omdb = fixtures.url("/omdb").trimEnd('/')
+        app.tiviate.data.MetaEndpoints.openSubtitles = fixtures.url("/os/api/v1").trimEnd('/')
+        launchWith(xtream = false)
+        rule.onNodeWithTag("section_api_keys").activate()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("apikeys_tmdb_input") }
+        rule.onNodeWithTag("apikeys_tmdb_input").performTextInput("good-key")
+        rule.onNodeWithTag("apikeys_omdb_input").performTextInput("wrong-key")
+        rule.onNodeWithTag("apikeys_check").activate()
+        rule.waitUntil(10_000) { rule.textExists("Key works") && rule.textExists("Key not accepted") && rule.textExists("No key") }
+        assert(runBlocking { graph.settings.settings.first() }.let { it.tmdbKey == "good-key" && it.omdbKey == "wrong-key" && it.openSubtitlesKey == null })
+        rule.onNodeWithTag("apikeys_guide").activate()
+        rule.waitUntil(3_000) { rule.textExists("themoviedb.org") && rule.textExists("omdbapi.com") && rule.textExists("opensubtitles.com") }
+    }
+
+    /** Keys pasted on a phone ("Easier with your phone") are saved and checked. */
+    @Test
+    fun apiKeysCanComeFromThePhone() {
+        app.tiviate.data.MetaEndpoints.tmdb = fixtures.url("/tmdb/3").trimEnd('/')
+        app.tiviate.data.MetaEndpoints.omdb = fixtures.url("/omdb").trimEnd('/')
+        app.tiviate.data.MetaEndpoints.openSubtitles = fixtures.url("/os/api/v1").trimEnd('/')
+        launchWith(xtream = false)
+        rule.onNodeWithTag("section_api_keys").activate()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("phone_code") }
+        assert(rule.sendFromPhone("tmdb" to "good-key", "omdb" to "", "opensubtitles" to "") == 200)
+        rule.waitUntil(10_000) { runBlocking { graph.settings.settings.first() }.tmdbKey == "good-key" && rule.textExists("Key works") }
     }
 
     /** On a short screen (a TV, a phone turned sideways) the list scrolls to the last section, "About", instead of hiding its name. */
@@ -94,6 +124,28 @@ class SettingsTest {
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("setting_manage_groups") }
         rule.onNodeWithTag("setting_manage_groups").activate()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("manage_groups") }
+        // Sam: hide or show every group at once.
+        val pid = runBlocking { graph.settings.settings.first().activePlaylistId!! }
+        rule.onNodeWithTag("groups_hide_all").activate()
+        rule.waitUntil(5_000) { runBlocking { graph.db.channels().allGroups(pid).first() }.all { it.hidden } }
+        rule.onNodeWithTag("groups_show_all").activate()
+        rule.waitUntil(5_000) { runBlocking { graph.db.channels().allGroups(pid).first() }.none { it.hidden } }
+    }
+
+    /** Asked by a viewer with 50,000 channels: with "Don't load hidden groups" on, a hidden group's channels are left out. */
+    @Test
+    fun hiddenGroupsCanBeLeftOutOfThePlaylist() {
+        launchWith(xtream = false)
+        val pid = runBlocking { graph.settings.settings.first().activePlaylistId!! }
+        runBlocking { graph.channels.setGroupHidden(pid, "Entertainment", true) }
+        rule.onNodeWithTag("section_playlists").activate()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("setting_skip_hidden") }
+        rule.onNodeWithTag("setting_skip_hidden").activate()
+        try {
+            rule.waitUntil(30_000) { runBlocking { graph.db.channels().count(pid) } == 2 } // News & Sports only
+        } finally {
+            runBlocking { graph.settings.update { it.copy(skipHiddenGroups = false) } }
+        }
     }
 
     @Test

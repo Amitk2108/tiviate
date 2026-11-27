@@ -112,6 +112,9 @@ Pick how your provider gave you the playlist — **M3U link**, **Xtream Codes** 
 password) or a **local `.m3u` file** — and Tiviate loads the channels, groups and TV guide by itself.
 Your login is saved on the TV only and can be edited or removed in *Settings → Playlists*.
 
+Typing with the remote is slow: **Easier with your phone** on the same screen shows a QR code. Scan it with your
+phone (same Wi-Fi), and send the login, a link or an M3U file from the phone; the playlist then loads on the TV.
+
 ---
 
 ## ✨ Features
@@ -120,7 +123,12 @@ Every feature is free. There is no premium version, no account, no activation an
 
 ### 🆕 Watch more
 - **Catch-up**: programmes that already aired play from the provider's archive (↺ in the TV guide)
-- **Movies & Series** for Xtream accounts: posters, Continue watching, seasons and episodes, resume where you stopped
+- **Movies & Series** for Xtream accounts: a large picture of the highlighted title, rows (Continue watching,
+  Recently added, My list, Favorites, one per group), search, sorting and genres; pages with backdrop, trailer,
+  cast, seasons and episodes with pictures; resume where you stopped, the next episode plays by itself, skip intro,
+  "New episodes" badges, and the sound and subtitles you chose are kept per title
+- **Optional extras with your own free keys** ([how to get them](docs/API_KEYS.md)): IMDb and Rotten Tomatoes
+  ratings, cast pages, **Top 10 today**, **Because you watched…** and subtitles from the internet
 - **Recording**: the channel you watch, or programmes from the TV guide, to the device or a **USB drive**
 - **Multi-view**: up to **four channels** at once; the selected one has the sound
 - **Parental control**: a PIN for chosen channels, groups and Settings
@@ -314,7 +322,10 @@ Bug reports, ideas, translations and pull requests are welcome — see **[CONTRI
 - **Privacy.** No accounts, no analytics, no ads, no tracking. Your playlist logins are stored only on your
   device, and the only network requests go to the addresses you entered (your provider, guide links and
   logo hosts) and, unless you turn it off, a daily update check with GitHub (`api.github.com`) that sends
-  nothing about you. Backup files contain your playlist logins: keep them private.
+  nothing about you. Only if you enter your own keys for TMDB, OMDb or OpenSubtitles (*Settings → API keys*),
+  the names of titles you open are sent to those services to look them up. **Easier with your phone** serves a
+  page on your home network only while its screen is open, and accepts nothing without the code shown on the TV.
+  Backup files contain your playlist logins: keep them private.
 - **No warranty.** Tiviate is provided "as is", without warranty of any kind (see sections 15–16 of the GPL).
 - **Takedown or rights questions:** please open an issue on this repository.
 

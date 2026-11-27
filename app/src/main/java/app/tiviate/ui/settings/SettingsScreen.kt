@@ -4,6 +4,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import kotlinx.coroutines.flow.first
 import app.tiviate.data.SyncProgress
 import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.foundation.shape.CircleShape
@@ -85,6 +86,8 @@ import app.tiviate.data.db.EpgOrigin
 import app.tiviate.data.db.PlaylistEntity
 import app.tiviate.data.db.PlaylistType
 import app.tiviate.ui.LocalGraph
+import app.tiviate.ui.LocalFormFactor
+import app.tiviate.ui.FormFactor
 import app.tiviate.ui.LocalNavigator
 import app.tiviate.ui.Screen
 import app.tiviate.ui.components.ActionButton
@@ -110,6 +113,7 @@ private enum class Section(val tag: String, val english: String, val icon: Image
     REMOTE("section_remote", "Remote control", Icons.Rounded.SettingsRemote),
     RECORDING("section_recording", "Recording", Icons.Rounded.FiberManualRecord),
     PARENTAL("section_parental", "Parental control", Icons.Rounded.Lock),
+    API_KEYS("section_api_keys", "API keys", Icons.Rounded.Key),
     OTHER("section_other", "Other", Icons.Rounded.MoreHoriz),
     ABOUT("section_about", "About", Icons.Rounded.Info);
 
@@ -198,9 +202,95 @@ private fun SectionContent(section: Section) {
                 Section.REMOTE -> RemoteSection()
                 Section.RECORDING -> RecordingSection()
                 Section.PARENTAL -> ParentalSection()
+                Section.API_KEYS -> ApiKeysSection()
                 Section.OTHER -> OtherSection()
                 Section.ABOUT -> AboutSection()
             }
+}
+
+/**
+ * The viewer's own free keys for Movies & Series extras: TMDB, OMDb, OpenSubtitles. Saved as typed, shown as dots,
+ * checked with a request that costs nothing; a guide says how to get each one.
+ */
+@Composable
+private fun ApiKeysSection() {
+    val graph = LocalGraph.current
+    val scope = rememberCoroutineScope()
+    val settings by graph.settings.settings.collectAsStateWithLifecycle(AppSettings())
+    var tmdb by remember(settings.tmdbKey) { mutableStateOf(settings.tmdbKey.orEmpty()) }
+    var omdb by remember(settings.omdbKey) { mutableStateOf(settings.omdbKey.orEmpty()) }
+    var openSubtitles by remember(settings.openSubtitlesKey) { mutableStateOf(settings.openSubtitlesKey.orEmpty()) }
+    var results by remember { mutableStateOf<Map<app.tiviate.data.MetaRepository.Service, app.tiviate.data.MetaRepository.KeyCheck>>(emptyMap()) }
+    var checking by remember { mutableStateOf(false) }
+    var guide by remember { mutableStateOf(false) }
+    SectionColumn {
+        Heading(t("API keys"))
+        Caption(t("Optional. With your own free keys, Movies & Series add IMDb and Rotten Tomatoes ratings, cast, Top 10 today, Because you watched and subtitles from the internet. Without keys, Tiviate shows what your provider sends."))
+        ActionButton(if (guide) t("Hide the guide") else t("How to get the keys"), { guide = !guide }, tag = "apikeys_guide")
+        if (guide) ApiKeysGuide()
+        // Long keys are easier to paste on a phone.
+        if (LocalFormFactor.current == FormFactor.TV) {
+            app.tiviate.ui.components.PhonePanel(app.tiviate.data.PhoneLink.Form.KEYS, { f ->
+                fun given(name: String) = f[name]?.trim()?.ifEmpty { null }
+                graph.settings.update { it.copy(tmdbKey = given("tmdb") ?: it.tmdbKey, omdbKey = given("omdb") ?: it.omdbKey, openSubtitlesKey = given("opensubtitles") ?: it.openSubtitlesKey) }
+                checking = true
+                results = app.tiviate.data.MetaRepository.Service.entries.associateWith { graph.meta.check(it) }
+                checking = false
+            }, Modifier.fillMaxWidth())
+        }
+        val services = app.tiviate.data.MetaRepository.Service.entries
+        listOf(
+            Triple("TMDB", t("Descriptions, pictures, cast, Top 10 and recommendations"), tmdb to { v: String -> tmdb = v }),
+            Triple("OMDb", t("IMDb and Rotten Tomatoes ratings (with TMDB)"), omdb to { v: String -> omdb = v }),
+            Triple("OpenSubtitles", t("Subtitles from the internet in the film player"), openSubtitles to { v: String -> openSubtitles = v }),
+        ).forEachIndexed { i, (name, what, field) ->
+            val service = services[i]
+            TvTextField(name, field.first, field.second, tag = "apikeys_${service.name.lowercase()}", hint = t("Paste or type the key"), password = true)
+            Caption(what)
+            results[service]?.let { r ->
+                val (text, color) = when (r) {
+                    app.tiviate.data.MetaRepository.KeyCheck.Works -> t("Key works") to Tokens.Cyan
+                    app.tiviate.data.MetaRepository.KeyCheck.Rejected -> t("Key not accepted") to Tokens.Danger
+                    app.tiviate.data.MetaRepository.KeyCheck.Missing -> t("No key") to Tokens.TextSecondary
+                    is app.tiviate.data.MetaRepository.KeyCheck.Failed -> tf("Couldn't check: %s", r.message) to Tokens.Danger
+                }
+                Text(text, modifier = Modifier.testTag("apikeys_result_${service.name.lowercase()}"), style = TextStyle(color = color, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.SemiBold))
+            }
+        }
+        ActionButton(if (checking) t("Checking…") else t("Save and check"), {
+            if (checking) return@ActionButton
+            checking = true
+            scope.launch {
+                graph.settings.update {
+                    it.copy(tmdbKey = tmdb.trim().ifEmpty { null }, omdbKey = omdb.trim().ifEmpty { null }, openSubtitlesKey = openSubtitles.trim().ifEmpty { null })
+                }
+                results = services.associateWith { graph.meta.check(it) }
+                checking = false
+            }
+        }, primary = true, tag = "apikeys_check")
+        Caption(t("This product uses the TMDB API but is not endorsed or certified by TMDB."))
+    }
+}
+
+/** How to get each key, step by step (also in docs/API_KEYS.md). */
+@Composable
+private fun ApiKeysGuide() {
+    val step = TextStyle(color = Tokens.Text, fontSize = Tokens.BodySize)
+    Column(Modifier.fillMaxWidth().background(Tokens.Surface, Tokens.SmallShape).padding(18.dp).testTag("apikeys_guide_text"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Caption(t("Use a phone or a computer for the websites; then type each key here once, or paste it on a phone."))
+        Text("TMDB", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+        Text(t("1. Create a free account on themoviedb.org."), style = step)
+        Text(t("2. In your account settings, open API and ask for an API key (personal use)."), style = step)
+        Text(t("3. Copy the \"API Key\" (the short one, not the long \"Read Access Token\") into TMDB here."), style = step)
+        Text("OMDb", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+        Text(t("1. Open omdbapi.com/apikey.aspx, choose FREE (1,000 lookups a day) and enter your email."), style = step)
+        Text(t("2. Open the link in the email to turn the key on, then copy the key into OMDb here."), style = step)
+        Text("OpenSubtitles", style = TextStyle(color = Tokens.Cyan, fontSize = Tokens.BodySize, fontWeight = FontWeight.SemiBold))
+        Text(t("1. Create a free account on opensubtitles.com."), style = step)
+        Text(t("2. Open opensubtitles.com/consumers, add a consumer (any name) and copy its API key into OpenSubtitles here."), style = step)
+        Text(t("3. A free key allows a few subtitle downloads a day."), style = step)
+        Caption(t("To look titles up, Tiviate sends their names to these services. Your playlist, logins and viewing history stay on this device."))
+    }
 }
 
 @Composable
@@ -448,6 +538,13 @@ private fun PlaylistsSection() {
         ValueRow(t("Update playlists"), settings.playlistUpdate.label, "setting_playlist_update") {
             scope.launch { graph.settings.update { it.copy(playlistUpdate = app.tiviate.data.PlaylistUpdate.entries.after(it.playlistUpdate)) } }
         }
+        ToggleRow(t("Don't load hidden groups"), settings.skipHiddenGroups, {
+            scope.launch {
+                graph.settings.update { it.copy(skipHiddenGroups = !it.skipHiddenGroups) }
+                graph.appScope.launch { graph.playlists.syncAll() } // the change shows after a reload
+            }
+        }, tag = "setting_skip_hidden")
+        Caption(t("Hidden groups are left out when a playlist loads, guide included: much faster with very big playlists. Showing a group again reloads the playlist."))
         playlists.forEachIndexed { i, p -> PlaylistCard(i, p, active = p.id == settings.activePlaylistId, onDelete = { confirm = p }) }
         if (playlists.size > 1) {
             var updatingAll by remember { mutableStateOf(false) }
@@ -639,6 +736,7 @@ private fun PlayerSection() {
         ToggleRow(t("Black screen while switching channels"), settings.blackOnSwitch, { update { it.copy(blackOnSwitch = !it.blackOnSwitch) } }, tag = "setting_black")
         ToggleRow(t("Always open channels in another player"), settings.alwaysExternalPlayer, { update { it.copy(alwaysExternalPlayer = !it.alwaysExternalPlayer) } }, tag = "setting_external")
         ToggleRow(t("Picture-in-picture when Home is pressed"), settings.pipOnHome, { update { it.copy(pipOnHome = !it.pipOnHome) } }, tag = "setting_pip_home")
+        ToggleRow(t("Play the next episode automatically"), settings.autoNextEpisode, { update { it.copy(autoNextEpisode = !it.autoNextEpisode) } }, tag = "setting_auto_next")
         val captionContext = androidx.compose.ui.platform.LocalContext.current
         ActionButton(t("Subtitle style (TV settings)"), {
             runCatching { captionContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_CAPTIONING_SETTINGS).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }

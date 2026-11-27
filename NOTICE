@@ -11,5 +11,6 @@ This product includes software developed by third parties:
 - Kotlin standard library and kotlinx.coroutines — Apache License 2.0 — JetBrains s.r.o.
 - XZ for Java — BSD Zero Clause License (0BSD) — Lasse Collin and contributors
 - Jellyfin media3-ffmpeg-decoder (FFmpeg audio decoding) — GPL-3.0 — Jellyfin contributors; FFmpeg — The FFmpeg developers
+- ZXing (QR codes) — Apache License 2.0 — ZXing authors
 
 Tiviate does not contain code, images or text from TiviMate or any other proprietary player.

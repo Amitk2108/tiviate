@@ -10,6 +10,7 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToKey
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ActivityScenario
@@ -211,8 +212,10 @@ class PhoneFeaturesTest {
         start(xtream = true)
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("tab_library") }
         rule.onNodeWithTag("tab_library").performClick()
-        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("library_screen") && rule.textExists("Test Film") }
-        rule.onNodeWithTag("library_item_0").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("library_screen") && rule.onAllNodesWithTagExists("library_rows") }
+        rule.onNodeWithTag("library_rows").performScrollToKey("c:Films")
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("library_row_Films_item_0") }
+        rule.onNodeWithTag("library_row_Films_item_0").performClick()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("movie_play") }
         rule.onNodeWithTag("movie_play").performClick()
         rule.waitUntil(15_000) { rule.onAllNodesWithTagExists("vod_player") && graph.player.engine.state.value.isPlaying }

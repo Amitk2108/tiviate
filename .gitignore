@@ -16,5 +16,6 @@ local.test.properties
 keystore.properties
 *.jks
 *.keystore
-# Agent scratch
+# Agent scratch and planning notes (kept on the maintainer's machine only)
 .superpowers/
+docs/superpowers/

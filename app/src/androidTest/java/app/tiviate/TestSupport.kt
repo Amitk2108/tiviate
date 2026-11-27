@@ -57,6 +57,34 @@ object Remote {
 fun SemanticsNodeInteractionsProvider.onAllNodesWithContentDescriptionExists(text: String): Boolean =
     onAllNodes(androidx.compose.ui.test.hasContentDescription(text)).fetchSemanticsNodes().isNotEmpty()
 
+/** Fullscreen: Left opens the channel list, Left again the categories (with Search and Settings). */
+fun androidx.compose.ui.test.junit4.ComposeTestRule.openCategories() {
+    // On a busy device a Left pressed while the list is still opening can be missed: press until the categories show.
+    repeat(4) {
+        if (onAllNodesWithTagExists("categories_rail")) return
+        val listOpen = onAllNodesWithTagExists("channel_panel")
+        Remote.left()
+        runCatching { waitUntil(3_000) { onAllNodesWithTagExists(if (listOpen) "categories_rail" else "channel_panel") } }
+    }
+    waitUntil(3_000) { onAllNodesWithTagExists("categories_rail") }
+}
+
+/** The text a node shows (its own, not merged with others'). */
+fun androidx.compose.ui.test.junit4.ComposeTestRule.textOf(tag: String): String =
+    onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString("")
+
+/** What a phone does on "Easier with your phone": opens the page, then sends [fields] with the TV's code. Returns the answer's status. */
+fun androidx.compose.ui.test.junit4.ComposeTestRule.sendFromPhone(vararg fields: Pair<String, String>): Int {
+    val address = textOf("phone_address")
+    val code = textOf("phone_code")
+    val port = address.substringAfterLast(':')
+    val http = okhttp3.OkHttpClient()
+    val page = http.newCall(okhttp3.Request.Builder().url("http://127.0.0.1:$port/?code=$code").build()).execute().use { it.body!!.string() }
+    check(page.contains("name=\"code\"")) { "the phone page" }
+    val body = okhttp3.FormBody.Builder().add("code", code).apply { fields.forEach { (k, v) -> add(k, v) } }.build()
+    return http.newCall(okhttp3.Request.Builder().url("http://127.0.0.1:$port/send").post(body).build()).execute().use { it.code }
+}
+
 /** In the guide's side menu: Down until Settings (Movies & Series and Recordings sit above it). */
 fun androidx.compose.ui.test.junit4.ComposeTestRule.downToRailSettings() {
     repeat(4) {

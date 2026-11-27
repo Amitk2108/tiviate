@@ -1,6 +1,9 @@
 package app.tiviate
 
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.performImeAction
@@ -46,6 +49,24 @@ class AddPlaylistFlowTest {
         Remote.ok()
         rule.waitUntil(20_000) { graph.player.engine.state.value.isPlaying }
         rule.waitUntil(5_000) { graph.player.current.value?.name == fixtures.channelNames.first() }
+    }
+
+    /** "Easier with your phone": the phone sends the login with the TV's code; the playlist is added and loads. */
+    @Test
+    fun aPlaylistSentFromThePhoneLoads() {
+        rule.waitUntil(10_000) { rule.onAllNodesWithTagExists("welcome_screen") }
+        rule.waitForIdle()
+        Remote.right()
+        Remote.ok() // "Xtream Codes"
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("phone_code") && rule.onAllNodesWithTagExists("phone_qr") }
+        // The QR code opens the page with the code filled in.
+        val link = rule.textOf("phone_address") + "/?code=" + rule.textOf("phone_code")
+        rule.onNodeWithTag("phone_qr").assert(androidx.compose.ui.test.hasContentDescription(link))
+        val status = rule.sendFromPhone("type" to "xtream", "server" to fixtures.url("/").trimEnd('/'), "username" to "u", "password" to "p", "name" to "From the phone")
+        assert(status == 200) { "status $status" }
+        rule.waitUntil(30_000) { rule.onAllNodesWithTagExists("guide_screen") }
+        val graph = (rule.activity.application as TiviateApp).graph
+        assert(runBlocking { graph.playlists.playlists.first() }.any { it.name == "From the phone" })
     }
 
     @Test

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -42,6 +43,11 @@ import app.tiviate.ui.components.ActionButton
 import app.tiviate.ui.components.ToggleRow
 import app.tiviate.ui.components.TvTextField
 import app.tiviate.ui.theme.Tokens
+import app.tiviate.data.PhoneLink
+import app.tiviate.ui.FormFactor
+import app.tiviate.ui.LocalFormFactor
+import app.tiviate.ui.components.PhonePanel
+import java.io.File
 import kotlinx.coroutines.launch
 import app.tiviate.ui.t
 
@@ -116,6 +122,35 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
         }
     }
 
+    // Sent from the phone ("Easier with your phone"): added at once and loaded, like Add playlist here.
+    suspend fun fromPhone(f: Map<String, String>) {
+        val repo = graph.playlists
+        val given = f["name"].orEmpty().trim()
+        val id = when (f["type"]) {
+            "xtream" -> {
+                val s = f["server"].orEmpty().trim()
+                val u = f["username"].orEmpty().trim()
+                val p = f["password"].orEmpty()
+                if (s.isBlank() || u.isBlank() || p.isBlank()) { error = t("Server, username and password are all required"); return }
+                repo.addXtream(given.ifBlank { defaultName(s) }, XtreamCredentials(s, u, p), preferHls = false)
+            }
+            "m3u" -> {
+                val link = f["url"].orEmpty().trim()
+                if (!link.startsWith("http://") && !link.startsWith("https://")) { error = t("Enter an address starting with http:// or https://"); return }
+                repo.addM3uUrl(given.ifBlank { defaultName(link) }, link, null, null)
+            }
+            "file" -> {
+                val text = f["m3u"].orEmpty()
+                if (!text.contains("#EXTINF")) { error = t("That file isn't an M3U playlist."); return }
+                val file = File(context.filesDir, "playlists/phone-${System.currentTimeMillis()}.m3u").apply { parentFile?.mkdirs(); writeText(text) }
+                repo.addM3uFile(given.ifBlank { f["filename"]?.substringBeforeLast('.')?.ifBlank { null } ?: t("Local playlist") }, file.absolutePath, null)
+            }
+            else -> return
+        }
+        nav.push(Screen.Syncing(id))
+    }
+    val phoneHelp = editId == null && LocalFormFactor.current == FormFactor.TV
+
     val header = @Composable {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(if (editId != null) t("Edit playlist") else title(type), style = TextStyle(color = Tokens.Text, fontSize = Tokens.TitleSize, fontWeight = FontWeight.SemiBold))
@@ -168,7 +203,10 @@ fun AddPlaylistScreen(type: PlaylistType, editId: Long? = null) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) { header(); form() }
         } else {
             Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(40.dp)) {
-                Box(Modifier.width(260.dp)) { header() }
+                Column(Modifier.width(300.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    header()
+                    if (phoneHelp) PhonePanel(PhoneLink.Form.PLAYLIST, ::fromPhone, Modifier.fillMaxWidth())
+                }
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) { form() }
             }
         }

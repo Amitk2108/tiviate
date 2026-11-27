@@ -71,6 +71,7 @@ class Media3Engine(
         val manifestMime: String? = null,
         /** Links still to try while nothing has played yet. */
         val alternatives: List<String> = emptyList(),
+        val subtitle: ExternalSubtitle? = null,
     )
 
     /** Channels that only played in the other format: later tunes go straight to it (this run of the app). */
@@ -294,11 +295,14 @@ class Media3Engine(
         if (request != null) startCurrent(keepPlace = true)
     }
 
-    override fun play(url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long, drm: DrmSpec?, manifestMime: String?, alternatives: List<String>) {
+    override fun play(
+        url: String, headers: Map<String, String>, userAgent: String, channelKey: String, startAtMs: Long, drm: DrmSpec?, manifestMime: String?,
+        alternatives: List<String>, subtitle: ExternalSubtitle?,
+    ) {
         main.removeCallbacks(retryRunnable)
         request = Request(
             workingUrl[channelKey]?.takeIf { StreamFallback.otherFormat(it) == url } ?: url, headers, userAgent, channelKey,
-            originalUrl = url, startAtMs = startAtMs, drm = drm, manifestMime = manifestMime, alternatives = alternatives,
+            originalUrl = url, startAtMs = startAtMs, drm = drm, manifestMime = manifestMime, alternatives = alternatives, subtitle = subtitle,
         )
         reconnector.reset()
         pausedAtMs = null
@@ -329,6 +333,17 @@ class Media3Engine(
             .setUri(r.url)
             .setMimeType(r.forcedMime ?: r.manifestMime ?: StreamType.mimeFromUrl(r.url))
             .setLiveConfiguration(MediaItem.LiveConfiguration.Builder().setMinPlaybackSpeed(1f).setMaxPlaybackSpeed(1f).build())
+            .apply {
+                r.subtitle?.let { s ->
+                    val mime = if (s.path.endsWith(".vtt", ignoreCase = true)) androidx.media3.common.MimeTypes.TEXT_VTT else androidx.media3.common.MimeTypes.APPLICATION_SUBRIP
+                    setSubtitleConfigurations(
+                        listOf(
+                            MediaItem.SubtitleConfiguration.Builder(android.net.Uri.fromFile(java.io.File(s.path)))
+                                .setMimeType(mime).setLanguage(s.language).setLabel(s.label).setSelectionFlags(C.SELECTION_FLAG_DEFAULT).build(),
+                        ),
+                    )
+                }
+            }
             .build()
         val factory = DefaultMediaSourceFactory(dataSource, EXTRACTORS)
         r.drm?.let { spec -> val manager = DrmSupport.sessionManager(spec, network); factory.setDrmSessionManagerProvider { manager } }

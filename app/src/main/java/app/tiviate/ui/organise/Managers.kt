@@ -150,6 +150,16 @@ fun ManageGroupsScreen(playlistId: Long) {
         "manage_groups",
         actions = {
             ActionButton(if (reorder) t("Show or hide groups") else t("Reorder groups"), { reorder = !reorder }, tag = "groups_mode")
+            if (!reorder) {
+                ActionButton(t("Hide all"), { scope.launch { graph.channels.setGroupsHidden(playlistId, groups.map { it.name }, true) } }, tag = "groups_hide_all")
+                ActionButton(t("Show all"), {
+                    scope.launch {
+                        graph.channels.setGroupsHidden(playlistId, groups.map { it.name }, false)
+                        // Groups that weren't loaded ("Don't load hidden groups") come with a reload.
+                        if (groups.any { it.hidden && it.count == 0 }) graph.appScope.launch { graph.playlists.sync(playlistId).collect { } }
+                    }
+                }, tag = "groups_show_all")
+            }
         },
     ) {
         if (reorder) {
@@ -158,7 +168,13 @@ fun ManageGroupsScreen(playlistId: Long) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 itemsIndexed(groups, key = { _, g -> g.name }) { i, g ->
                     FocusSurface(
-                        onClick = { scope.launch { graph.channels.setGroupHidden(playlistId, g.name, !g.hidden) } },
+                        onClick = {
+                            scope.launch {
+                                graph.channels.setGroupHidden(playlistId, g.name, !g.hidden)
+                                // Not loaded ("Don't load hidden groups"): its channels come with a reload.
+                                if (g.hidden && g.count == 0) graph.appScope.launch { graph.playlists.sync(playlistId).collect { } }
+                            }
+                        },
                         modifier = (if (i == 0) Modifier.focusRequester(first) else Modifier).fillMaxWidth().testTag("group_row_$i"),
                         container = Color.Transparent,
                         scale = 1.01f,

@@ -46,8 +46,7 @@ class SearchTest {
     }
 
     private fun openSearch() {
-        Remote.left() // categories rail, focused on "All channels"
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("categories_rail") }
+        rule.openCategories() // categories rail, focused on "All channels"
         Remote.up() // "Search"
         Remote.ok()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("search_screen") }

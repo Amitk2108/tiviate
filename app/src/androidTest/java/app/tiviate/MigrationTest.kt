@@ -20,6 +20,25 @@ class MigrationTest {
     @get:Rule
     val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(), TiviateDatabase::class.java)
 
+    /** v5: series keep their data and the new extras start empty. */
+    @Test
+    fun seriesSurviveTheMoviesAndSeriesUpgrade() {
+        val v4 = "migration-v4-test.db"
+        helper.createDatabase(v4, 4).apply {
+            execSQL(
+                "INSERT INTO series (playlistId, seriesId, name, category, cover, plot, rating, genre, year, sortIndex, syncStamp) " +
+                    "VALUES (1, 21, 'Agent 327', 'Animation', NULL, NULL, '8', NULL, '2017', 0, 5)",
+            )
+            close()
+        }
+        val db = helper.runMigrationsAndValidate(v4, 5, true, Migrations.MIGRATION_4_5)
+        db.query("SELECT name, backdrop, trailer, lastModified, castNames, director FROM series WHERE seriesId = 21").use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("Agent 327", c.getString(0))
+            assertTrue((1..5).all { c.isNull(it) })
+        }
+    }
+
     @Test
     fun version1DataSurvivesEveryUpgrade() {
         helper.createDatabase(name, 1).apply {
@@ -34,7 +53,7 @@ class MigrationTest {
             close()
         }
 
-        val db = helper.runMigrationsAndValidate(name, 4, true, *Migrations.ALL)
+        val db = helper.runMigrationsAndValidate(name, 5, true, *Migrations.ALL)
 
         db.query("SELECT name, originalName, hidden, customSort, addedAt, epgOverride, renamed FROM channel WHERE id = 7").use { c ->
             assertTrue(c.moveToFirst())
@@ -66,5 +85,12 @@ class MigrationTest {
         db.query("SELECT serverTimezone FROM playlist WHERE id = 1").use { c -> assertTrue(c.moveToFirst() && c.isNull(0)) }
         // v4: no DRM on existing channels.
         db.query("SELECT drmScheme, drmLicense, manifestType FROM channel WHERE id = 7").use { c -> assertTrue(c.moveToFirst() && c.isNull(0) && c.isNull(1) && c.isNull(2)) }
+        // v5: lists, per-title memory and the cache are usable.
+        db.execSQL("INSERT INTO vod_mark (playlistId, itemKey, kind, addedAt) VALUES (1, 'series:21', 0, 1)")
+        db.execSQL("INSERT INTO title_pref (playlistId, titleKey, audioLang) VALUES (1, 'series:21', 'de')")
+        db.execSQL("INSERT INTO meta_cache (kind, query, json, fetchedAt) VALUES ('tmdb_title', 'q', '{}', 1)")
+        db.query("SELECT (SELECT COUNT(*) FROM vod_mark) + (SELECT COUNT(*) FROM title_pref) + (SELECT COUNT(*) FROM meta_cache)").use { c ->
+            c.moveToFirst(); assertEquals(3, c.getInt(0))
+        }
     }
 }

@@ -153,8 +153,13 @@ class PlayerNavigationTest {
         rule.waitUntil(3_000) { !rule.onAllNodesWithTagExists("channel_panel") }
     }
 
+    /** Sam: Left opens the channel list first, the categories with a second Left. */
     @Test
-    fun leftOpensCategoriesAndGroupFilters() {
+    fun leftOpensTheChannelListThenTheCategories() {
+        Remote.left()
+        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
+        assert(!rule.onAllNodesWithTagExists("categories_rail")) { "the channel list first" }
+        rule.waitForIdle()
         Remote.left()
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("categories_rail") }
         rule.waitUntil(3_000) { rule.textExists("Entertainment") }
@@ -166,6 +171,19 @@ class PlayerNavigationTest {
         rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("channel_panel") }
         Remote.ok() // first channel of "Entertainment"
         rule.waitUntil(5_000) { current() == "Cobalt Movies" }
+    }
+
+    /** Sam: live TV went on playing behind Settings; it stops there and plays again on the way back. */
+    @Test
+    fun liveTvStopsBehindSettingsAndPlaysAgainOnTheWayBack() {
+        assertEquals("Aurora News", current())
+        rule.openCategories()
+        Remote.down(5) // Settings, the last entry
+        Remote.ok()
+        rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("settings_screen") }
+        rule.waitUntil(5_000) { !graph.player.engine.state.value.isPlaying }
+        Remote.back()
+        rule.waitUntil(15_000) { rule.onAllNodesWithTagExists("player_screen") && graph.player.engine.state.value.isPlaying && current() == "Aurora News" }
     }
 
     @Test

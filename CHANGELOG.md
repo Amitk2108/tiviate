@@ -2,6 +2,43 @@
 
 All notable changes to Tiviate. Versions follow `versionName` in `app/build.gradle.kts`.
 
+## 0.5.10 — 2026-11-27
+
+### Changed
+- **Left while watching opens the channel list**; Left again opens the categories (with Search and Settings), as in
+  TiviMate. Before, one Left opened both, on the categories.
+- The channel list is slimmer, and the categories column follows **Panel transparency** too (before, only the
+  channel list did, so the setting seemed to do nothing).
+
+### Fixed
+- After a film or an episode played to its end, the next one opened closed straight away.
+- **Sound behind Settings, Movies & Series**: live TV went on playing behind screens without the video. It now
+  stops there and the same channel plays again, live, when you come back.
+
+### Added
+- **A new Movies & Series**:
+  - **Home**: a large picture of the highlighted title at the top (until you move, recent titles take turns), with
+    *Watch now* and *More info*; rows for Continue watching, Recently added, My list, Favorites and each group, with
+    *Show all*. Search by name for films and series.
+  - **Pages**: the provider's backdrop behind the details, **Trailer**, **My list** and **Favorite**; series show
+    their seasons in a column and each episode with its picture, air date and description; **Go to episode** in long
+    seasons.
+  - **Show all**: sort by newest, A–Z or rating; series by genre. On the TV, the highlighted title's description
+    shows beside the posters.
+  - **Watching**: the next episode plays by itself (Settings → Player can turn it off); **Skip intro** once you mark
+    where a series' intro ends; the sound and subtitles you pick are kept per film or series; **New episodes** on a
+    series you watch.
+- **Optional extras with your own free keys** (Settings → API keys, with a step-by-step guide; [docs/API_KEYS.md](docs/API_KEYS.md)):
+  IMDb and Rotten Tomatoes ratings, the cast and their pages, **Top 10 today**, **Because you watched…** (TMDB and
+  OMDb), and **subtitles from the internet** in the film player (OpenSubtitles). Nothing is sent without a key.
+- **Easier with your phone**: on Add playlist and Settings → API keys, the TV shows a QR code, its address and a code.
+  Scan it with the phone (same Wi-Fi) and send the login, a link, an M3U file or your keys; the playlist then loads.
+- **Manage groups → Hide all / Show all**: for playlists with many groups.
+- **Settings → Playlists → Don't load hidden groups**: channels in groups you hide (Manage groups, or hold OK →
+  Hide group) are left out when a playlist loads, guide included. Much faster with very big playlists (tens of
+  thousands of channels). Hidden groups stay in Manage groups; showing one again reloads the playlist. Off by
+  default.
+
 ## 0.5.9 — 2026-11-26
 
 ### Added

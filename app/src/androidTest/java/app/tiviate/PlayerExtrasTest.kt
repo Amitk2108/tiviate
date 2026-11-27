@@ -101,8 +101,7 @@ class PlayerExtrasTest {
     @Test
     fun longBackFromSettingsGoesStraightBackToThePlayer() {
         launch()
-        Remote.left()
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("categories_rail") }
+        rule.openCategories()
         Remote.down(5)
         Remote.ok()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("settings_screen") }
@@ -117,8 +116,7 @@ class PlayerExtrasTest {
     @Test
     fun chosenLanguageTranslatesTheMenus() {
         launch(language = "de")
-        Remote.left()
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("categories_rail") }
+        rule.openCategories()
         rule.waitUntil(3_000) { rule.textExists("Alle Sender") }
         Remote.down(5)
         Remote.ok()

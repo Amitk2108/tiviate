@@ -58,8 +58,7 @@ class KeepScreenOnTest {
         assertTrue("fullscreen", screenKeptOn())
 
         // Search keeps the playing channel in view: the screen stays on there too.
-        Remote.left()
-        rule.waitUntil(3_000) { rule.onAllNodesWithTagExists("categories_rail") }
+        rule.openCategories()
         Remote.up()
         Remote.ok()
         rule.waitUntil(5_000) { rule.onAllNodesWithTagExists("search_screen") }

@@ -168,7 +168,7 @@ fun ChannelPanel(
         if (categoriesFocused) CategoriesRail(railEntries, category, onRail, onCloseRail, onBrowse)
         Column(
             Modifier
-                .width(470.dp)
+                .width(400.dp)
                 .fillMaxHeight()
                 .background(Tokens.Scrim)
                 .padding(top = 28.dp, start = 20.dp, end = 12.dp)
@@ -311,7 +311,7 @@ private fun CategoriesRail(entries: List<RailEntry>, selected: Category, onRail:
         modifier = Modifier
             .width(300.dp)
             .fillMaxHeight()
-            .background(Tokens.Background.copy(alpha = 0.96f))
+            .background(Tokens.Background.copy(alpha = 0.96f * (1f - app.tiviate.ui.theme.ThemeState.transparency / 100f)))
             .padding(top = 28.dp, start = 16.dp, end = 12.dp)
             .testTag("categories_rail")
             .onPreviewKeyEvent { e -> if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) { onClose(); true } else false },

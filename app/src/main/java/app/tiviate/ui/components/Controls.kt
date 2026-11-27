@@ -112,14 +112,14 @@ fun TvTextField(
                     }
                     .padding(horizontal = 14.dp, vertical = 12.dp),
                 decorationBox = { inner ->
-                    if (value.isEmpty() && hint.isNotEmpty()) Text(hint, style = TextStyle(color = Tokens.TextSecondary.copy(alpha = 0.6f), fontSize = Tokens.BodySize))
+                    if (value.isEmpty() && hint.isNotEmpty()) Text(hint, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.BodySize))
                     inner()
                 },
             )
     }
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(label, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Medium))
+        if (label.isNotEmpty()) Text(label, style = TextStyle(color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, fontWeight = FontWeight.Medium))
         if (touch) {
             val context = androidx.compose.ui.platform.LocalContext.current
             val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current

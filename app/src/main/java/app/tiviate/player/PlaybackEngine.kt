@@ -3,6 +3,9 @@ package app.tiviate.player
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.flow.StateFlow
 
+/** A subtitle file (.srt or .vtt) to show with a film; [label] names it in the subtitles list. */
+data class ExternalSubtitle(val path: String, val language: String?, val label: String)
+
 data class TrackOption(val groupIndex: Int, val trackIndex: Int, val label: String, val selected: Boolean, val language: String? = null)
 
 /** What the Stats overlay shows; null/0 where the stream doesn't say. */
@@ -54,6 +57,8 @@ interface PlaybackEngine {
         drm: DrmSpec? = null, manifestMime: String? = null,
         /** Other links for the same thing, tried in turn while none has opened (archive links vary by server). */
         alternatives: List<String> = emptyList(),
+        /** A subtitle file shown with a film (downloaded from the internet). */
+        subtitle: ExternalSubtitle? = null,
     )
     fun togglePause()
     fun retryNow()

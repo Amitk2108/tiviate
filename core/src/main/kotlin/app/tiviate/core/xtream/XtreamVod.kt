@@ -22,6 +22,13 @@ data class XtreamSeries(
     val rating: String?,
     val genre: String?,
     val year: String?,
+    val backdrop: String? = null,
+    /** A YouTube video ID (or a link), as providers send it. */
+    val trailer: String? = null,
+    /** When the provider last changed the series (new episodes), in ms. */
+    val lastModified: Long? = null,
+    val cast: String? = null,
+    val director: String? = null,
 )
 
 data class XtreamEpisode(
@@ -33,6 +40,8 @@ data class XtreamEpisode(
     val plot: String?,
     val image: String?,
     val durationSec: Int?,
+    /** yyyy-MM-dd. */
+    val airDate: String? = null,
 )
 
 /** Details shown on a film's or a series' page. */
@@ -45,6 +54,9 @@ data class XtreamDetails(
     val durationSec: Int? = null,
     val backdrop: String? = null,
     val rating: String? = null,
+    val trailer: String? = null,
+    /** yyyy-MM-dd. */
+    val releaseDate: String? = null,
 )
 
 data class XtreamSeriesInfo(val details: XtreamDetails, val episodes: List<XtreamEpisode>)
@@ -88,9 +100,19 @@ object XtreamVodJson {
         var rating: String? = null
         var genre: String? = null
         var year: String? = null
+        var backdrop: String? = null
+        var trailer: String? = null
+        var modified: Long? = null
+        var cast: String? = null
+        var director: String? = null
         while (r.hasNext()) {
             when (r.nextName()) {
                 "series_id" -> id = scalar(r)?.toLongValue()
+                "backdrop_path" -> backdrop = firstString(r)
+                "youtube_trailer" -> trailer = scalar(r)?.trim()?.ifEmpty { null }
+                "last_modified" -> modified = scalar(r)?.toLongValue()?.takeIf { it > 0 }?.times(1_000L)
+                "cast" -> cast = scalar(r)?.trim()?.ifEmpty { null }
+                "director" -> director = scalar(r)?.trim()?.ifEmpty { null }
                 "name" -> name = scalar(r)?.trim()
                 "cover" -> cover = scalar(r)?.trim()?.ifEmpty { null }
                 "category_id" -> cat = scalar(r)?.ifEmpty { null }
@@ -102,7 +124,7 @@ object XtreamVodJson {
             }
         }
         val seriesId = id ?: return@eachObject false
-        onSeries(XtreamSeries(seriesId, name?.ifEmpty { null } ?: "Series $seriesId", cover, cat, plot, rating, genre, year))
+        onSeries(XtreamSeries(seriesId, name?.ifEmpty { null } ?: "Series $seriesId", cover, cat, plot, rating, genre, year, backdrop, trailer, modified, cast, director))
         true
     }
 
@@ -183,7 +205,7 @@ object XtreamVodJson {
             r.endObject()
             val episodeId = id ?: continue
             val n = number ?: (out.count { it.season == (season ?: seasonKey) } + 1)
-            out += XtreamEpisode(episodeId, season ?: seasonKey, n, title?.ifEmpty { null } ?: "Episode $n", ext ?: "mp4", info.plot, image, info.durationSec)
+            out += XtreamEpisode(episodeId, season ?: seasonKey, n, title?.ifEmpty { null } ?: "Episode $n", ext ?: "mp4", info.plot, image, info.durationSec, info.releaseDate)
         }
         r.endArray()
     }
@@ -199,7 +221,11 @@ object XtreamVodJson {
                 "genre" -> d = d.copy(genre = scalar(r)?.trim()?.ifEmpty { null })
                 "cast", "actors" -> d = d.copy(cast = d.cast ?: scalar(r)?.trim()?.ifEmpty { null })
                 "director" -> d = d.copy(director = scalar(r)?.trim()?.ifEmpty { null })
-                "releasedate", "releaseDate", "release_date" -> d = d.copy(year = d.year ?: scalar(r)?.trim()?.take(4)?.ifEmpty { null })
+                "releasedate", "releaseDate", "release_date", "air_date" -> {
+                    val date = scalar(r)?.trim()?.ifEmpty { null }
+                    d = d.copy(year = d.year ?: date?.take(4), releaseDate = d.releaseDate ?: date?.take(10)?.takeIf { it.length == 10 })
+                }
+                "youtube_trailer" -> d = d.copy(trailer = scalar(r)?.trim()?.ifEmpty { null })
                 "duration_secs" -> d = d.copy(durationSec = scalar(r)?.toLongValue()?.toInt()?.takeIf { it > 0 })
                 "rating" -> d = d.copy(rating = scalar(r)?.trim()?.ifEmpty { null })
                 "backdrop_path" -> d = d.copy(backdrop = firstString(r))

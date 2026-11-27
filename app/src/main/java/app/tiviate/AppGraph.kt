@@ -42,6 +42,10 @@ class AppGraph(context: Context) {
 
     /** Movies & Series (Xtream). */
     val library: app.tiviate.data.LibraryRepository by lazy { app.tiviate.data.LibraryRepository(db, http) }
+    val meta: app.tiviate.data.MetaRepository by lazy {
+        val version = runCatching { appContext.packageManager.getPackageInfo(appContext.packageName, 0).versionName }.getOrNull() ?: "1"
+        app.tiviate.data.MetaRepository(db, http, settings, "Tiviate v$version")
+    }
 
     val player: PlayerController by lazy { PlayerController(appContext, http, settings, channels, appScope) }
 
@@ -49,7 +53,7 @@ class AppGraph(context: Context) {
         PlaylistRepository(
             db = db,
             http = http,
-            playlistSyncer = PlaylistSyncer(db, http, openLocal = ::openLocal),
+            playlistSyncer = PlaylistSyncer(db, http, openLocal = ::openLocal, skipHiddenGroups = { settings.settings.first().skipHiddenGroups }),
             epgSyncer = EpgSyncer(db, http, newPullParser = { Xml.newPullParser() }, pastDays = { settings.settings.first().epgPastDays }),
             librarySyncer = app.tiviate.data.sync.LibrarySyncer(db, http),
             scope = appScope,

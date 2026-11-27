@@ -139,6 +139,10 @@ class ChannelRepository(
         db.organise().putGroupPref(pref.copy(hidden = hidden))
     }
 
+    suspend fun setGroupsHidden(playlistId: Long, groups: List<String>, hidden: Boolean) {
+        for (g in groups) setGroupHidden(playlistId, g, hidden)
+    }
+
     /** Own name for a group; null or blank restores the provider's name. */
     suspend fun renameGroup(playlistId: Long, group: String, displayName: String?) {
         val pref = db.organise().groupPref(playlistId, group) ?: GroupPrefEntity(playlistId, group)

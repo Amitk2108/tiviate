@@ -106,13 +106,23 @@ interface ChannelDao {
     )
     fun categories(playlistId: Long): Flow<List<CategoryRow>>
 
-    /** Every provider group, hidden ones too, for "Manage groups". */
+    /**
+     * Every provider group, hidden ones too, for "Manage groups"; also hidden groups whose channels weren't loaded
+     * ("Don't load hidden groups"), so they can be shown again.
+     */
     @Query(
-        """SELECT c.groupName AS name, MAX(gp.displayName) AS label, COUNT(*) AS count, COALESCE(MAX(gp.hidden), 0) AS hidden,
-           MIN(gp.position) AS position FROM channel c
-           LEFT JOIN group_pref gp ON gp.playlistId = c.playlistId AND gp.name = c.groupName
-           WHERE c.playlistId = :playlistId AND c.groupName IS NOT NULL
-           GROUP BY c.groupName ORDER BY COALESCE(MIN(gp.position), 1000000 + MIN(c.sortIndex))""",
+        """SELECT name, label, count, hidden, position FROM (
+             SELECT c.groupName AS name, MAX(gp.displayName) AS label, COUNT(*) AS count, COALESCE(MAX(gp.hidden), 0) AS hidden,
+               MIN(gp.position) AS position, COALESCE(MIN(gp.position), 1000000 + MIN(c.sortIndex)) AS ord FROM channel c
+             LEFT JOIN group_pref gp ON gp.playlistId = c.playlistId AND gp.name = c.groupName
+             WHERE c.playlistId = :playlistId AND c.groupName IS NOT NULL
+             GROUP BY c.groupName
+             UNION ALL
+             SELECT gp.name AS name, gp.displayName AS label, 0 AS count, 1 AS hidden, gp.position AS position,
+               COALESCE(gp.position, 2000000) AS ord FROM group_pref gp
+             WHERE gp.playlistId = :playlistId AND gp.hidden = 1
+               AND NOT EXISTS (SELECT 1 FROM channel c WHERE c.playlistId = gp.playlistId AND c.groupName = gp.name))
+           ORDER BY ord""",
     )
     fun allGroups(playlistId: Long): Flow<List<GroupRow>>
 
@@ -211,6 +221,9 @@ interface ChannelDao {
 interface OrganiseDao {
     @Query("SELECT * FROM group_pref WHERE playlistId = :playlistId AND name = :name")
     suspend fun groupPref(playlistId: Long, name: String): GroupPrefEntity?
+
+    @Query("SELECT name FROM group_pref WHERE playlistId = :playlistId AND hidden = 1")
+    suspend fun hiddenGroupNames(playlistId: Long): List<String>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putGroupPref(p: GroupPrefEntity)
 

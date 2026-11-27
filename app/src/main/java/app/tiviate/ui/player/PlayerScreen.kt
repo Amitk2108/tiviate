@@ -194,7 +194,8 @@ fun PlayerScreen() {
                     settings.leftRightZap -> if (down && native.repeatCount % 3 == 0) vm.zap(forward = false)
                     !down -> Unit
                     overlay == Overlay.Banner && vm.canPeek -> vm.peek(forward = false)
-                    else -> openPanel(categories = true)
+                    // The channel list first; Left again opens the categories.
+                    else -> openPanel(categories = false)
                 }
                 return true
             }
